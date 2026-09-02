@@ -1,1 +1,1 @@
-{"versionName": "1.3.1", "versionCode": 16, "url": "https://ccxxxx-create.github.io/xuebao-web/", "notes": "英语情报 v1.3.1：兴趣中心拆分四个独立小界面；新增「排行榜」入口（今日榜/我的相关榜/回测与抽查），支持探索率调节与一键更新。"}
+{"versionName": "1.3.2", "versionCode": 17, "url": "https://ccxxxx-create.github.io/xuebao-web/", "notes": "英语情报 v1.3.2：修复“旧缓存无法更新”死锁——应用将自动注册 Service Worker，之后每次打开都先校验最新版；请按提示完成一次解锁刷新，之后自动更新即可生效。"}
