@@ -197,7 +197,9 @@
         pulling = false;
         App.toast(added > 0 ? "更新完成，新增 " + added + " 条" : "已是最新（无新增条目）", "ok");
         App.refresh();
-        return App.maybeAutoClean(true);
+        App.maybeAutoClean(true).catch(function () {});
+        if (window.BRIEF) BRIEF.tryAuto().catch(function () {});
+        return 0;
       }).catch(function (err) {
         pulling = false;
         App.toast(err && err.message ? err.message : "拉取失败", "err");
@@ -236,6 +238,8 @@
       }, 3000);
       // 自动检查更新（约 6 小时一次）
       setTimeout(function () { App.checkUpdate(); }, 4200);
+      // 周末简报：周六/周日首次打开自动投递（纯本地汇总，幂等）
+      setTimeout(function () { if (window.BRIEF) BRIEF.tryAuto(); }, 6500);
     }
   };
 
