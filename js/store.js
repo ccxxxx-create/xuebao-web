@@ -25,6 +25,8 @@
     fontSizePx: null,          // 字号基准 px（默认 16，迁移函数兜底）
     allowLearn: true,          // 允许本机记录喜好（收藏/取消/出刊信号），仅存本设备
     interestKeywords: "",      // 兴趣关键词（模糊匹配，用于“按相关度”排序）
+    compareAutoFull: false,    // 双语对照时如缺译文是否自动翻译全文
+    channelOns: {},            // 信源开关：{channelId:0}=本设备停用（保留历史数据，不再收录）
     signatureText: "（XX大学XX学院XXX  XX  供稿）",   // 供稿署名默认（范文同款占位，Word 里可改）
     autoPull: true,
     // 状态
@@ -123,6 +125,17 @@
     },
     clearPrefs: function () {
       try { localStorage.removeItem(this.PREFS_KEY); } catch (e) { /* ignore */ }
+    },
+
+    /* 信源开关（本设备级） */
+    channelOn: function (id) {
+      return !(this.settings.channelOns || {})[id];
+    },
+    setChannelOn: function (id, on) {
+      if (!this.settings.channelOns) this.settings.channelOns = {};
+      this.settings.channelOns[id] = on ? 0 : 1;
+      if (on) delete this.settings.channelOns[id];
+      this.saveSettings();
     },
 
     dbPromise: null,
