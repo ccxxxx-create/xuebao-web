@@ -154,6 +154,13 @@
       pulling = true;
       if (!opts || !opts.silent) App.toast("正在拉取官方信源镜像…");
       return MIRROR.pull().then(function (json) {
+        // 本设备停用的信源：不入库（历史数据保留）
+        if (Store.settings.channelOns) {
+          var offKeys = Object.keys(Store.settings.channelOns);
+          if (offKeys.length && json && Array.isArray(json.items)) {
+            json = { updatedAt: json.updatedAt, meta: json.meta, items: json.items.filter(function (it) { return !(Store.settings.channelOns[it.channel]); }) };
+          }
+        }
         return MIRROR.merge(json).then(function (added) {
           var s = Store.settings;
           s.lastPullAt = Date.now();
@@ -163,7 +170,7 @@
           if (added > 0 && s.autoTranslate && LLM.configured()) {
             App.toast("新增 " + added + " 条，自动翻译标题中…");
             return Store.getAllArticles().then(function (all) {
-              return MIRROR.translateTitles(MIRROR.pendingTitles(all)).then(function () { return added; });
+              return MIRROR.translateTitlesOnly(MIRROR.pendingTitles(all)).then(function () { return added; });
             });
           }
           return added;
