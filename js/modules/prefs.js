@@ -17,7 +17,7 @@
       bind(el, s, kwArr);
 
       function keywordCard(s, arr) {
-        return '<div class="card"><h3>我的关键词（相关度排序）</h3>' +
+        return '<div class="card"><h3>我的关键词</h3>' +
           '<p class="muted">关键词是价值排序最重要的显式先验。命中后资料库/收藏夹显示「相关 N」角标，可在资料库切换「按相关度」排序。模糊匹配：标题/摘要/正文任意位置出现即算相关，多个关键词为“或”，宁宽勿严。</p>' +
           '<div class="field"><label>点击标签可删除；输入后回车或点“添加”</label>' +
           '<div class="kw-tags" id="kwChips">' + arr.map(function (k) {
