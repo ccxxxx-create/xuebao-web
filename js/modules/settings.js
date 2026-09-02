@@ -131,6 +131,7 @@
       '<div class="art-actions">' +
       '<button class="btn" id="dbExport">导出备份 JSON</button>' +
       '<button class="btn" id="dbImport">导入备份 JSON</button>' +
+      '<button class="btn" id="dbDedup" title="同标题重复文章只保留信息最全的一篇">清理重复文章</button>' +
       '<button class="btn danger" id="dbClear">清空资料库</button>' +
       '<input type="file" id="dbFile" accept=".json" style="display:none">' +
       "</div>" +
@@ -333,6 +334,15 @@
         root.querySelector("#dbClear").addEventListener("click", function () {
           App.confirm("清空本设备资料库全部文章？（学报记录与术语保留）").then(function (ok) {
             if (ok) Store.clearArticles().then(function () { App.toast("已清空"); App.refresh(); });
+          });
+        });
+        root.querySelector("#dbDedup").addEventListener("click", function () {
+          App.confirm("将按规范化标题合并重复文章（跨源同题转载），保留翻译进度/收藏/选文最全的一篇，其余删除。继续？").then(function (ok) {
+            if (!ok) return;
+            MIRROR.cleanupDups().then(function (n) {
+              App.toast(n > 0 ? "已清理 " + n + " 篇重复文章" : "没有发现重复文章", n > 0 ? "ok" : "");
+              App.refresh();
+            });
           });
         });
       }
