@@ -231,3 +231,23 @@ table.data th{background:#eef5fc;color:#1c4a7e}
 /* 字号滑条美化 */
 input[type="range"]{accent-color:var(--primary);height:26px}
 .fz-preview{background:#fff;border:1px dashed var(--line);border-radius:8px;padding:8px 12px;margin-top:8px;color:var(--text2)}
+
+/* 设置项折叠 */
+.card h3.set-head{cursor:pointer;user-select:none;position:relative;padding-right:26px;margin-bottom:0}
+.card h3.set-head::after{content:"▲";position:absolute;right:2px;top:0;font-size:.72em;color:var(--text3);transition:transform .15s}
+.card h3.set-head.collapsed::after{content:"▼"}
+.set-body{margin-top:10px}
+
+/* 阅读页双语对照 */
+.pair-tbl{border-collapse:collapse;width:100%;margin:8px 0;background:#fff;table-layout:fixed}
+.pair-tbl th,.pair-tbl td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;word-break:break-word}
+.pair-tbl th{background:#f2f7fc;color:#1c4a7e;width:50%}
+.pair-tbl .pair-en{background:#fbfdff}
+.pair-tbl .pair-zh{background:#fffdf3}
+.pair-tbl td{font-size:.9rem;line-height:1.75}
+
+/* 关键词 chips */
+.kw-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;min-height:32px;align-items:center}
+.kw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent-weak);border:1px solid #bcd8f0;color:#0b4f8f;border-radius:18px;padding:3px 6px 3px 11px;font-size:.85rem}
+.kw-tag button{border:0;background:transparent;color:#7f97b1;font-size:1rem;line-height:1;cursor:pointer;padding:0 2px}
+.kw-tag button:hover{color:var(--bad)}
