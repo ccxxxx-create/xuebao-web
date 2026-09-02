@@ -113,6 +113,7 @@
       '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfCmpAuto"' + (s.compareAutoFull ? " checked" : "") + "> 阅读页点「中英对照」时若缺译文则自动翻译全文（消耗 token，默认关）</label>" +
       '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoPull"' + (s.autoPull ? " checked" : "") + "> 打开页面时自动拉取镜像（30 分钟内有数据则不重复拉）</label>" +
       '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期文章（保留期内不删；收藏/已出刊永不自动删）</label>" +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动检查新版本（约 6 小时一次；不消耗模型额度）</label>" +
       '<div class="modal-actions" style="margin-top:8px"><button class="btn primary" id="bfSave">保存</button></div></div>';
   }
 
@@ -270,6 +271,7 @@
           s.compareAutoFull = root.querySelector("#bfCmpAuto").checked;
           s.autoPull = root.querySelector("#bfAutoPull").checked;
           s.autoClean = root.querySelector("#bfAutoClean").checked;
+          s.autoCheck = root.querySelector("#bfAutoChk").checked;
           Store.saveSettings();
           App.toast("已保存", "ok");
         });
