@@ -34,8 +34,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.3.1",
-    versionCode: 16,
+    appVersion: "1.3.2",
+    versionCode: 17,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     seenNotices: {}
