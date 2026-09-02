@@ -27,7 +27,6 @@
         stat("今日新增", todayAdd, "", "#/library") +
         stat("待译标题", pending, pending ? "bad" : "", "#/library") +
         stat("收藏", favN, "", "#/favorites") +
-        stat("已选入学报", selected, "", "#/journal") +
         "</div>" +
 
         '<div class="card"><div class="art-head" style="margin-bottom:4px"><h3 style="margin:0">最近入库</h3>' +
@@ -53,7 +52,6 @@
             '<div class="art-meta"><span class="badge A">A 官网直采</span><span>' + H.esc(a.channelName || a.channel) + "</span><span>" +
             H.fmtDay(a.pubDate) + "</span>" +
             (a.fav ? '<span class="badge" style="background:#fdeee0;color:#b06a1b">收藏</span>' : "") +
-            (a.selected ? '<span class="badge blue">已选</span>' : "") +
             "</div></div>" +
             '<a class="btn sm" href="#/library?q=' + encodeURIComponent(a.title.slice(0, 40)) + '">查看</a>' +
             "</div></div>";
