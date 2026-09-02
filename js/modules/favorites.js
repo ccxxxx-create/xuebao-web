@@ -64,29 +64,32 @@
           "</div>";
       }
       function bind(el) {
-        el.addEventListener("click", function (e) {
-          var btn = e.target.closest("[data-act]");
-          if (!btn) return;
-          var act = btn.dataset.act, url = btn.dataset.url;
-          if (act === "open") { state.openUrl = state.openUrl === url ? null : url; App.refresh(); }
-          else if (act === "unfav") {
-            Store.getArticle(url).then(function (a) {
-              a.fav = 0;
-              return Store.putArticle(a); // 取消收藏：中性操作，不记负反馈
-            }).then(function () {
-              App.toast("已取消收藏");
-              App.refresh();
-            });
-          }
-          else if (act === "tr") doTr(url);
-          else if (act === "full") doFull(url);
-          else if (act === "journal") {
-            Store.getArticle(url).then(function (a) {
-              if (!a.titleZh) { App.toast("请先生成标题"); return; }
-              window.WB.modules.journal.generateOne(a);
-            });
-          }
-        });
+        if (!el.__wbFav) {
+          el.__wbFav = true; // 容器级监听只绑定一次，避免事件叠加
+          el.addEventListener("click", function (e) {
+            var btn = e.target.closest("[data-act]");
+            if (!btn) return;
+            var act = btn.dataset.act, url = btn.dataset.url;
+            if (act === "open") { state.openUrl = state.openUrl === url ? null : url; App.refresh(); }
+            else if (act === "unfav") {
+              Store.getArticle(url).then(function (a) {
+                a.fav = 0;
+                return Store.putArticle(a); // 取消收藏：中性操作，不记负反馈
+              }).then(function () {
+                App.toast("已取消收藏");
+                App.refresh();
+              });
+            }
+            else if (act === "tr") doTr(url);
+            else if (act === "full") doFull(url);
+            else if (act === "journal") {
+              Store.getArticle(url).then(function (a) {
+                if (!a.titleZh) { App.toast("请先生成标题"); return; }
+                window.WB.modules.journal.generateOne(a);
+              });
+            }
+          });
+        }
         el.querySelectorAll(".detail-tabs button").forEach(function (b) {
           b.addEventListener("click", function () {
             state.zhTab = b.dataset.tab;
