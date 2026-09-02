@@ -126,6 +126,7 @@
             Store.inboxAdd("update", n.title || "新公告", n.body + (n.link ? "\n\n" + n.link : ""));
             App.refreshMail();
             App.toast("收到新公告 ✉，详见收件箱", "ok");
+            if (current === "inbox") App.refresh();
           }
         }
         var v = parseInt(j.versionCode, 10);
