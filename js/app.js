@@ -196,6 +196,10 @@
     },
     start: function () {
       App.applyFont();
+      // 注册 Service Worker：网络优先校验最新版本，解决旧缓存卡死（仅 http/https 环境）
+      if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+        navigator.serviceWorker.register("sw.js?v=" + (Store.settings.versionCode || 1)).catch(function () {});
+      }
       renderNav();
       window.addEventListener("hashchange", function () { App.route(location.hash); });
       var initial = location.hash;
