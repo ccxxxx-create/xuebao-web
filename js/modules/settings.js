@@ -159,7 +159,7 @@
         '<div class="card"><h3>关于</h3>' +
         '<div class="muted">英语情报 · 信息搜集与情报工作台 v' + H.esc(s.appVersion || "1.2.0") +
         "（build " + (s.versionCode || 2) + "）<br>形态：纯静态网页应用（参照个人工作台模式），双击 index.html 即可用；" +
-        "部署成网址后电脑/平板/手机打开即用，各设备数据独立。<br>采集：6 个官方直连源由 GitHub Actions 每天 09:00 抓取镜像；" +
+        "部署成网址后电脑/平板/手机打开即用，各设备数据独立。<br>采集：9 个官方直连源（含国防部/陆战队/空军等）由 GitHub Actions 每天 09:00 抓取镜像，每源每轮 ≤20 条；" +
         "docx 版式严格遵循范文《以色列研发智能反无人机系统Iron Drone Raider.docx》。</div></div>";
 
       bindModel(el, s);
