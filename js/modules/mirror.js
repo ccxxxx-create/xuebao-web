@@ -4,6 +4,10 @@
 
   var busy = false;
 
+  function normTitle(t) {
+    return String(t || "").toLowerCase().replace(/[\W_]+/g, "");
+  }
+
   function mirrorUrls(repo) {
     repo = (repo || Store.settings.mirrorRepo || "").trim().replace(/\.git$/, "");
     var base = "feeds/latest.json";
@@ -44,14 +48,21 @@
     });
   }
 
-  /* 合并镜像条目进本设备资料库（按 url 去重） */
+  /* 合并镜像条目进本设备资料库（按 url + 规范化标题双重去重，防跨源同题重复） */
   function merge(json) {
     return Store.getAllArticles().then(function (existing) {
-      var have = {};
-      existing.forEach(function (a) { have[a.url] = 1; });
+      var have = {}, haveT = {};
+      existing.forEach(function (a) {
+        have[a.url] = 1;
+        var k = normTitle(a.title);
+        if (k) haveT[k] = 1;
+      });
       var added = [];
       (json.items || []).forEach(function (it) {
         if (!it || !it.url || have[it.url]) return;
+        var k = normTitle(it.title);
+        if (k && haveT[k]) return; // 同题（跨源转载）已存在，跳过
+        if (k) haveT[k] = 1;
         var art = {
           url: it.url,
           channel: it.channel || "",
@@ -80,6 +91,35 @@
       });
       if (added.length) return Store.bulkPutArticles(added).then(function () { return added.length; });
       return 0;
+    });
+  }
+
+  /* 一键清理历史重复：同规范化标题多篇时保留信息最全/最有价值的一篇，其余删除；返回删除条数 */
+  function cleanupDups() {
+    return Store.getAllArticles().then(function (all) {
+      var groups = {};
+      all.forEach(function (a) {
+        var k = normTitle(a.title);
+        if (!k) return;
+        (groups[k] = groups[k] || []).push(a);
+      });
+      var del = [];
+      Object.keys(groups).forEach(function (k) {
+        var arr = groups[k];
+        if (arr.length < 2) return;
+        function score(x) {
+          return (x.fav ? 100 : 0) + (x.selected ? 80 : 0) + (x.journalMade ? 60 : 0) +
+            (x.titleZh ? 40 : 0) + (x.zhState === "ok" ? 30 : 0) +
+            ((x.zhFull || "").length ? 20 : 0) + ((x.body || "").length ? 15 : 0);
+        }
+        arr.sort(function (a, b) {
+          return (score(b) - score(a)) || String(a.fetchedAt || "").localeCompare(String(b.fetchedAt || ""));
+        });
+        arr.slice(1).forEach(function (x) { del.push(x.url); });
+      });
+      if (!del.length) return 0;
+      return del.reduce(function (p, u) { return p.then(function () { return Store.deleteArticle(u); }); }, Promise.resolve())
+        .then(function () { return del.length; });
     });
   }
 
@@ -243,6 +283,7 @@
     mirrorUrls: mirrorUrls,
     pull: pull,
     merge: merge,
+    cleanupDups: cleanupDups,
     translateTitles: translateTitles,
     translateSummaries: translateSummaries,
     pendingTitles: pendingTitles,
