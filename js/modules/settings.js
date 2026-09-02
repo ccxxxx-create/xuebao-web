@@ -114,7 +114,8 @@
       '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoPull"' + (s.autoPull ? " checked" : "") + "> 打开页面时自动拉取镜像（30 分钟内有数据则不重复拉）</label>" +
       '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期文章（保留期内不删；收藏/已出刊永不自动删）</label>" +
       '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动检查新版本（约 6 小时一次；不消耗模型额度）</label>" +
-      '<div class="modal-actions" style="margin-top:8px"><button class="btn primary" id="bfSave">保存</button></div></div>';
+      '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfBrief"' + (s.weeklyBrief ? " checked" : "") + "> 周末简报自动投递：周六/周日首次打开时汇总本周文章到收件箱（纯本地，不消耗模型额度）</label>" +
+      '<div class="modal-actions" style="margin-top:8px"><button class="btn primary" id="bfSave">保存</button><button class="btn" id="bfBriefNow" style="margin-left:8px">立即生成本周简报</button></div></div>';
   }
 
   function mirrorSectionHtml(s) {
@@ -272,8 +273,21 @@
           s.autoPull = root.querySelector("#bfAutoPull").checked;
           s.autoClean = root.querySelector("#bfAutoClean").checked;
           s.autoCheck = root.querySelector("#bfAutoChk").checked;
+          s.weeklyBrief = root.querySelector("#bfBrief").checked;
           Store.saveSettings();
           App.toast("已保存", "ok");
+        });
+        // 周末简报：立即生成（手动，不占用每周自动名额）
+        var briefBtn = root.querySelector("#bfBriefNow");
+        if (briefBtn) briefBtn.addEventListener("click", function () {
+          if (!window.BRIEF) { App.toast("简报模块未加载，请刷新", "err"); return; }
+          briefBtn.disabled = true;
+          BRIEF.generateNow().then(function (r) {
+            briefBtn.disabled = false;
+            if (!r.made) { App.toast(r.reason || "暂无数据", "err"); return; }
+            App.toast("已投递 ✉ 到收件箱", "ok");
+            App.refresh();
+          }).catch(function () { briefBtn.disabled = false; });
         });
         // 镜像与更新（仓库只读，仅支持检查更新）
         root.querySelector("#bfChkUpdate").addEventListener("click", function () {
