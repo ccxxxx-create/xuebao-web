@@ -28,10 +28,18 @@
   }
 
   var App = {
+    refreshMail: function () {
+      var b = document.getElementById("mailEntry");
+      if (!b) return;
+      var un = Store.inboxUnread();
+      b.innerHTML = '<span class="mail-ico">✉</span><span>收件箱</span>' + (un ? '<span class="mail-badge">' + un + "</span>" : "");
+      b.title = "收件箱（" + un + " 条未读）";
+    },
     refresh: function () {
       var el = document.getElementById("content");
       var m = mod(current);
       renderNav();
+      App.refreshMail();
       if (m && typeof m.render === "function") {
         m.render(el).catch(function (err) {
           el.innerHTML = '<div class="card"><div class="note">页面渲染出错：' + H.esc(err && err.message ? err.message : err) + "</div></div>";
@@ -78,13 +86,15 @@
         return arr.length ? 1 : 0;
       });
     },
-    checkUpdate: function () {
+    checkUpdate: function (force) {
       var s = Store.settings;
-      if (!s.autoCheck) return;
+      if (!s.autoCheck && !force) return;
       var repo = (s.updateRepo || "").trim();
       if (!repo || navigator.onLine === false) return;
-      var gap = Date.now() - (s.lastUpdateCheck || 0);
-      if (s.lastUpdateCheck && gap < 6 * 3600 * 1000) return;
+      if (!force) {
+        var gap = Date.now() - (s.lastUpdateCheck || 0);
+        if (s.lastUpdateCheck && gap < 6 * 3600 * 1000) return;
+      }
       s.lastUpdateCheck = Date.now();
       Store.saveSettings();
       var localV = parseInt(s.versionCode, 10) || 0;
@@ -111,6 +121,7 @@
         Store.saveSettings();
         var target = j.url || ("https://" + repo.split("/")[0] + ".github.io/" + repo.split("/")[1] + "/");
         var notes = j.notes || "";
+        Store.inboxAdd("update", "新版本 " + (j.versionName || v), notes + "\n\n最新版地址：" + target);
         App.openModal(
           '<div class="modal-head"><h3>发现新版本 ' + H.esc(j.versionName || v) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +
           '<div class="modal-body"><p>' + H.esc(notes || "功能与内容已更新。") + "</p>" +
@@ -201,6 +212,8 @@
         navigator.serviceWorker.register("sw.js?v=" + (Store.settings.versionCode || 1)).catch(function () {});
       }
       renderNav();
+      var me = document.getElementById("mailEntry");
+      if (me) me.addEventListener("click", function () { App.route("#/inbox"); });
       window.addEventListener("hashchange", function () { App.route(location.hash); });
       var initial = location.hash;
       if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0])) initial = "#/dashboard";
