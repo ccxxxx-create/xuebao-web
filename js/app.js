@@ -114,12 +114,18 @@
         App.openModal(
           '<div class="modal-head"><h3>发现新版本 ' + H.esc(j.versionName || v) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +
           '<div class="modal-body"><p>' + H.esc(notes || "功能与内容已更新。") + "</p>" +
-          '<p class="muted">当前 ' + H.esc(s.appVersion || "") + "（build " + localV + "）→ 新版 build " + v + "。打开新版页面；若内容无变化请按 Ctrl+F5 强制刷新。</p>" +
+          '<p class="muted">点「立即更新」会自动刷新到最新版本，本地资料不受影响。若使用多个设备，可稍后在其它设备打开 ' + H.esc(target) + "。</p>" +
           '<div class="modal-actions"><button class="btn" data-close>稍后</button>' +
-          '<a class="btn primary" id="upGo" href="' + H.esc(target) + '" target="_blank" rel="noopener">打开新版</a></div></div>'
+          '<button class="btn primary" id="upNow">立即更新本页</button></div></div>'
         );
-        var go = document.getElementById("upGo");
-        if (go) go.addEventListener("click", function () { setTimeout(App.closeModal, 300); });
+        var up = document.getElementById("upNow");
+        if (up) up.addEventListener("click", function () {
+          App.closeModal();
+          var base = location.href.split("#")[0];
+          var sep = base.indexOf("?") >= 0 ? "&" : "?";
+          // 加查询参数强制绕过缓存重新拉取最新 index，随后回到当前页面
+          location.replace(base + sep + "upd=" + v + (location.hash || "#/dashboard"));
+        });
       }).catch(function () { /* 网络失败静默，下次再查 */ });
     },
     openModal: function (html, opts) {
