@@ -80,6 +80,7 @@
     },
     checkUpdate: function () {
       var s = Store.settings;
+      if (!s.autoCheck) return;
       var repo = (s.updateRepo || "").trim();
       if (!repo || navigator.onLine === false) return;
       var gap = Date.now() - (s.lastUpdateCheck || 0);
