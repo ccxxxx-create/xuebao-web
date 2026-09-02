@@ -61,12 +61,14 @@
   function displaySectionHtml(s) {
     var px = effPx(s);
     return '<div class="card"><h3>显示与字号</h3>' +
-      '<p class="muted">拖动滑条调整整个工作台字号（基准 16px，推荐 14–20）。采用相对字号（rem）方案实现，兼容 Chrome / Edge / Firefox / Safari。</p>' +
-      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">' +
-      '<label for="dsRange" class="muted">界面字号</label>' +
-      '<input type="range" id="dsRange" min="12" max="24" step="1" value="' + px + '" style="flex:1;min-width:180px;max-width:340px">' +
-      '<span class="badge" style="background:#e8f1fa;color:#1f5c99;font-size:14px" id="dsVal">' + px + " px</span>" +
-      "</div></div>";
+      '<p class="muted">拖动滑条实时预览，松手自动保存（12–24px，建议 14–20）。rem 相对字号，兼容 Chrome / Edge / Firefox / Safari。</p>' +
+      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+      '<label class="muted" for="dsRange">界面字号</label>' +
+      '<input type="range" id="dsRange" min="12" max="24" step="1" value="' + px + '" style="flex:1;min-width:160px;max-width:320px">' +
+      '<span class="badge" id="dsVal" style="background:#e4f1fd;color:#0b4f8f;font-size:.9rem;min-width:52px;text-align:center">' + px + " px</span>" +
+      "</div>" +
+      '<div class="fz-preview" id="fzSample">预览：英语情报 · 今日新增 29 篇 · “相关角标与摘要随字号实时缩放”</div>' +
+      "</div>";
   }
 
   function cleanSectionHtml(s) {
@@ -83,23 +85,6 @@
       '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存清理设置</button>' +
       '<button class="btn" id="clRun">立即清理过期文章</button></div>' +
       '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在每次打开页面与拉取更新后执行。</div></div>';
-  }
-
-  function keywordSectionHtml(s) {
-    return '<div class="card"><h3>我的关键词（相关度排序）</h3>' +
-      '<p class="muted">填写您关注的领域/主题后，资料库与收藏夹会显示「相关 N」角标，并可在资料库切换「按相关度」排序。关键词为<b>模糊匹配</b>：标题/摘要/正文任意位置出现即算相关，多个关键词是“或”的关系，宁宽勿严以免漏检。</p>' +
-      '<div class="field"><label>兴趣关键词（中英文均可，用逗号或空格分隔）</label>' +
-      '<textarea id="bfKw" placeholder="例如：无人机, 导弹防御, aircraft carrier, 印太…">' + H.esc(s.interestKeywords || "") + "</textarea></div>" +
-      '<div class="art-actions"><button class="btn primary" id="bfKwSave">保存关键词</button></div></div>';
-  }
-
-  function learnSectionHtml(s) {
-    return '<div class="card"><h3>喜好学习（价值排序数据 · 可选）</h3>' +
-      '<p class="muted">是否允许记录您的正向喜好行为（<b>收藏、生成学报</b>）作为将来“价值排序建议”的学习信号。记录只存本设备；<b>取消收藏不视为负反馈</b>，仅作中性统计。价值排序引擎尚未上线，现仅做数据积累。</p>' +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="bfLearn"' + (s.allowLearn ? " checked" : "") + "> 允许记录我的喜好（仅本机）</label>" +
-      '<div class="art-actions"><button class="btn primary" id="bfLearnSave">保存</button>' +
-      '<button class="btn" id="clrPref">清除我的行为记录</button></div>' +
-      '<div id="bfPrefInfo" class="muted" style="margin-top:6px"></div></div>';
   }
 
   function behaviorSectionHtml(s) {
@@ -150,13 +135,9 @@
         '<div class="view-head"><div><h1 class="view-title">设置</h1>' +
         '<p class="view-sub">模型切换、字号、清理、行为默认值、镜像仓库、数据备份</p></div></div>' +
         modelSectionHtml(s) +
-        displaySectionHtml(s) +
-        cleanSectionHtml(s) +
-        behaviorSectionHtml(s) +
-        keywordSectionHtml(s) +
-        learnSectionHtml(s) +
+        '<div class="set-grid">' + displaySectionHtml(s) + cleanSectionHtml(s) + "</div>" +
+        '<div class="set-grid">' + behaviorSectionHtml(s) + dataSectionHtml() + "</div>" +
         mirrorSectionHtml(s) +
-        dataSectionHtml() +
         '<div class="card"><h3>关于</h3>' +
         '<div class="muted">英语情报 · 信息搜集与情报工作台 v' + H.esc(s.appVersion || "1.2.0") +
         "（build " + (s.versionCode || 2) + "）<br>形态：纯静态网页应用（参照个人工作台模式），双击 index.html 即可用；" +
@@ -259,33 +240,7 @@
             App.refresh();
           });
         });
-        // 关键词（独立卡片）
-        root.querySelector("#bfKwSave").addEventListener("click", function () {
-          s.interestKeywords = root.querySelector("#bfKw").value.trim();
-          Store.saveSettings();
-          App.toast("关键词已保存，相关角标与排序已生效", "ok");
-          App.refresh();
-        });
-        // 喜好学习（独立卡片）
-        function refreshPrefInfo() {
-          var st = Store.getPrefStats();
-          root.querySelector("#bfPrefInfo").innerHTML =
-            '本机已积累正向信号 ' + (st.fav + st.journal) + ' 条（收藏 ' + st.fav + ' · 生成学报 ' + st.journal +
-            (st.total ? ' · 另有中性记录 ' + (st.total - st.fav - st.journal) + ' 条（取消收藏等，不计负反馈）' : "") +
-            (s.allowLearn ? "）· 学习开关：开" : "）· 学习开关：关（暂不记录）");
-        }
-        refreshPrefInfo();
-        root.querySelector("#bfLearnSave").addEventListener("click", function () {
-          s.allowLearn = root.querySelector("#bfLearn").checked;
-          Store.saveSettings();
-          refreshPrefInfo();
-          App.toast("喜好学习设置已保存", "ok");
-        });
-        root.querySelector("#clrPref").addEventListener("click", function () {
-          App.confirm("清除本机全部喜好行为记录？（不可恢复）").then(function (ok) {
-            if (ok) { Store.clearPrefs(); refreshPrefInfo(); App.toast("已清除行为记录", "ok"); }
-          });
-        });
+        // —— 兴趣相关（关键词/喜好学习）已移至左侧「兴趣中心」页 ——
         // 行为
         root.querySelector("#bfSave").addEventListener("click", function () {
           s.signatureText = root.querySelector("#bfSign").value.trim();
