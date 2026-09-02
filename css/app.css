@@ -173,3 +173,61 @@ a.stat .num{font-size:1.6875rem;font-weight:700;color:var(--primary);line-height
 a.stat .lab{color:var(--text2);font-size:.8438rem;margin-top:2px}
 .art-title{cursor:pointer}
 .art-head .art-title:hover{color:var(--primary)}
+
+/* ===== 蓝天主题（空军蓝 · 天蓝 + 军蓝双色，2026-09-02）===== */
+:root{
+  --bg:#eaf3fc; --card:#ffffff; --line:#cfe0f0; --text:#12233b; --text2:#3d5876; --text3:#7f97b1;
+  --primary:#0b4f8f; --accent:#2f7fd1; --accent-weak:#e4f1fd;
+  --ok:#0e7c6a; --ok-weak:#e1f2ec; --warn:#a86e12; --warn-weak:#faf0dd;
+  --bad:#b83f58; --bad-weak:#f8e6ec; --violet:#5b4b8a; --violet-weak:#efebf7;
+}
+body{background:linear-gradient(180deg,#d9eefe 0%,#eef6fe 45%,#e2eefa 100%) fixed}
+.sidebar{background:linear-gradient(180deg,#0a2542 0%,#123a66 100%);border-right:0}
+.brand-text b{color:#fff}
+.brand-text span{color:#9cc3ea}
+.side-foot{color:#8fb0d3;border-top:1px solid rgba(255,255,255,.12)}
+.nav button{color:#c3d9f0}
+.nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav button.active{background:rgba(127,190,255,.22);color:#fff}
+.brand-mark{background:linear-gradient(135deg,#7cc0ff,#1f5c99);box-shadow:0 2px 8px rgba(31,92,153,.35)}
+.view-title{color:#0b3a6e}
+a{color:#0b6bcb}
+.card,.stat,a.stat{box-shadow:0 1px 4px rgba(30,90,150,.10)}
+.btn{border-color:#c3d6ea}
+.btn:hover{border-color:#8fb6dc;box-shadow:0 1px 6px rgba(31,92,153,.12)}
+.btn.primary{background:var(--primary);border-color:var(--primary)}
+.btn.primary:hover{background:#083f73}
+.btn.accent{background:var(--accent);border-color:var(--accent)}
+.btn.accent:hover{background:#1f6cb8}
+.art{box-shadow:0 1px 3px rgba(30,90,150,.08)}
+.art:hover{border-color:#9cc3ea}
+.prose{background:#fbfdff;border-color:#d5e4f2}
+table.data th{background:#eef5fc;color:#1c4a7e}
+.mono{background:#f1f6fb;border-color:#d5e4f2}
+.filters input:focus,.filters select:focus,.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,127,209,.12)}
+
+/* ===== 布局优化（侧栏/分页/设置网格/滑条，2026-09-02）===== */
+:root{--sidebar-w:236px}
+.brand{padding:22px 18px 18px}
+.brand-mark{width:44px;height:44px;font-size:22px;border-radius:13px}
+.brand-text b{font-size:1.25rem}
+.brand-text span{font-size:.85rem}
+.nav{flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:5px;overflow-y:auto}
+.nav button{padding:11px 14px;border-radius:10px;font-size:.95rem;gap:12px}
+.nav .ico{width:20px;height:20px;border-radius:6px;font-size:12px}
+.side-foot{padding:14px 18px;font-size:.8125rem}
+.sidebar .side-note{padding:10px 18px 4px;font-size:.8125rem;color:#8fb0d3;line-height:1.6}
+
+/* 设置页网格分组 */
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px;align-items:start;margin-bottom:14px}
+.set-grid .card{margin-bottom:0}
+.set-grid .card h3{display:flex;align-items:center;gap:8px}
+
+/* 资料库分页 */
+.pager{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:16px 0 4px}
+.pager button{padding:6px 14px}
+.pager .pg-info{font-size:.875rem;color:var(--text2)}
+
+/* 字号滑条美化 */
+input[type="range"]{accent-color:var(--primary);height:26px}
+.fz-preview{background:#fff;border:1px dashed var(--line);border-radius:8px;padding:8px 12px;margin-top:8px;color:var(--text2)}
