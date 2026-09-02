@@ -26,14 +26,15 @@
     allowLearn: true,          // 允许本机记录喜好（收藏/取消/出刊信号），仅存本设备
     interestKeywords: "",      // 兴趣关键词（模糊匹配，用于“按相关度”排序）
     compareAutoFull: false,    // 双语对照时如缺译文是否自动翻译全文
+    autoCheck: true,           // 自动检查更新（每约 6 小时一次，仅读公告不耗模型）
     channelOns: {},            // 信源开关：{channelId:0}=本设备停用（保留历史数据，不再收录）
     signatureText: "（XX大学XX学院XXX  XX  供稿）",   // 供稿署名默认（范文同款占位，Word 里可改）
     autoPull: true,
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.2.1",
-    versionCode: 13,
+    appVersion: "1.2.2",
+    versionCode: 14,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     seenNotices: {}
