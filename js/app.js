@@ -112,6 +112,20 @@
         });
       });
       chain.then(function (j) {
+        // 公告广播（不依赖版本号：任何时刻推送，本机按 id 去重，只投递一次）
+        var n = j.notice;
+        if (n && n.id && n.body) {
+          var seen0 = s.seenNotices || {};
+          var nk = "nt" + n.id;
+          if (!seen0[nk]) {
+            seen0[nk] = 1;
+            s.seenNotices = seen0;
+            Store.saveSettings();
+            Store.inboxAdd("update", n.title || "新公告", n.body + (n.link ? "\n\n" + n.link : ""));
+            App.refreshMail();
+            App.toast("收到新公告 ✉，详见收件箱", "ok");
+          }
+        }
         var v = parseInt(j.versionCode, 10);
         if (!(v > localV)) return;
         var seen = s.seenNotices || {};
