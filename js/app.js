@@ -2,9 +2,9 @@
 (function () {
   "use strict";
 
-  var ORDER = ["dashboard", "library", "favorites", "journal", "sources", "terms", "settings"];
-  var ICONS = { dashboard: "总", library: "库", favorites: "藏", journal: "报", sources: "源", terms: "词", settings: "设" };
-  var COLORS = { dashboard: "#2f7fd1", library: "#0f766e", favorites: "#b06a1b", journal: "#b7791f", sources: "#5b4b8a", terms: "#a34f6d", settings: "#4a5568" };
+  var ORDER = ["dashboard", "library", "favorites", "journal", "sources", "terms", "prefs", "settings"];
+  var ICONS = { dashboard: "总", library: "库", favorites: "藏", journal: "报", sources: "源", terms: "词", prefs: "趣", settings: "设" };
+  var COLORS = { dashboard: "#2f7fd1", library: "#0f766e", favorites: "#b06a1b", journal: "#b7791f", sources: "#5b4b8a", terms: "#a34f6d", prefs: "#d97706", settings: "#4a5568" };
 
   var current = "dashboard";
   var pulling = false;
@@ -66,10 +66,16 @@
       document.documentElement.style.fontSize = px + "px";
     },
     maybeAutoClean: function (silent) {
-      if (!Store.settings.autoClean) return Promise.resolve(0);
-      return MIRROR.cleanupOld().then(function (n) {
-        if (n > 0 && !silent) App.toast("已自动清理 " + n + " 篇过期资料", "ok");
-        return n;
+      // 录入即判断：打开页面/拉取后自动去重；过期清理遵循设置里的自动清理开关
+      var jobs = [];
+      if (Store.settings.autoClean) {
+        jobs.push(MIRROR.cleanupOld().then(function (n) { return n > 0 ? "过期 " + n + " 篇" : ""; }));
+      }
+      jobs.push(MIRROR.cleanupDups().then(function (n) { return n > 0 ? "重复 " + n + " 篇" : ""; }));
+      return Promise.all(jobs).then(function (parts) {
+        var arr = parts.filter(Boolean);
+        if (arr.length && !silent) App.toast("已自动清理：" + arr.join("、"), "ok");
+        return arr.length ? 1 : 0;
       });
     },
     checkUpdate: function () {
