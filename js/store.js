@@ -51,6 +51,9 @@
     if (s.fontSizePx == null) {
       s.fontSizePx = { M: 16, L: 18, XL: 21 }[s.fontZoom || "M"] || 16;
     }
+    // 版本号以“当前运行的代码”为准：避免老用户因本地旧版本号被反复提示更新
+    s.appVersion = DEFAULTS.appVersion;
+    s.versionCode = DEFAULTS.versionCode;
     return s;
   }
   function saveSettings(s) {
