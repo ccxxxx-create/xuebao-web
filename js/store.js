@@ -34,8 +34,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.3.2",
-    versionCode: 17,
+    appVersion: "1.3.3",
+    versionCode: 18,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     seenNotices: {}
@@ -130,6 +130,41 @@
     },
     clearPrefs: function () {
       try { localStorage.removeItem(this.PREFS_KEY); } catch (e) { /* ignore */ }
+    },
+
+    /* 收件箱（本机通知中心：更新公告/简报/系统消息） */
+    INBOX_KEY: "xuebao-inbox-v1",
+    loadInbox: function () {
+      try {
+        var raw = localStorage.getItem(this.INBOX_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
+    },
+    saveInbox: function (arr) {
+      try { localStorage.setItem(this.INBOX_KEY, JSON.stringify(arr)); } catch (e) { /* ignore */ }
+    },
+    inboxAdd: function (kind, title, body) {
+      var arr = this.loadInbox();
+      arr.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kind: kind, title: title || "", body: body || "", at: Date.now(), read: 0 });
+      if (arr.length > 60) arr = arr.slice(0, 60);
+      this.saveInbox(arr);
+      return arr;
+    },
+    inboxUnread: function () {
+      return this.loadInbox().filter(function (x) { return !x.read; }).length;
+    },
+    inboxMarkRead: function (id) {
+      var arr = this.loadInbox();
+      arr.forEach(function (x) { if (x.id === id) x.read = 1; });
+      this.saveInbox(arr);
+    },
+    inboxMarkAllRead: function () {
+      var arr = this.loadInbox();
+      arr.forEach(function (x) { x.read = 1; });
+      this.saveInbox(arr);
+    },
+    inboxClear: function () {
+      try { localStorage.removeItem(this.INBOX_KEY); } catch (e) { /* ignore */ }
     },
 
     /* 信源开关（本设备级） */
