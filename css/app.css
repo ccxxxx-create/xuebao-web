@@ -242,6 +242,11 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .card h3.set-head.collapsed::after{content:"▼"}
 .set-body{margin-top:10px}
 
+/* 收件箱正文（简报等） */
+.inbox-body{white-space:pre-wrap;word-break:break-word;margin:7px 0 0;font-size:.86rem;color:var(--text2);line-height:1.7;max-height:176px;overflow:hidden}
+.inbox-body .art-open{display:inline-block;margin:2px 0;padding:2px 10px;color:#0b6bcb;background:#eaf3fc;border-radius:6px;font-size:.82rem;cursor:pointer;text-decoration:none}
+.inbox-body .art-open:hover{background:#d9eafa;color:#094e92}
+
 /* 阅读页双语对照 */
 .pair-tbl{border-collapse:collapse;width:100%;margin:8px 0;background:#fff;table-layout:fixed}
 .pair-tbl th,.pair-tbl td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;word-break:break-word}
