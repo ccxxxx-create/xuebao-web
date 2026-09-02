@@ -2,9 +2,9 @@
 (function () {
   "use strict";
 
-  var ORDER = ["dashboard", "library", "favorites", "journal", "sources", "terms", "prefs", "settings"];
-  var ICONS = { dashboard: "总", library: "库", favorites: "藏", journal: "报", sources: "源", terms: "词", prefs: "趣", settings: "设" };
-  var COLORS = { dashboard: "#2f7fd1", library: "#0f766e", favorites: "#b06a1b", journal: "#b7791f", sources: "#5b4b8a", terms: "#a34f6d", prefs: "#d97706", settings: "#4a5568" };
+  var ORDER = ["dashboard", "library", "favorites", "rankings", "journal", "sources", "terms", "prefs", "settings"];
+  var ICONS = { dashboard: "总", library: "库", favorites: "藏", rankings: "榜", journal: "报", sources: "源", terms: "词", prefs: "趣", settings: "设" };
+  var COLORS = { dashboard: "#2f7fd1", library: "#0f766e", favorites: "#b06a1b", rankings: "#0e7490", journal: "#b7791f", sources: "#5b4b8a", terms: "#a34f6d", prefs: "#d97706", settings: "#4a5568" };
 
   var current = "dashboard";
   var pulling = false;
