@@ -98,7 +98,9 @@
       s.lastUpdateCheck = Date.now();
       Store.saveSettings();
       var localV = parseInt(s.versionCode, 10) || 0;
+      // 通道顺序：GitHub Pages 同源（无 CORS、无 CDN 缓存墙，部署即新）→ jsdelivr（含 fallback 缓存）→ raw（部分网络直连）
       var urls = [
+        "https://" + repo.split("/")[0] + ".github.io/" + repo.split("/")[1] + "/update.json",
         "https://cdn.jsdelivr.net/gh/" + repo + "@main/update.json",
         "https://raw.githubusercontent.com/" + repo + "/main/update.json"
       ];
