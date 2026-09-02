@@ -78,6 +78,7 @@
           titleZhLocked: 0,
           titleTrans: "pending",
           summaryZh: "",
+          summaryEn: "",
           fav: 0,
           zhFull: "",
           zhState: "none",
@@ -134,9 +135,10 @@
         var art = list[i];
         if (art.titleZhLocked) return one(i + 1);
         return LLM.translateTitleSummary(art.title, art.summary || art.body, glossary).then(function (out) {
-          var lines = String(out || "").split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean);
-          art.titleZh = lines[0] || "";
-          art.summaryZh = lines.slice(1).join("\n") || "";
+          var p = parseTriple(out);
+          art.titleZh = p.zh || "";
+          art.summaryZh = p.sumZh || "";
+          art.summaryEn = p.sumEn || "";
           art.titleTrans = art.titleZh ? "ok" : "failed";
           return Store.putArticle(art);
         }).catch(function () {
@@ -155,12 +157,17 @@
   /* 标题已译但缺摘要（老数据补摘要用） */
   function pendingSummaries(articles) {
     return (articles || []).filter(function (a) {
-      return a.titleZh && !a.summaryZh && !a.titleZhLocked;
+      return a.titleZh && !a.titleZhLocked && (!a.summaryZh || !a.summaryEn);
     });
   }
 
-  /* 只为缺摘要的文章补摘要（保留已有中文标题不动） */
-  function translateSummaries(list, onProgress) {
+  function parseTriple(out) {
+    var ls = String(out || "").split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return { zh: ls[0] || "", sumZh: ls[1] || "", sumEn: ls[2] || "" };
+  }
+
+  /* 仅自动翻译标题（不动摘要），用于“打开即自动翻译标题” */
+  function translateTitlesOnly(list, onProgress) {
     if (!list || !list.length) return Promise.resolve(0);
     return Store.getAllTerms().then(function (terms) {
       var glossary = LLM.glossaryLines(terms);
@@ -169,11 +176,37 @@
         if (i >= list.length) return Promise.resolve(done);
         var art = list[i];
         if (art.titleZhLocked) return one(i + 1);
+        return LLM.translateTitle(art.title, glossary).then(function (zh) {
+          art.titleZh = zh;
+          art.titleTrans = "ok";
+          return Store.putArticle(art);
+        }).catch(function () {
+          art.titleTrans = "failed";
+          return Store.putArticle(art);
+        }).then(function () {
+          done++;
+          if (onProgress) onProgress(i + 1, list.length, art);
+          return one(i + 1);
+        });
+      }
+      return one(0);
+    });
+  }
+
+  /* 摘要生成（中文+英文），保留已有中文标题不动 */
+  function summarizeList(list, onProgress) {
+    if (!list || !list.length) return Promise.resolve(0);
+    return Store.getAllTerms().then(function (terms) {
+      var glossary = LLM.glossaryLines(terms);
+      var done = 0;
+      function one(i) {
+        if (i >= list.length) return Promise.resolve(done);
+        var art = list[i];
         return LLM.translateTitleSummary(art.title, art.summary || art.body, glossary).then(function (out) {
-          var lines = String(out || "").split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean);
-          if (!art.titleZh) art.titleZh = lines[0] || "";
-          art.summaryZh = lines.slice(1).join("\n") || "";
-          if (art.titleZh) art.titleTrans = "ok";
+          var p = parseTriple(out);
+          if (!art.titleZh && p.zh) { art.titleZh = p.zh; art.titleTrans = "ok"; }
+          art.summaryZh = p.sumZh;
+          art.summaryEn = p.sumEn;
           return Store.putArticle(art);
         }).catch(function () { return Store.putArticle(art); }).then(function () {
           done++;
@@ -183,6 +216,11 @@
       }
       return one(0);
     });
+  }
+
+  /* 兼容旧命名：摘要（中英） */
+  function translateSummaries(list, onProgress) {
+    return summarizeList(list, onProgress);
   }
 
   /* 自动清理过期文章：保留期外且非收藏/非已选/非已出刊者删除；返回删除条数 */
@@ -285,7 +323,9 @@
     merge: merge,
     cleanupDups: cleanupDups,
     translateTitles: translateTitles,
+    translateTitlesOnly: translateTitlesOnly,
     translateSummaries: translateSummaries,
+    summarizeList: summarizeList,
     pendingTitles: pendingTitles,
     pendingSummaries: pendingSummaries,
     cleanupOld: cleanupOld,
