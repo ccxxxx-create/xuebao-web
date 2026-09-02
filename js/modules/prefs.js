@@ -7,22 +7,26 @@
     label: "兴趣",
     async render(el) {
       var s = Store.settings;
+      var kwArr = H.splitKeywords(s.interestKeywords || "");
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">兴趣中心</h1>' +
         '<p class="view-sub">关键词决定“相关度角标/排序”；喜好学习为将来的价值排序积累数据（仅本机，可随时关闭/清除）</p></div></div>' +
-        keywordCard(s) +
+        keywordCard(s, kwArr) +
         learnCard(s);
 
-      bind(el, s);
+      bind(el, s, kwArr);
 
-      function keywordCard(s) {
+      function keywordCard(s, arr) {
         return '<div class="card"><h3>我的关键词（相关度排序）</h3>' +
-          '<p class="muted">关键词是价值排序最重要的显式先验。命中后资料库/收藏夹卡片显示「相关 N」角标，并可在资料库切换「按相关度」排序。规则为<b>模糊匹配</b>：标题/摘要/正文任意位置出现即算相关，多个关键词为“或”，宁宽勿严。</p>' +
-          '<div class="field"><label>兴趣关键词（中英文均可，逗号或空格分隔）</label>' +
-          '<textarea id="bfKw" placeholder="例如：无人机, 导弹防御, aircraft carrier, 印太…">' + H.esc(s.interestKeywords || "") + "</textarea></div>" +
-          '<div class="art-actions"><button class="btn primary" id="bfKwSave">保存关键词</button>' +
-          '<button class="btn" id="kwDraft" title="需积累足够收藏后可用">从收藏自动提炼草稿（待数据累积）</button></div>' +
-          '<div id="kwMsg" class="muted" style="margin-top:6px"></div></div>';
+          '<p class="muted">关键词是价值排序最重要的显式先验。命中后资料库/收藏夹显示「相关 N」角标，可在资料库切换「按相关度」排序。模糊匹配：标题/摘要/正文任意位置出现即算相关，多个关键词为“或”，宁宽勿严。</p>' +
+          '<div class="field"><label>点击标签可删除；输入后回车或点“添加”</label>' +
+          '<div class="kw-tags" id="kwChips">' + arr.map(function (k) {
+            return '<span class="kw-tag">' + H.esc(k) + '<button data-del="' + H.esc(k) + '" title="删除">×</button></span>';
+          }).join("") + "</div>" +
+          '<div style="display:flex;gap:8px"><input id="kwInput" placeholder="输入关键词，如：无人机 / aircraft carrier" style="flex:1">' +
+          '<button class="btn" id="kwAdd">添加</button></div>' +
+          '<div class="muted" style="margin-top:6px">自动提炼草稿：需积累足够收藏后启用（价值排序 P1 阶段）。</div></div>' +
+          '<div class="art-actions"><button class="btn primary" id="bfKwSave">保存关键词</button></div></div>';
       }
       function learnCard(s) {
         return '<div class="card"><h3>喜好学习（价值排序数据 · 可选）</h3>' +
@@ -32,15 +36,36 @@
           '<button class="btn" id="clrPref">清除行为记录</button></div>' +
           '<div id="bfPrefInfo" class="muted" style="margin-top:6px"></div></div>';
       }
-      function bind(root, s) {
+      function bind(root, s, kwArr) {
+        var chips = root.querySelector("#kwChips"), input = root.querySelector("#kwInput");
+        function renderChips() {
+          chips.innerHTML = kwArr.map(function (k) {
+            return '<span class="kw-tag">' + H.esc(k) + '<button data-del="' + H.esc(k) + '" title="删除">×</button></span>';
+          }).join("");
+        }
+        function addKw(t) {
+          t = String(t || "").trim().toLowerCase();
+          if (!t) return;
+          if (kwArr.indexOf(t) < 0) kwArr.push(t);
+          renderChips();
+          input.value = "";
+        }
+        root.querySelector("#kwAdd").addEventListener("click", function () { addKw(input.value); });
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addKw(input.value); }
+        });
+        chips.addEventListener("click", function (e) {
+          var b = e.target.closest("[data-del]");
+          if (b) {
+            kwArr = kwArr.filter(function (k) { return k !== b.dataset.del; });
+            renderChips();
+          }
+        });
         root.querySelector("#bfKwSave").addEventListener("click", function () {
-          s.interestKeywords = root.querySelector("#bfKw").value.trim();
+          s.interestKeywords = kwArr.join(",");
           Store.saveSettings();
           App.toast("关键词已保存，相关角标与排序已生效", "ok");
           App.refresh();
-        });
-        root.querySelector("#kwDraft").addEventListener("click", function () {
-          root.querySelector("#kwMsg").textContent = "说明：需要积累更多收藏后，系统将从收藏文章自动提炼主题词草稿供您一键采纳（价值排序 P1 阶段提供）。";
         });
         function refreshPrefInfo() {
           var st = Store.getPrefStats();
