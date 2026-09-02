@@ -58,6 +58,25 @@
     return m;
   }
 
+  /* 设置项折叠：卡片只留标题，点击展开/收起 */
+  function collapseCards(root, openTitles) {
+    root.querySelectorAll(".card").forEach(function (c) {
+      var h = c.querySelector("h3");
+      if (!h || c.querySelector(".set-body")) return;
+      var body = document.createElement("div");
+      body.className = "set-body";
+      while (h.nextElementSibling) body.appendChild(h.nextElementSibling);
+      c.appendChild(body);
+      h.classList.add("set-head");
+      var open = (openTitles || []).some(function (t) { return h.textContent.indexOf(t) >= 0; });
+      body.hidden = !open;
+      h.addEventListener("click", function () {
+        body.hidden = !body.hidden;
+        h.classList.toggle("collapsed", body.hidden);
+      });
+    });
+  }
+
   function displaySectionHtml(s) {
     var px = effPx(s);
     return '<div class="card"><h3>显示与字号</h3>' +
@@ -76,34 +95,35 @@
     var sel = opts.map(function (o) {
       return '<option value="' + o[0] + '"' + (parseInt(s.retentionDays, 10) === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
     }).join("");
-    return '<div class="card"><h3>资料清理（防过度堆积）</h3>' +
-      '<p class="muted">自动按保留期删除过期文章。<b>收藏、已选入学报、已出刊</b>的文章永不自动删除。已出刊内容已独立存档于「学报记录」，删除资料不影响已生成的文件。</p>' +
-      '<div class="filters">' +
-      '<label class="chip" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="clAuto"' + (s.autoClean ? " checked" : "") + "> 启用自动清理</label>" +
-      "<span class=\"muted\">保留期</span><select id=\"clDays\">" + sel + "</select>" +
-      "</div>" +
-      '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存清理设置</button>' +
+    return '<div class="card"><h3>资料清理</h3>' +
+      '<p class="muted">自动清理已在「行为默认值」开启（默认开）。<b>收藏、已选、已出刊</b>的文章永不自动删除。</p>' +
+      '<div class="filters"><span class="muted">保留期</span><select id="clDays">' + sel + "</select></div>" +
+      '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button>' +
       '<button class="btn" id="clRun">立即清理过期文章</button></div>' +
-      '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在每次打开页面与拉取更新后执行。</div></div>';
+      '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div></div>';
   }
 
   function behaviorSectionHtml(s) {
     return '<div class="card"><h3>行为默认值</h3>' +
       '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label>' +
       '<input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>' +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTranslate ? " checked" : "") + "> 拉取后自动翻译新标题与摘要（需已配置模型）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavTr"' + (s.favAutoTr ? " checked" : "") + "> 收藏文章时自动：生成中文标题 + 摘要（需已配置模型）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavFull"' + (s.favAutoFull ? " checked" : "") + "> 收藏文章时自动：全文翻译（与上一项自由组合，可只开其一或全关）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoPull"' + (s.autoPull ? " checked" : "") + "> 打开页面时自动拉取镜像（30 分钟内有数据则不重复拉）</label>" +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTranslate ? " checked" : "") + "> 拉取后/进入资料库时自动翻译新标题（摘要另行手动或由收藏触发）</label>" +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavTr"' + (s.favAutoTr ? " checked" : "") + "> 收藏文章时自动：生成中文标题 + 中/英摘要</label>" +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavFull"' + (s.favAutoFull ? " checked" : "") + "> 收藏文章时自动：全文翻译（可与上一项自由组合）</label>" +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfCmpAuto"' + (s.compareAutoFull ? " checked" : "") + "> 阅读页点「中英对照」时若缺译文则自动翻译全文（消耗 token，默认关）</label>" +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoPull"' + (s.autoPull ? " checked" : "") + "> 打开页面时自动拉取镜像（30 分钟内有数据则不重复拉）</label>" +
+      '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期文章（保留期内不删；收藏/已出刊永不自动删）</label>" +
       '<div class="modal-actions" style="margin-top:8px"><button class="btn primary" id="bfSave">保存</button></div></div>';
   }
 
   function mirrorSectionHtml(s) {
     return '<div class="card"><h3>镜像与抓取</h3>' + mirrorStatusHtml(s) +
-      '<div class="field" style="margin-top:8px"><label>信源镜像仓库（GitHub 仓库，格式 owner/repo）</label><input id="bfRepo" value="' + H.esc(s.mirrorRepo || "") + '"></div>' +
-      '<div class="field"><label>更新通知仓库（后期功能：发布仓库含 update.json；留空不检查）</label><input id="bfUrepo" value="' + H.esc(s.updateRepo || "") + '" placeholder="owner/repo"></div>' +
-      '<div class="modal-actions" style="margin-top:8px"><button class="btn primary" id="bfRepoSave">保存</button>' +
-      '<button class="btn" id="bfChkUpdate">检查更新</button></div>' +
+      '<div class="field"><label>信源镜像仓库（只读，由部署维护，请勿修改以防异常）</label>' +
+      '<div class="mono">' + H.esc(s.mirrorRepo || "未配置") + "</div></div>" +
+      '<div class="field"><label>更新通知仓库（只读）</label>' +
+      '<div class="mono">' + H.esc(s.updateRepo || "未配置") + "</div></div>" +
+      '<p class="muted">说明：抓取在 GitHub Actions（每天 09:00）完成；本页仅展示状态与仓库信息，不可编辑。</p>' +
+      '<div class="art-actions"><button class="btn" id="bfChkUpdate">检查更新</button></div>' +
       '<div id="bfRepoMsg" class="muted" style="margin-top:6px"></div></div>';
   }
 
@@ -133,7 +153,7 @@
       var arts = await Store.getAllArticles();
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">设置</h1>' +
-        '<p class="view-sub">模型切换、字号、清理、行为默认值、镜像仓库、数据备份</p></div></div>' +
+        '<p class="view-sub">点标题展开/收起设置项；模型、数据、关于默认展开</p></div></div>' +
         modelSectionHtml(s) +
         '<div class="set-grid">' + displaySectionHtml(s) + cleanSectionHtml(s) + "</div>" +
         '<div class="set-grid">' + behaviorSectionHtml(s) + dataSectionHtml() + "</div>" +
@@ -144,6 +164,7 @@
         "部署成网址后电脑/平板/手机打开即用，各设备数据独立。<br>采集：9 个官方直连源（含国防部/陆战队/空军等）由 GitHub Actions 每天 09:00 抓取镜像，每源每轮 ≤20 条；" +
         "docx 版式严格遵循范文《以色列研发智能反无人机系统Iron Drone Raider.docx》。</div></div>";
 
+      collapseCards(el, ["模型（", "数据与本机占用", "关于"]);
       bindModel(el, s);
       bindOther(el, s, usage, arts);
 
@@ -228,10 +249,9 @@
         });
         // 清理
         root.querySelector("#clSave").addEventListener("click", function () {
-          s.autoClean = root.querySelector("#clAuto").checked;
           s.retentionDays = parseInt(root.querySelector("#clDays").value, 10) || 90;
           Store.saveSettings();
-          App.toast("清理设置已保存", "ok");
+          App.toast("保留期已保存", "ok");
         });
         root.querySelector("#clRun").addEventListener("click", function () {
           MIRROR.cleanupOld().then(function (n) {
@@ -247,18 +267,13 @@
           s.autoTranslate = root.querySelector("#bfAutoTr").checked;
           s.favAutoTr = root.querySelector("#bfFavTr").checked;
           s.favAutoFull = root.querySelector("#bfFavFull").checked;
+          s.compareAutoFull = root.querySelector("#bfCmpAuto").checked;
           s.autoPull = root.querySelector("#bfAutoPull").checked;
+          s.autoClean = root.querySelector("#bfAutoClean").checked;
           Store.saveSettings();
           App.toast("已保存", "ok");
         });
-        // 镜像仓库 / 更新
-        root.querySelector("#bfRepoSave").addEventListener("click", function () {
-          s.mirrorRepo = root.querySelector("#bfRepo").value.trim();
-          s.updateRepo = root.querySelector("#bfUrepo").value.trim();
-          Store.saveSettings();
-          App.toast("已保存", "ok");
-          App.refresh();
-        });
+        // 镜像与更新（仓库只读，仅支持检查更新）
         root.querySelector("#bfChkUpdate").addEventListener("click", function () {
           var repo = s.updateRepo;
           if (!repo) { App.toast("未配置更新仓库（后期发布后填入即可启用更新通知）"); return; }
