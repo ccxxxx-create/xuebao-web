@@ -28,14 +28,16 @@
     compareAutoFull: false,    // 双语对照时如缺译文是否自动翻译全文
     exploreRate: 0.1,          // 榜单探索率（防茧房）：给非关键词内容保留的比例
     autoCheck: true,           // 自动检查更新（每约 6 小时一次，仅读公告不耗模型）
+    weeklyBrief: true,         // 周末简报自动投递：周六/周日首次打开时汇总本周文章到收件箱（纯本地，不耗模型）
+    lastBriefWeek: "",         // 最近已自动投递简报的“周一日期”，防同周重复
     channelOns: {},            // 信源开关：{channelId:0}=本设备停用（保留历史数据，不再收录）
     signatureText: "（XX大学XX学院XXX  XX  供稿）",   // 供稿署名默认（范文同款占位，Word 里可改）
     autoPull: true,
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.3.3",
-    versionCode: 18,
+    appVersion: "1.3.4",
+    versionCode: 19,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     seenNotices: {}
