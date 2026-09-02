@@ -108,15 +108,16 @@
     return chatText([{ role: "system", content: sys }, { role: "user", content: title }], { maxTokens: 120, timeoutMs: 90000 });
   }
 
-  /* 标题翻译 + 中文摘要（一次请求两行输出：第一行中文标题，第二行 2~3 句中文摘要） */
+  /* 摘要生成（中+英可选）：输出至多三行：第1行中文标题，第2行中文摘要，第3行英文摘要（未启用英文时为两行） */
   function translateTitleSummary(title, excerpt, glossary) {
-    var sys = "你是军事/防务新闻编译助手。根据英文标题与正文节选输出两行：\n" +
+    var sys = "你是军事/防务新闻编译助手。根据英文标题与正文节选输出三行内容：\n" +
       "第一行：中文标题（准确、地道的军事新闻标题，术语用词表译法，专有名词首次出现保留原文或括注）。\n" +
       "第二行：中文摘要，2~3 句话（120 字以内），概括国家/机构/主体、核心事件与关键信息，不评论不推测。\n" +
-      "除这两行外不要输出任何其他内容。" +
+      "第三行：English Summary, 2-3 sentences (within 90 words), factual, no comments.\n" +
+      "除这三行外不要输出任何其他内容；摘要只写原文事实。" +
       (glossary ? "\n词表：" + glossary : "");
     var userText = "英文标题：" + title + "\n\n正文节选：\n" + String(excerpt || "").slice(0, 1200);
-    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 400, timeoutMs: 120000 });
+    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 500, timeoutMs: 120000 });
   }
 
   /* 全文翻译（分块调用方负责拆分，本函数翻一段） */
