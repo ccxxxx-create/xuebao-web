@@ -99,9 +99,13 @@ table.data th{background:#f4f7fa;color:#42536a;font-weight:600;white-space:nowra
 .sm-body{padding:16px 20px}
 .sm-field .field-label, .sm-field label{display:flex;justify-content:space-between;align-items:center}
 .sm-title{font-size:14.5px}
-.sm-exp{background:none;border:none;color:var(--accent);font-size:12.5px;cursor:pointer;padding:0;line-height:1.5;flex:none}
-.sm-exp:hover{text-decoration:underline}
-.sm-ta{width:100%;overflow:hidden;resize:none;min-height:88px;font-size:14px;line-height:1.75;border:1px solid var(--line);border-radius:var(--radius-s);padding:9px 11px;outline:none}
+.sm-exp{background:var(--card);border:1px solid var(--line);border-radius:18px;color:var(--accent);font-size:12.5px;padding:4px 13px;cursor:pointer;flex:none;line-height:1.4;transition:background .15s,border-color .15s}
+.sm-exp:hover{background:#eef4fb;border-color:#b9d3ec}
+/* 折叠裁剪层 + 渐隐遮罩：超长摘要底部淡出提示，展开/收起带平滑过渡 */
+.sm-clip{position:relative;overflow:hidden;border-radius:var(--radius-s);transition:height .3s ease}
+.sm-fade{position:absolute;left:0;right:0;bottom:0;height:56px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 72%);opacity:0;transition:opacity .3s ease;border-radius:0 0 var(--radius-s) var(--radius-s)}
+html[data-theme="night"] .sm-fade{background:linear-gradient(180deg,rgba(24,37,52,0),var(--card) 72%)}
+.sm-ta{width:100%;overflow:hidden;resize:none;min-height:88px;font-size:14px;line-height:1.75;border:1px solid var(--line);border-radius:var(--radius-s);padding:9px 11px;outline:none;display:block}
 .sm-ta:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,127,209,.12)}
 .sm-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-top:16px;flex-wrap:wrap}
 .sm-foot .art-actions{margin:0}

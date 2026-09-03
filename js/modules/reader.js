@@ -23,8 +23,8 @@
         '<div class="modal-head"><h3>摘要（中文 · English）<span class="badge ghost" style="margin-left:10px;font-size:12px">自动生成 · 可微调</span></h3><button class="btn sm" data-close>×</button></div>' +
         '<div class="modal-body sm-body">' +
         '<div class="field"><label class="sm-title">中文标题（自动翻译，可微调）</label><input id="smTitle" value="' + esc(a.titleZh || "") + '"></div>' +
-        '<div class="field sm-field"><label><span>中文摘要' + (empty ? '（生成中…）' : '') + '</span><button type="button" class="sm-exp" id="expZh" hidden>展开全文</button></label><textarea id="smZh" class="sm-ta" placeholder="' + (empty ? "正在自动生成…" : "") + '">' + esc(a.summaryZh || "") + "</textarea></div>" +
-        '<div class="field sm-field"><label><span>English Summary' + (empty ? '（生成中…）' : '') + '</span><button type="button" class="sm-exp" id="expEn" hidden>展开全文</button></label><textarea id="smEn" class="sm-ta" placeholder="' + (empty ? "Generating…" : "") + '">' + esc(a.summaryEn || "") + "</textarea></div>" +
+        '<div class="field sm-field"><label><span>中文摘要' + (empty ? '（生成中…）' : '') + '</span><button type="button" class="sm-exp" id="expZh" hidden>▽ 展开全文</button></label><div class="sm-clip" id="clipZh"><textarea id="smZh" class="sm-ta" placeholder="' + (empty ? "正在自动生成…" : "") + '">' + esc(a.summaryZh || "") + "</textarea><div class=\"sm-fade\" id=\"fadeZh\"></div></div></div>" +
+        '<div class="field sm-field"><label><span>English Summary' + (empty ? '（生成中…）' : '') + '</span><button type="button" class="sm-exp" id="expEn" hidden>▽ 展开全文</button></label><div class="sm-clip" id="clipEn"><textarea id="smEn" class="sm-ta" placeholder="' + (empty ? "Generating…" : "") + '">' + esc(a.summaryEn || "") + "</textarea><div class=\"sm-fade\" id=\"fadeEn\"></div></div></div>" +
         '<div class="sm-foot"><div class="art-actions">' +
         '<button class="btn primary" id="smSave">保存</button>' +
         '<button class="btn" id="smRegen"' + (LLM.configured() ? "" : " disabled") + ' title="调用模型重新生成中/英摘要">重新生成</button></div>' +
@@ -35,43 +35,41 @@
       var msg = box.querySelector("#smMsg");
       var saveBtn = box.querySelector("#smSave");
       var regenBtn = box.querySelector("#smRegen");
-      /* 文本框：普通长度完整自适应展示；超过阈值折叠成预览+"展开全文"（不撑爆、不丢全文） */
-      var FOLD_H = 300;   // 内容自然高度超过 300px 才折叠
+      /* 文本框：普通长度完整展示；超长折叠预览 + 渐隐遮罩 + 药丸「展开全文」（精致版） */
+      var FOLD_H = 300;    // 内容自然高度超过 300px 才折叠
       var PREVIEW_H = 190; // 折叠后预览高度
-      function applyFold(ta, btn) {
-        ta.style.height = "auto";
-        var full = ta.scrollHeight;
+      function measure(ta) { ta.style.height = "auto"; var h = ta.scrollHeight; ta.style.height = h + "px"; return h; }
+      function applyFold(ta, clip, fade, btn) {
+        var full = measure(ta);
         if (full > FOLD_H) {
+          clip.classList.add("folded"); clip.style.height = PREVIEW_H + "px";
+          fade.style.opacity = "1"; if (btn) { btn.hidden = false; btn.innerHTML = "▽ 展开全文"; }
           ta.dataset.fold = "1";
-          ta.style.height = PREVIEW_H + "px";
-          ta.style.overflowY = "auto";
-          if (btn) { btn.hidden = false; btn.textContent = "展开全文"; }
         } else {
+          clip.classList.remove("folded"); clip.style.height = full + "px";
+          fade.style.opacity = "0"; if (btn) btn.hidden = true;
           ta.dataset.fold = "";
-          ta.style.height = full + "px";
-          ta.style.overflowY = "hidden";
-          if (btn) btn.hidden = true;
         }
       }
-      function toggleFold(ta, btn) {
+      function toggleFold(ta, clip, fade, btn) {
         var folded = ta.dataset.fold === "1";
         if (folded) {
+          clip.classList.remove("folded"); clip.style.height = (ta.scrollHeight) + "px";
+          fade.style.opacity = "0"; if (btn) btn.innerHTML = "▲ 收起";
           ta.dataset.fold = "";
-          ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px";
-          ta.style.overflowY = "hidden";
-          if (btn) btn.textContent = "收起";
         } else {
+          clip.classList.add("folded"); clip.style.height = PREVIEW_H + "px";
+          fade.style.opacity = "1"; if (btn) btn.innerHTML = "▽ 展开全文";
           ta.dataset.fold = "1";
-          ta.style.height = PREVIEW_H + "px";
-          ta.style.overflowY = "auto";
-          if (btn) btn.textContent = "展开全文";
         }
       }
       var zh = box.querySelector("#smZh"), en = box.querySelector("#smEn");
+      var zhClip = box.querySelector("#clipZh"), enClip = box.querySelector("#clipEn");
+      var zhFade = box.querySelector("#fadeZh"), enFade = box.querySelector("#fadeEn");
       var expZh = box.querySelector("#expZh"), expEn = box.querySelector("#expEn");
-      function applyFolds() { applyFold(zh, expZh); applyFold(en, expEn); }
-      if (expZh) expZh.addEventListener("click", function () { toggleFold(zh, expZh); });
-      if (expEn) expEn.addEventListener("click", function () { toggleFold(en, expEn); });
+      function applyFolds() { applyFold(zh, zhClip, zhFade, expZh); applyFold(en, enClip, enFade, expEn); }
+      if (expZh) expZh.addEventListener("click", function () { toggleFold(zh, zhClip, zhFade, expZh); });
+      if (expEn) expEn.addEventListener("click", function () { toggleFold(en, enClip, enFade, expEn); });
       // 输入时：若处展开态则跟随打字增高（不重新折叠，避免跳动）
       [zh, en].forEach(function (ta) {
         if (ta) ta.addEventListener("input", function () {
