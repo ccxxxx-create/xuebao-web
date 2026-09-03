@@ -282,6 +282,11 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .seg button{border:0;background:transparent;padding:6px 18px;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;transition:.15s;white-space:nowrap}
 .seg button:hover{background:#eef3f8;color:var(--text)}
 .seg button.active{background:var(--primary);color:#fff;font-weight:600;box-shadow:0 1px 5px rgba(11,58,110,.28)}
+/* 大标签页导航（兴趣中心子入口）：长条、等宽、选中主色填白字 */
+.maintabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:var(--shadow)}
+.maintabs button{flex:1;min-width:118px;border:0;background:transparent;padding:11px 12px;border-radius:9px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;text-align:center}
+.maintabs button:hover{background:#eef3f8;color:var(--text)}
+.maintabs button.active{background:var(--primary);color:#fff;box-shadow:0 1px 5px rgba(11,58,110,.28)}
 .detail-tabs button{transition:.15s}
 .detail-tabs button:hover{border-color:#9cc0e0;color:var(--primary)}
 .detail-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}

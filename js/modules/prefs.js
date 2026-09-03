@@ -22,8 +22,8 @@
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">兴趣中心</h1>' +
         '<p class="view-sub">选择上方入口进入对应小界面</p></div></div>' +
-        '<div class="filters" style="margin-bottom:14px">' + TABS.map(function (t) {
-          return '<button class="btn sm ' + (state.tab === t.id ? "primary" : "") + '" data-tab="' + t.id + '">' + t.label + "</button>";
+        '<div class="maintabs" role="tablist" aria-label="兴趣中心功能切换">' + TABS.map(function (t) {
+          return '<button role="tab" aria-selected="' + (state.tab === t.id ? "true" : "false") + '" class="' + (state.tab === t.id ? "active" : "") + '" data-tab="' + t.id + '">' + t.label + "</button>";
         }).join("") + "</div>" +
         '<div id="prefBody">' + bodyHtml() + "</div>";
 

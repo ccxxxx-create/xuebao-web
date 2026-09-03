@@ -78,7 +78,7 @@
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">学报出刊</h1>' +
         '<p class="view-sub">从资料库勾选文章 → 这里逐个生成学报 Word 文档 · 已选 ' + sel.length + " 篇 · 出刊记录 " + journals.length + " 份</p></div>" +
-        '<div class="head-actions"><a class="btn" href="#/library">去资料库选文 →</a></div></div>' +
+        '<div class="head-actions"><a class="btn primary" href="#/library">去资料库选文 →</a></div></div>' +
 
         '<div class="card"><h3>① 已选文章（逐个生成）</h3>' +
         (sel.length ? sel.map(function (a) {

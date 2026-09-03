@@ -55,7 +55,7 @@
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">排行榜</h1>' +
         '<p class="view-sub">今日榜关注时效；兴趣榜按「兴趣相关/新鲜度/来源权威/热度」加权排序。权重与探索率在 设置 → 排序与喜好学习 调节。</p></div>' +
-        '<div class="head-actions"><a class="btn sm" href="#/settings">调权重与探索率 ⚙</a></div></div>' +
+        '<div class="head-actions"><a class="btn primary" href="#/settings">⚙ 调权重与探索率</a></div></div>' +
         '<div class="filters seg">' +
         '<button class="' + (state.tab === "today" ? "active" : "") + '" data-tab="today">今日榜</button>' +
         '<button class="' + (state.tab === "mine" ? "active" : "") + '" data-tab="mine">兴趣榜</button>' +

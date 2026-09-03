@@ -122,8 +122,8 @@
         "</div></div>" +
 
         '<div class="detail-tabs" style="margin-bottom:12px">' +
-        '<button class="' + (state.tab === "pair" ? "active" : "") + '" data-tab="pair">中英对照</button>' +
         '<button class="' + (state.tab === "en" ? "active" : "") + '" data-tab="en">English 原文</button>' +
+        '<button class="' + (state.tab === "pair" ? "active" : "") + '" data-tab="pair">中英对照</button>' +
         '<button class="' + (state.tab === "zh" ? "active" : "") + '" data-tab="zh">中文全文</button>' +
         "</div>" +
         '<div id="rdBody">' + bodyHtml(a) +

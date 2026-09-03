@@ -13,7 +13,7 @@
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">收藏夹</h1>' +
         '<p class="view-sub">收藏 ' + list.length + " 篇 · 点标题阅读；在 设置 → 行为默认值 可开启“收藏后自动生成标题/摘要/全文”</p></div>" +
-        '<div class="head-actions"><a class="btn sm" href="#/prefs">兴趣与摘要设置 →</a></div></div>' +
+        '<div class="head-actions"><a class="btn primary" href="#/prefs">我的关键词与喜好设置 ⚙</a></div></div>' +
         '<div id="favList">' + (list.length ? list.map(function (a) { return cardHtml(a, kws); }).join("") : '<div class="empty"><b>还没有收藏</b>在资料库点「收藏」即可加入。</div>') + "</div>";
       bind(el);
       function cardHtml(a, kws) {
