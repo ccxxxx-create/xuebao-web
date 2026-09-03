@@ -64,6 +64,11 @@
       stream: false
     };
     if (opts && opts.maxTokens) body.max_tokens = opts.maxTokens;
+    // DeepSeek V4 默认开启思考模式（先输出 reasoning_content 再输出 content）。
+    // 翻译/摘要/编译等任务无需多步推理：显式关闭思考，避免 max_tokens 被推理吃光导致 content 为空，且省 token。
+    if (!(opts && opts.thinking)) {
+      body.thinking = { type: "disabled" };
+    }
     return fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + e.key },
@@ -108,7 +113,7 @@
       "术语必须使用词表译法；专有名词与机构缩写首次出现可保留原文或括注。" +
       "只输出一行中文标题，不要任何解释。" +
       (glossary ? "\n词表：" + glossary : "");
-    return chatText([{ role: "system", content: sys }, { role: "user", content: title }], { maxTokens: 120, timeoutMs: 90000 });
+    return chatText([{ role: "system", content: sys }, { role: "user", content: title }], { maxTokens: 300, timeoutMs: 90000 });
   }
 
   /* 摘要生成（中+英可选）：严格三段输出，段首带【T】【Z】【E】前缀便于稳定解析与质量校验 */
@@ -120,7 +125,7 @@
       "除以上三段外不要输出任何其它内容（不要标题名、不要解释、不要客套）。若节选信息不足，就基于已有事实如实概括，绝不臆造。" +
       (glossary ? "\n术语词表：" + glossary : "");
     var userText = "英文标题：" + title + "\n\n正文节选：\n" + String(excerpt || "").slice(0, 2000);
-    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 600, timeoutMs: 120000 });
+    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 1200, timeoutMs: 120000 });
   }
 
   /* 全文翻译（分块调用方负责拆分，本函数翻一段） */
@@ -150,7 +155,7 @@
     return chatText([
       { role: "system", content: "只回复两个字：正常" },
       { role: "user", content: "连通性测试" }
-    ], { maxTokens: 10, timeoutMs: 30000 });
+    ], { maxTokens: 64, timeoutMs: 30000 });
   }
 
   /* 简报 AI 增强：输入精选条目（每行【N】），输出全期综述 + 逐条点评 */
@@ -160,7 +165,7 @@
       "第一段：全期综述，2~3 句话概括本周防务/军事重点与趋势，不编号、不评价好坏。\n" +
       "然后逐条点评：每条一行，格式严格为「【N】一句点评」，点评要具体、有信息量，结合该条内容，不说空话。\n" +
       "除上述内容外不要输出任何其它说明。" + (glossary ? "\n术语词表：" + glossary : "");
-    return chatText([{ role: "system", content: sys }, { role: "user", content: lines.join("\n") }], { maxTokens: 1000, timeoutMs: 120000 });
+    return chatText([{ role: "system", content: sys }, { role: "user", content: lines.join("\n") }], { maxTokens: 2048, timeoutMs: 120000 });
   }
 
   window.LLM = {
