@@ -280,6 +280,7 @@
       var mask = document.getElementById("modalMask");
       var box = document.getElementById("modalBox");
       box.innerHTML = html;
+      if (opts && opts.boxClass) box.classList.add(opts.boxClass);
       mask.hidden = false;
       if (!opts || !opts.noClose) {
         mask.addEventListener("click", function (e) { if (e.target === mask) App.closeModal(); });
@@ -289,7 +290,9 @@
     },
     closeModal: function () {
       document.getElementById("modalMask").hidden = true;
-      document.getElementById("modalBox").innerHTML = "";
+      var box = document.getElementById("modalBox");
+      box.classList.remove("modal-lg");
+      box.innerHTML = "";
       document.body.style.overflow = "";
     },
     /* 简单信息弹窗：标题 + 正文 + 单个「知道了」按钮（供检查更新等结果反馈） */

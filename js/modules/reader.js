@@ -20,16 +20,19 @@
       if (!a) return;
       var empty = !(a.summaryZh || a.summaryEn);
       App.openModal(
-        '<div class="modal-head"><h3>摘要（中文 · English）</h3><button class="btn sm" data-close>×</button></div>' +
-        '<div class="modal-body">' +
-        '<div class="field"><label>中文标题（自动翻译，可微调）</label><input id="smTitle" value="' + esc(a.titleZh || "") + '"></div>' +
-        '<div class="field"><label>中文摘要' + (empty ? "（打开后自动生成）" : "") + '</label><textarea id="smZh" placeholder="' + (empty ? "正在自动生成…" : "") + '">' + esc(a.summaryZh || "") + "</textarea></div>" +
-        '<div class="field"><label>English Summary' + (empty ? " (auto-generating)" : "") + '</label><textarea id="smEn" placeholder="' + (empty ? "Generating…" : "") + '">' + esc(a.summaryEn || "") + "</textarea></div>" +
-        '<div class="art-actions">' +
+        '<div class="modal-head"><h3>摘要（中文 · English）<span class="badge ghost" style="margin-left:10px;font-size:12px">自动生成 · 可微调</span></h3><button class="btn sm" data-close>×</button></div>' +
+        '<div class="modal-body sm-body">' +
+        '<div class="field"><label class="sm-title">中文标题（自动翻译，可微调）</label><input id="smTitle" value="' + esc(a.titleZh || "") + '"></div>' +
+        '<div class="sm-grid">' +
+        '<div class="field"><label>中文摘要' + (empty ? '（生成中…）' : '') + '</label><textarea id="smZh" class="sm-ta" placeholder="' + (empty ? "正在自动生成…" : "") + '">' + esc(a.summaryZh || "") + "</textarea></div>" +
+        '<div class="field"><label>English Summary' + (empty ? '（生成中…）' : '') + '</label><textarea id="smEn" class="sm-ta" placeholder="' + (empty ? "Generating…" : "") + '">' + esc(a.summaryEn || "") + "</textarea></div>" +
+        "</div>" +
+        '<div class="sm-foot"><div class="art-actions">' +
         '<button class="btn primary" id="smSave">保存</button>' +
         '<button class="btn" id="smRegen"' + (LLM.configured() ? "" : " disabled") + ' title="调用模型重新生成中/英摘要">重新生成</button></div>' +
-        '<div id="smMsg" class="muted" style="margin-top:6px">' + (LLM.configured() ? "" : "未配置模型：请先在 设置 → 模型 配置，或直接手动填写后保存。") + "</div>" +
-        "</div>"
+        '<div id="smMsg" class="muted sm-msg">' + (LLM.configured() ? "" : "未配置模型：请先在 设置 → 模型 配置，或直接手动填写后保存。") + "</div></div>" +
+        "</div>",
+        { boxClass: "modal-lg" }
       );
       var box = document.getElementById("modalBox");
       var msg = box.querySelector("#smMsg");
