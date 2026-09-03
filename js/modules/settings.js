@@ -463,7 +463,6 @@
         root.querySelector("#bfSave").addEventListener("click", function () {
           s.signatureText = root.querySelector("#bfSign").value.trim();
           s.autoTitleTr = root.querySelector("#bfAutoTr").checked;
-          s.autoTranslate = root.querySelector("#bfAutoTr").checked;
           s.favAutoTr = root.querySelector("#bfFavTr").checked;
           s.favAutoFull = root.querySelector("#bfFavFull").checked;
           s.compareAutoFull = root.querySelector("#bfCmpAuto").checked;

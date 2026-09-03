@@ -85,7 +85,9 @@
       if (!t) return;
       if (t.state === "queued") {
         t.cancel = true;
-        this._active = this._active.filter(function (x) { return x !== t && (x.state === "queued" || x.state === "running"); });
+        t.state = "cancelled";
+        this._active = this._active.filter(function (x) { return x !== t; });
+        this._settle(t);
       } else if (t.state === "running") {
         t.cancel = true; // 由段落循环内 cancel() 检测后停止
       }
@@ -276,7 +278,7 @@
     // markdown 加粗/斜体配对（**x** / *x*）还原为原文，避免残留星号
     s = s.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/(^|[^*])\*([^*]+)\*/g, "$1$2");
     s = s.replace(/^\*+|\s*\*+$/g, "").trim();
-    s = s.replace(/^(?:(?:第[一二三0-9]+行)|[1-3]\s*[.、)）]|（[1-3]）)[]?[:：、)\s]*/, "").trim();
+    s = s.replace(/^(?:(?:第[一二三0-9]+行)|[1-3]\s*[.、)）]|（[1-3]）)\s?[:：、)\s]*/, "").trim();
     s = s.replace(/^(?:中文标题|中文摘要|中文|摘要|标题|英文摘要|英文|English Summary|English[:：]?|Title[:：]?)[:：]?\s*/, "").trim();
     return s;
   }

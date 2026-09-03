@@ -198,10 +198,12 @@
       s.lastUpdateCheck = Date.now();
       Store.saveSettings();
       // 通道顺序：GitHub Pages 同源（无 CORS、无 CDN 缓存墙，部署即新）→ jsdelivr（含 fallback 缓存）→ raw（部分网络直连）
+      // 加随机参数绕过 Service Worker 缓存（SW 对非导航请求是缓存优先，可能导致公告延迟一期）
+      var rnd = "t=" + Date.now();
       var urls = [
-        "https://" + repo.split("/")[0] + ".github.io/" + repo.split("/")[1] + "/update.json",
-        "https://cdn.jsdelivr.net/gh/" + repo + "@main/update.json",
-        "https://raw.githubusercontent.com/" + repo + "/main/update.json"
+        "https://" + repo.split("/")[0] + ".github.io/" + repo.split("/")[1] + "/update.json?" + rnd,
+        "https://cdn.jsdelivr.net/gh/" + repo + "@main/update.json?" + rnd,
+        "https://raw.githubusercontent.com/" + repo + "/main/update.json?" + rnd
       ];
       var chain = Promise.reject();
       urls.forEach(function (u) {

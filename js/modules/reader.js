@@ -412,7 +412,7 @@
     var s = Store.settings;
     if (!LLM.configured()) { App.refresh(); return; }
     var chain = Promise.resolve();
-    if (!art.titleZh && s.autoTranslate) chain = chain.then(function () { return MIRROR.translateTitlesOnly([art]); });
+    if (!art.titleZh && s.favAutoTr) chain = chain.then(function () { return MIRROR.translateTitlesOnly([art]); });
     if (s.favAutoTr) chain = chain.then(function () {
       return Store.getArticle(art.url).then(function (cur) {
         if (cur && (!cur.summaryZh || !cur.summaryEn)) return MIRROR.summarizeList([cur]);
