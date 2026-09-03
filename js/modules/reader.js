@@ -23,25 +23,29 @@
         '<div class="modal-head"><h3>摘要（中文 · English）<span class="badge ghost" style="margin-left:10px;font-size:12px">自动生成 · 可微调</span></h3><button class="btn sm" data-close>×</button></div>' +
         '<div class="modal-body sm-body">' +
         '<div class="field"><label class="sm-title">中文标题（自动翻译，可微调）</label><input id="smTitle" value="' + esc(a.titleZh || "") + '"></div>' +
-        '<div class="sm-grid">' +
         '<div class="field"><label>中文摘要' + (empty ? '（生成中…）' : '') + '</label><textarea id="smZh" class="sm-ta" placeholder="' + (empty ? "正在自动生成…" : "") + '">' + esc(a.summaryZh || "") + "</textarea></div>" +
         '<div class="field"><label>English Summary' + (empty ? '（生成中…）' : '') + '</label><textarea id="smEn" class="sm-ta" placeholder="' + (empty ? "Generating…" : "") + '">' + esc(a.summaryEn || "") + "</textarea></div>" +
-        "</div>" +
         '<div class="sm-foot"><div class="art-actions">' +
         '<button class="btn primary" id="smSave">保存</button>' +
         '<button class="btn" id="smRegen"' + (LLM.configured() ? "" : " disabled") + ' title="调用模型重新生成中/英摘要">重新生成</button></div>' +
         '<div id="smMsg" class="muted sm-msg">' + (LLM.configured() ? "" : "未配置模型：请先在 设置 → 模型 配置，或直接手动填写后保存。") + "</div></div>" +
-        "</div>",
-        { boxClass: "modal-lg" }
+        "</div>"
       );
       var box = document.getElementById("modalBox");
       var msg = box.querySelector("#smMsg");
       var saveBtn = box.querySelector("#smSave");
       var regenBtn = box.querySelector("#smRegen");
+      /* 文本框高度随内容自适应：完整显示全文，不再靠滚动、不再被截断 */
+      function autoSize(ta) { if (ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; } }
+      function autoSizeAll() { autoSize(box.querySelector("#smZh")); autoSize(box.querySelector("#smEn")); }
+      [box.querySelector("#smZh"), box.querySelector("#smEn")].forEach(function (ta) {
+        if (ta) ta.addEventListener("input", function () { autoSize(ta); });
+      });
       function fill(cur) {
         box.querySelector("#smZh").value = cur.summaryZh || "";
         box.querySelector("#smEn").value = cur.summaryEn || "";
         if (!box.querySelector("#smTitle").value) box.querySelector("#smTitle").value = cur.titleZh || "";
+        autoSizeAll();
       }
       function runGen() {
         regenBtn.disabled = true; saveBtn.disabled = true;
@@ -66,8 +70,8 @@
           msg.innerHTML = '<span style="color:var(--bad,#c0392b)">生成失败：' + esc((err && err.message) || "请重试") + "。可点「重新生成」再试，或手动填写后保存。</span>";
         });
       }
-      // 摘要缺失 → 打开弹窗即自动生成（无产出也会明确提示，不再留空白）
-      if (LLM.configured() && empty) runGen();
+      // 摘要缺失 → 打开弹窗即自动生成；已有内容则立即撑开文本框高度
+      if (LLM.configured() && empty) runGen(); else autoSizeAll();
       regenBtn.addEventListener("click", runGen);
       saveBtn.addEventListener("click", function () {
         a.titleZh = box.querySelector("#smTitle").value.trim();
