@@ -148,6 +148,8 @@
           var upk = "up" + v;
           if (!seen[upk]) {
             seen[upk] = 1;
+            // 版本通知已包含公告内容：顺手把公告 id 也标为已读，避免后续再单独补投一次造成“重复”
+            if (j.notice && j.notice.id) seen["nt" + j.notice.id] = 1;
             s.seenNotices = seen;
             s.lastNotifiedVersion = v;
             Store.saveSettings();

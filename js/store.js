@@ -50,8 +50,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.6.1",
-    versionCode: 25,
+    appVersion: "1.6.2",
+    versionCode: 26,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     lastNotifiedVersion: 0,     // 本设备已告知过的最高版本号：被静默更新/老版本用户也能收到“已更新”通知

@@ -1,4 +1,4 @@
-﻿/* 英语情报 · Service Worker v18 —— 导航请求网络优先，解决“旧缓存卡死”更新问题 */
+﻿/* 英语情报 · Service Worker v19 —— 导航请求网络优先，解决“旧缓存卡死”更新问题 */
 self.addEventListener("install", function () {
   self.skipWaiting();
 });
@@ -16,7 +16,7 @@ self.addEventListener("fetch", function (e) {
       fetch(req).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v18").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v19").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () {
@@ -31,7 +31,7 @@ self.addEventListener("fetch", function (e) {
       var net = fetch(req).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v18").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v19").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () { return hit; });
