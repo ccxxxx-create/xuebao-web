@@ -185,7 +185,29 @@
         var html = '<div class="' + (pct >= 40 ? "ok-line" : "note") + '">收藏 ' + favs.length + " 篇中，有 <b>" + hit +
           "</b> 篇进入排序前 20%（命中率 <b>" + pct + "%</b>，样本池 " + scored.length + " 篇）<br>（" + head + "）<br>" +
           (pct >= 40 ? "配比与您的口味较一致。" : "配比有些偏：可调高“兴趣相关/热度”或等收藏更多后再看。") + "</div>";
-        return { ok: true, text: text, html: html };
+        return { ok: true, text: text, html: html, pct: pct, hit: hit, favTotal: favs.length, pool: scored.length };
+      });
+    },
+    /* 自动微调排序权重（P5）：回测命中率偏低→小幅上提「兴趣相关/热度」，偏高→小幅回调「兴趣相关」。
+       可关(autoTune) / 每日最多一次 / 24h 内有手动调权则跳过，尊重手动意图。 */
+    autoTune: function () {
+      var s = Store.settings;
+      if (!s.autoTune) return Promise.resolve({ done: false, msg: "" });
+      var DAY = 24 * 3600000, now = Date.now();
+      if (s.lastAutoTuneAt && now - s.lastAutoTuneAt < DAY) return Promise.resolve({ done: false, msg: "今日已自动微调过" });
+      if (s.lastManualRankAt && now - s.lastManualRankAt < DAY) return Promise.resolve({ done: false, msg: "24 小时内手动调过权重，先尊重手动选择" });
+      return H.backtestResult().then(function (r) {
+        if (!r.ok) return { done: false, msg: "收藏样本不足，暂不自动调整" };
+        var clamp = function (v) { return Math.max(0, Math.min(70, Math.round(v))); };
+        var w = Object.assign({ rel: 40, fresh: 25, source: 20, heat: 15 }, s.rankWeights || {});
+        var msg = null;
+        if (r.pct < 40) { w.rel = clamp(w.rel + 10); w.heat = clamp(w.heat + 5); msg = "偏低，已小幅上提「兴趣相关 / 热度」"; }
+        else if (r.pct >= 60 && r.pct - 60 >= 10) { w.rel = clamp(w.rel - 5); msg = "偏高，已小幅回调「兴趣相关」"; }
+        s.lastAutoTuneAt = now;
+        if (!msg) { Store.saveSettings(); return { done: false, msg: "配比均衡，本次无需微调（命中率 " + r.pct + "%）" }; }
+        s.rankWeights = w;
+        Store.saveSettings();
+        return { done: true, msg: "自动微调：回测命中率 " + r.pct + "%（" + msg + "）", pct: r.pct };
       });
     }
   };

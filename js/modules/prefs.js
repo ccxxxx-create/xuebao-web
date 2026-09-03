@@ -19,6 +19,15 @@
       var kwArr = H.splitKeywords(s.interestKeywords || "");
       var all = await Store.getAllArticles();
       var favs = all.filter(function (a) { return a.fav; });
+      var KW_COLLAPSE = 12;   // 超过 N 个关键词先折叠，点“还有 M 个”展开
+      var kwOpen = false;
+      function kwTag(k) { return '<span class="kw-tag">' + H.esc(k) + '<button data-del="' + H.esc(k) + '">×</button></span>'; }
+      function chipHtml() {
+        if (kwArr.length <= KW_COLLAPSE) return kwArr.map(kwTag).join("");
+        var shown = kwOpen ? kwArr : kwArr.slice(0, KW_COLLAPSE);
+        return shown.map(kwTag).join("") +
+          '<span class="kw-tag kw-more" data-more>' + (kwOpen ? "收起（共 " + kwArr.length + " 个）" : "＋ 还有 " + (kwArr.length - KW_COLLAPSE) + " 个") + "</span>";
+      }
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">兴趣中心</h1>' +
         '<p class="view-sub">选择上方入口进入对应小界面</p></div></div>' +
@@ -40,9 +49,7 @@
         return '<div class="card"><h3>我的关键词</h3>' +
           '<p class="muted">命中后资料库/收藏夹显示「相关 N」角标。模糊匹配：任意位置出现即算相关，多个为“或”。</p>' +
           '<div class="field"><label>点击标签删除；输入后回车或点“添加”</label>' +
-          '<div class="kw-tags" id="kwChips">' + kwArr.map(function (k) {
-            return '<span class="kw-tag">' + H.esc(k) + '<button data-del="' + H.esc(k) + '">×</button></span>';
-          }).join("") + "</div>" +
+          '<div class="kw-tags" id="kwChips">' + chipHtml() + "</div>" +
           '<div style="display:flex;gap:8px"><input id="kwInput" placeholder="输入关键词，如：无人机 / aircraft carrier" style="flex:1">' +
           '<button class="btn" id="kwAdd">添加</button></div></div>' +
           '<div class="art-actions"><button class="btn primary" id="bfKwSave">保存关键词</button></div></div>';
@@ -76,9 +83,9 @@
         var chips = root.querySelector("#kwChips"), input = root.querySelector("#kwInput");
         if (!chips) { bindLearn(); bindProfile(); bindDraft(); return; }
         function renderChips() {
-          chips.innerHTML = kwArr.map(function (k) {
-            return '<span class="kw-tag">' + H.esc(k) + '<button data-del="' + H.esc(k) + '">×</button></span>';
-          }).join("");
+          chips.innerHTML = chipHtml();
+          var more = chips.querySelector("[data-more]");
+          if (more) more.addEventListener("click", function () { kwOpen = !kwOpen; renderChips(); });
         }
         function addKw(t) {
           t = String(t || "").trim().toLowerCase();

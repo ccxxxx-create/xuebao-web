@@ -34,6 +34,10 @@
     autoCheck: true,           // 自动检查更新（每约 6 小时一次，仅读公告不耗模型，默认开以保障新版本/公告及时送达）
     fontZoom: "M",             // 旧版字号档位（迁移到 fontSizePx）
     fontSizePx: null,          // 字号基准 px（默认 16，迁移函数兜底）
+    theme: "",                 // 界面主题：""=蓝天 / night=深空夜航 / paper=纸面学报 / gray=极简灰
+    autoTune: false,           // 自动微调排序权重（可关；每日最多一次；尊重手动）
+    lastAutoTuneAt: 0,         // 上次自动微调时间戳
+    lastManualRankAt: 0,       // 上次手动调权时间戳（供自动微调短时回避）
     allowLearn: true,          // 允许本机记录喜好（收藏/取消/出刊信号），仅存本设备
     interestKeywords: "",      // 兴趣关键词（模糊匹配，用于“按相关度”排序）
     exploreRate: 0.1,          // 榜单探索率（防茧房）：给非关键词内容保留的比例
@@ -46,8 +50,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.5.2",
-    versionCode: 23,
+    appVersion: "1.6.0",
+    versionCode: 24,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     seenNotices: {}
@@ -77,6 +81,7 @@
       s.autoClean = false;
       s.weeklyBrief = false;
       s.briefAi = false;
+      s.autoTune = false;
       s.autoRefresh = true;                       // 用户明确要求保留定时刷新机制
       s.refreshTimes = DEFAULTS.refreshTimes;
       s.refreshSlots = s.refreshSlots || {};

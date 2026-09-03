@@ -90,6 +90,24 @@
       "</div>";
   }
 
+  /* 主题外观（多主题系统：蓝天/深空夜航/纸面学报/极简灰） */
+  var THEMES = [["", "蓝天 · 深邃", "linear-gradient(135deg,#2f7fd1,#0b4f8f)"],
+                ["night", "深空夜航", "linear-gradient(135deg,#2a3d54,#0e1622)"],
+                ["paper", "纸面学报", "linear-gradient(135deg,#a98a52,#6d5230)"],
+                ["gray", "极简灰", "linear-gradient(135deg,#7d8a97,#4a5868)"]];
+  function themeSectionHtml(s) {
+    return '<div class="card"><h3>主题外观</h3>' +
+      '<p class="muted" style="margin:2px 0 10px">一键切换整套配色，选择后即时生效并保存到本机。</p>' +
+      '<div class="theme-grid" id="thGrid">' +
+      THEMES.map(function (t) {
+        return '<button type="button" class="theme-pick' + ((s.theme || "") === t[0] ? " on" : "") + '" data-th="' + t[0] + '" title="' + H.esc(t[1]) + '">' +
+          '<span class="th-swatch" style="background:' + t[2] + '"></span>' +
+          '<span class="th-name">' + H.esc(t[1]) + "</span>" +
+          ((s.theme || "") === t[0] ? '<span class="th-check">✓ 使用中</span>' : "") +
+          "</button>";
+      }).join("") + "</div></div>";
+  }
+
   function cleanSectionHtml(s) {
     var opts = [[7, "1 周"], [30, "1 个月"], [90, "3 个月"], [180, "6 个月"], [365, "1 年"]];
     var sel = opts.map(function (o) {
@@ -121,6 +139,7 @@
       '<button class="btn sm primary" id="btRun">运行一次离线回测</button></div>' +
       '<div id="rwMsg" class="muted" style="margin-top:8px">离线回测：把您的收藏当标准答案，按当前权重统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
       '<div class="field" style="margin-top:6px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
+      '<div class="field" style="margin-top:0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoTune"' + (s.autoTune ? " checked" : "") + "> 自动微调排序权重（每日最多一次；您 24 小时内手动调过则跳过，尊重手动）</label></div>" +
       '<p class="muted" style="margin:4px 0 0">上次回测：' + btLast + '</p></div>';
   }
 
@@ -214,6 +233,7 @@
         behaviorSectionHtml(s) +
         rankSectionHtml(s) +
         displaySectionHtml(s) +
+        themeSectionHtml(s) +
         mirrorSectionHtml(s) +
         dataSectionHtml() +
         '<div class="card"><h3>关于</h3>' +
@@ -221,7 +241,7 @@
         "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作者的外军防务资讯情报台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
         "数据与设置只保存在本机浏览器中，导出备份即可迁移到其它设备。</div></div>";
 
-      collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "数据与本机占用", "关于"]);
+      collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "显示与字号", "主题外观", "数据与本机占用", "关于"]);
       bindModel(el, s);
       bindOther(el, s, usage, arts);
 
@@ -304,6 +324,28 @@
           App.applyFont();
           App.toast("字号已调整为 " + s.fontSizePx + " px", "ok");
         });
+        // 主题切换：即时生效并回写设置
+        var thGrid = root.querySelector("#thGrid");
+        if (thGrid) {
+          function refreshTh() {
+            thGrid.querySelectorAll(".theme-pick").forEach(function (x) {
+              var on = (x.dataset.th || "") === (s.theme || "");
+              x.classList.toggle("on", on);
+              var c = x.querySelector(".th-check");
+              if (on && !c) { var sp = document.createElement("span"); sp.className = "th-check"; sp.textContent = "✓ 使用中"; x.appendChild(sp); }
+              if (!on && c) c.remove();
+            });
+          }
+          thGrid.addEventListener("click", function (e) {
+            var b = e.target.closest(".theme-pick");
+            if (!b) return;
+            s.theme = b.dataset.th || "";
+            Store.saveSettings();
+            App.applyTheme();
+            refreshTh();
+            App.toast("已切换主题", "ok");
+          });
+        }
         // 排序与喜好学习：滑条实时显示 + 松手保存（权重/探索率）；回测与自动回测
         function bindRw(root, s) {
           var map = [["rwRel", "rel"], ["rwFresh", "fresh"], ["rwSource", "source"], ["rwHeat", "heat"]];
@@ -359,6 +401,12 @@
             s.btAuto = ba.checked;
             Store.saveSettings();
             App.toast(s.btAuto ? "已开启：打开页面时自动回测（每日最多一次）" : "已关闭自动回测", "ok");
+          });
+          var at = root.querySelector("#bfAutoTune");
+          if (at) at.addEventListener("change", function () {
+            s.autoTune = at.checked;
+            Store.saveSettings();
+            App.toast(s.autoTune ? "已开启：每日自动微调排序权重（尊重手动）" : "已关闭自动微调", "ok");
           });
         }
         bindRw(root, s);

@@ -269,6 +269,8 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .kw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent-weak);border:1px solid #bcd8f0;color:#0b4f8f;border-radius:18px;padding:3px 6px 3px 11px;font-size:.85rem}
 .kw-tag button{border:0;background:transparent;color:#7f97b1;font-size:1rem;line-height:1;cursor:pointer;padding:0 2px}
 .kw-tag button:hover{color:var(--bad)}
+.kw-more{cursor:pointer;border-style:dashed;border-color:var(--primary);color:var(--primary);padding:3px 12px;user-select:none}
+.kw-more:hover{background:var(--accent-weak)}
 
 /* —— v1.5 增补：导航图形图标 / 分段按钮 / 统计卡动效 / 滑条 / 来源底注 —— */
 /* 导航与收件箱图标（SVG 描边） */
@@ -287,6 +289,12 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .maintabs button{flex:1;min-width:118px;border:0;background:transparent;padding:11px 12px;border-radius:9px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;text-align:center}
 .maintabs button:hover{background:#eef3f8;color:var(--text)}
 .maintabs button.active{background:var(--primary);color:#fff;box-shadow:0 1px 5px rgba(11,58,110,.28)}
+/* 排行榜快捷权重调节条 */
+.rq-sliders{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:9px}
+.rq{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.rq span{color:var(--text2);white-space:nowrap}
+.rq input[type=range]{width:108px}
+.rq b{min-width:38px;text-align:right;color:var(--text)}
 .detail-tabs button{transition:.15s}
 .detail-tabs button:hover{border-color:#9cc0e0;color:var(--primary)}
 .detail-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
@@ -317,3 +325,135 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .time-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
 .src-actions{align-items:flex-end;gap:6px}
 .src-actions .src-state{font-size:12px;line-height:1.5;text-align:right}
+
+/* ===== v1.6.0 多主题系统：<html data-theme> 切换整套配色，默认(未设)=蓝天 ===== */
+/* —— 导航入口“需在线模型”红点（模型未配置时打在出刊图标上）—— */
+.nav .ico{position:relative;font-size:0}
+.nav .ico .nav-flag{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#e5484d;border:2px solid #fff;font-size:0;line-height:0}
+
+/* 主题选择器（设置页） */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.theme-pick{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px;cursor:pointer;transition:.15s;text-align:left}
+.theme-pick:hover{border-color:#9cc0e0}
+.theme-pick.on{border-color:var(--primary);box-shadow:0 0 0 2px var(--accent-weak)}
+.th-swatch{width:100%;height:44px;border-radius:8px;border:1px solid rgba(0,0,0,.08)}
+.th-name{font-size:13.5px;font-weight:600;color:var(--text)}
+.th-check{font-size:11.5px;color:var(--primary);font-weight:600}
+
+/* —— 主题一：深空夜航（暗色） —— */
+html[data-theme="night"]{
+  --bg:#0e1622; --card:#182534; --line:#2b3d52; --text:#e9eff7; --text2:#a9b8ca; --text3:#6d7d90;
+  --primary:#5ca6e6; --accent:#4791d2; --accent-weak:#1b3247;
+  --ok:#47b491; --ok-weak:#12302a; --warn:#d9ae63; --warn-weak:#352c18;
+  --bad:#e9859b; --bad-weak:#43242e; --violet:#a794d8; --violet-weak:#2f2949;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+html[data-theme="night"] body{background:#0e1622}
+html[data-theme="night"] .sidebar{background:linear-gradient(180deg,#0b141f,#152231);border-right:1px solid var(--line)}
+html[data-theme="night"] .brand-text b{color:#fff}
+html[data-theme="night"] .brand-text span{color:#7f92a8}
+html[data-theme="night"] .nav button{color:#a9b8ca}
+html[data-theme="night"] .nav button:hover{background:#233244;color:#fff}
+html[data-theme="night"] .nav button.active{background:#1b3247;color:#fff}
+html[data-theme="night"] .side-foot{color:#6d7d90;border-top:1px solid var(--line)}
+html[data-theme="night"] .mail-entry{background:#233244;color:#cfe3f7}
+html[data-theme="night"] .mail-entry:hover{background:#2b3d52;color:#fff}
+html[data-theme="night"] a{color:#63b0ee}
+html[data-theme="night"] .card,html[data-theme="night"] .stat{box-shadow:0 1px 4px rgba(0,0,0,.35)}
+html[data-theme="night"] .prose{background:#141f2d;border-color:var(--line)}
+html[data-theme="night"] table.data{background:var(--card)}
+html[data-theme="night"] table.data th{background:#1b2b3c;color:#bcd0e4}
+html[data-theme="night"] .mono{background:#141f2d;border-color:var(--line)}
+html[data-theme="night"] .pair-tbl{background:var(--card)}
+html[data-theme="night"] .pair-tbl th{background:#1b2b3c;color:#bcd0e4}
+html[data-theme="night"] .pair-tbl .pair-en{background:#141f2d}
+html[data-theme="night"] .pair-tbl .pair-zh{background:#2a2216}
+html[data-theme="night"] .b-grp{background:var(--card)}
+html[data-theme="night"] .bg-head{background:#1b2b3c;color:#cfdef0}
+html[data-theme="night"] .bg-head:hover{background:#233244}
+html[data-theme="night"] .seg{background:var(--card)}
+html[data-theme="night"] .seg button:hover{background:#233244;color:#fff}
+html[data-theme="night"] .fz-preview{background:var(--card)}
+html[data-theme="night"] .btn{background:var(--card);border-color:var(--line)}
+html[data-theme="night"] .btn:hover{border-color:#3b5068}
+html[data-theme="night"] .btn.danger{border-color:#6b3a46}
+html[data-theme="night"] .detail-tabs button{background:var(--card);border-color:var(--line)}
+html[data-theme="night"] .art{box-shadow:0 1px 3px rgba(0,0,0,.3)}
+html[data-theme="night"] .art:hover{border-color:#3b5068}
+html[data-theme="night"] .art-title{color:#f0f5fa}
+html[data-theme="night"] .art-title-en{color:#a9b8ca}
+html[data-theme="night"] .art-sum{background:var(--accent-weak);color:#cfe3f7;border-left-color:var(--accent)}
+html[data-theme="night"] .kw-tag{background:var(--accent-weak);border-color:#2f4c68;color:#a7ccf0}
+html[data-theme="night"] .time-chip{background:var(--card)}
+html[data-theme="night"] .time-chip.on{background:var(--primary);color:#fff}
+html[data-theme="night"] .filters input,html[data-theme="night"] .filters select,
+html[data-theme="night"] .field input,html[data-theme="night"] .field select,html[data-theme="night"] .field textarea{background:var(--card);color:var(--text)}
+html[data-theme="night"] .note{background:var(--warn-weak);color:#e6c98f;border-color:#6a5426}
+html[data-theme="night"] .ok-line{background:var(--ok-weak);color:#acd8ca;border-color:#2b5a4c}
+html[data-theme="night"] .chip{background:#223140;color:#a9b8ca}
+html[data-theme="night"] .modal{background:var(--card)}
+html[data-theme="night"] .modal-head{background:var(--card);border-bottom:1px solid var(--line)}
+html[data-theme="night"] .pair-tbl td{background:transparent}
+html[data-theme="night"] .nav .ico .nav-flag{border-color:#152231}
+html[data-theme="night"] ::-webkit-scrollbar-thumb{background:#354a60}
+
+/* —— 主题二：纸面学报（暖纸） —— */
+html[data-theme="paper"]{
+  --bg:#f3edde; --card:#fffdf6; --line:#e0d4bb; --text:#3a2e1c; --text2:#6b5a3d; --text3:#9c8c6d;
+  --primary:#7a5a2e; --accent:#9a7b3f; --accent-weak:#f0e7cf;
+  --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
+  --bad:#8c4a4a; --bad-weak:#f2e1e1; --violet:#6d5b7d; --violet-weak:#ebe5ef;
+  --shadow:0 1px 3px rgba(90,72,40,.08);
+}
+html[data-theme="paper"] body{background:linear-gradient(180deg,#f0e9d6,#f6f1e3 55%,#f1ebdb) fixed}
+html[data-theme="paper"] .sidebar{background:linear-gradient(180deg,#8a6a38,#5f4826);border-right:0}
+html[data-theme="paper"] .brand-text b{color:#fff}
+html[data-theme="paper"] .brand-text span{color:#dfcb9e}
+html[data-theme="paper"] .nav button{color:#e8dcbc}
+html[data-theme="paper"] .nav button:hover{background:rgba(255,255,255,.10);color:#fff}
+html[data-theme="paper"] .nav button.active{background:rgba(255,255,255,.18);color:#fff}
+html[data-theme="paper"] .side-foot{color:#cfbc92;border-top:1px solid rgba(255,255,255,.16)}
+html[data-theme="paper"] .mail-entry{background:rgba(255,255,255,.12);color:#ecdfc0}
+html[data-theme="paper"] .mail-entry:hover{background:rgba(255,255,255,.22);color:#fff}
+html[data-theme="paper"] a{color:#8a5a2e}
+html[data-theme="paper"] .brand-mark{background:linear-gradient(135deg,#c3a15e,#7a5a2e);box-shadow:0 2px 8px rgba(90,70,35,.35)}
+html[data-theme="paper"] .prose{background:#fffcf3;border-color:var(--line)}
+html[data-theme="paper"] table.data{background:var(--card)}
+html[data-theme="paper"] table.data th{background:#f4ecd8;color:#5f4a26}
+html[data-theme="paper"] .mono{background:#f7f1e0;border-color:var(--line)}
+html[data-theme="paper"] .pair-tbl th{background:#f4ecd8;color:#5f4a26}
+html[data-theme="paper"] .pair-tbl .pair-en{background:#fffdf6}
+html[data-theme="paper"] .pair-tbl .pair-zh{background:#fcf6e6}
+html[data-theme="paper"] .b-grp{background:var(--card)}
+html[data-theme="paper"] .bg-head{background:#f4ecd8;color:#6b542e}
+html[data-theme="paper"] .seg button:hover{background:#efe6cc;color:var(--text)}
+html[data-theme="paper"] .fz-preview{background:var(--card)}
+html[data-theme="paper"] .art-sum{background:var(--accent-weak);color:#5f4a26}
+html[data-theme="paper"] .art:hover{border-color:#c6b48d}
+html[data-theme="paper"] .kw-tag{background:var(--accent-weak);border-color:#d8c79a;color:#6b542e}
+html[data-theme="paper"] .pair-tbl td{background:transparent}
+
+/* —— 主题三：极简灰（低饱和单色） —— */
+html[data-theme="gray"]{
+  --bg:#eceff2; --card:#ffffff; --line:#d8dde3; --text:#1d2733; --text2:#5d6a78; --text3:#93a0aa;
+  --primary:#4a5868; --accent:#5d6d7e; --accent-weak:#e9edf1;
+  --ok:#5f7a6d; --ok-weak:#e6efe9; --warn:#9a7a4a; --warn-weak:#f2ecd9;
+  --bad:#9a5560; --bad-weak:#f1e4e6; --violet:#6a6680; --violet-weak:#ebebf2;
+  --shadow:0 1px 3px rgba(40,50,60,.07);
+}
+html[data-theme="gray"] body{background:#eceff2}
+html[data-theme="gray"] .sidebar{background:#f6f7f9;border-right:1px solid var(--line)}
+html[data-theme="gray"] .brand-text b{color:var(--text)}
+html[data-theme="gray"] .brand-text span{color:var(--text3)}
+html[data-theme="gray"] .nav button{color:var(--text2)}
+html[data-theme="gray"] .nav button:hover{background:#e6eaee;color:var(--text)}
+html[data-theme="gray"] .nav button.active{background:var(--accent-weak);color:var(--primary)}
+html[data-theme="gray"] .side-foot{color:var(--text3);border-top:1px solid var(--line)}
+html[data-theme="gray"] .mail-entry{background:#e9ecef;color:var(--text2)}
+html[data-theme="gray"] .mail-entry:hover{background:#e0e4e9;color:var(--text)}
+html[data-theme="gray"] .brand-mark{background:linear-gradient(135deg,#6d7d8d,#4a5868)}
+html[data-theme="gray"] .seg button:hover{background:#e8ecf0;color:var(--text)}
+html[data-theme="gray"] .art:hover{border-color:#c2c9d1}
+html[data-theme="gray"] .art-sum{background:var(--accent-weak);color:#3c4a57;border-left-color:var(--accent)}
+html[data-theme="gray"] .kw-tag{background:var(--accent-weak);border-color:#cfd6dd;color:#3c4a57}
+html[data-theme="gray"] .nav .ico .nav-flag{border-color:#f6f7f9}

@@ -21,6 +21,8 @@
   var current = "dashboard";
   var pulling = false;
   var pullDoneOnce = false;
+  /* 主题的浏览器地址栏色：与各主题主色呼应 */
+  var THEME_META = { "": "#0b3a6e", night: "#0e1622", paper: "#6d5230", gray: "#4a5868" };
 
   function mod(key) { return window.WB.modules[key]; }
 
@@ -28,8 +30,10 @@
     var nav = document.getElementById("nav");
     nav.innerHTML = ORDER.map(function (k) {
       var m = mod(k);
+      // 需在线模型才可完整使用的入口：模型未配置时打点，提醒先去设置（c5 提示增强）
+      var needModel = (k === "journal") && !LLM.configured();
       return '<button data-view="' + k + '" class="' + (current === k ? "active" : "") + '" title="' + m.label + '">' +
-        '<span class="ico" style="background:' + COLORS[k] + '">' + ICO[k] + "</span>" +
+        '<span class="ico" style="background:' + COLORS[k] + '">' + ICO[k] + (needModel ? '<i class="nav-flag" title="需先配置在线模型"></i>' : "") + "</span>" +
         "<span>" + m.label + "</span></button>";
     }).join("");
     nav.querySelectorAll("button").forEach(function (b) {
@@ -84,6 +88,14 @@
       if (!px) px = { M: 16, L: 18, XL: 21 }[s.fontZoom || "M"] || 16;
       px = Math.min(24, Math.max(12, px));
       document.documentElement.style.fontSize = px + "px";
+    },
+    /* 多主题：<html data-theme> 切换整套 CSS 变量；更新浏览器地址栏主题色 */
+    applyTheme: function () {
+      var t = (Store.settings.theme || "").trim();
+      var el = document.documentElement;
+      if (t) el.setAttribute("data-theme", t); else el.removeAttribute("data-theme");
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", THEME_META[t] || "#0b3a6e");
     },
     maybeAutoClean: function (silent) {
       // 录入即判断：打开页面/拉取后自动去重；过期清理遵循设置里的自动清理开关
@@ -303,6 +315,7 @@
     },
     start: function () {
       App.applyFont();
+      App.applyTheme();
       // 注册 Service Worker：网络优先校验最新版本，解决旧缓存卡死（仅 http/https 环境）
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("sw.js?v=" + (Store.settings.versionCode || 1)).catch(function () {});
@@ -330,6 +343,13 @@
       setInterval(function () { App.checkUpdate(); }, 600000);
       // 周末简报：周六/周日首次打开自动投递（纯本地汇总，幂等）
       setTimeout(function () { if (window.BRIEF) BRIEF.tryAuto(); }, 6500);
+      // 自动微调排序权重（P5）：可关 / 每日最多一次 / 尊重新近手动调权；打开页面稍后执行一次
+      setTimeout(function () {
+        if (!window.H || !H.autoTune) return;
+        H.autoTune().then(function (r) {
+          if (r && r.done) App.toast(r.msg, "ok");
+        }).catch(function () {});
+      }, 10000);
     }
   };
 
