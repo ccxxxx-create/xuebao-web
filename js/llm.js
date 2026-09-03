@@ -82,7 +82,10 @@
       clearTimeout(timer);
       var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
       if (typeof c !== "string") { var e2 = new Error("模型接口响应异常"); e2.code = "BAD_RES"; throw e2; }
-      return c.trim();
+      c = c.trim();
+      // 空 content 视为失败（v1.7.5）：模型返回空白时不能静默当成功，否则翻译/摘要“看似运行实则空白”
+      if (!c) { var e3 = new Error("模型返回空内容（接口未正确响应，或该 Key 的额度/权限/模型状态异常）"); e3.code = "BAD_RES"; throw e3; }
+      return c;
     }).catch(function (err) {
       clearTimeout(timer);
       if (err && err.code) throw err;
