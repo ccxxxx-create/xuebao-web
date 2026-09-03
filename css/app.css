@@ -118,6 +118,7 @@ html[data-theme="night"] .sm-ta{background:var(--card);color:var(--text)}
 .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--radius-s);padding:8px 10px;outline:none}
 .field input[type="checkbox"]{width:auto;flex:none;margin:0}
 .field textarea{min-height:64px;resize:vertical}
+.field input.err,.field textarea.err{border-color:#c0392b!important;box-shadow:0 0 0 2px rgba(192,57,43,.14)!important}
 /* toast */
 .toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
 .toast{background:#26313d;color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:84vw;animation:tin .18s ease}

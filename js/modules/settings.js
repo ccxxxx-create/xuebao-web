@@ -46,7 +46,7 @@
       '<div class="field"><label>接口地址 Base URL</label><input id="pvBase" value="' + H.esc(base) + '" placeholder="https://…"></div>' +
       '<div class="field"><label>模型名</label><input id="pvModel" value="' + H.esc(model) + '" placeholder="模型 id"></div>' +
       '<div class="field"><label>API Key（本地明文存储，不上传）</label><input id="pvKey" type="password" value="' + H.esc(s.apiKey || "") + '" placeholder="sk-…"></div>' +
-      '<div class="art-actions"><button class="btn" id="pvTest">测试连接</button><button class="btn primary" id="pvSave">保存模型设置</button></div>' +
+      '<div class="art-actions"><button class="btn" id="pvTest">测试连接</button><button class="btn primary" id="pvSave" title="保存并自动测试连接；必填项空缺会醒目提示">保存并测试连接</button></div>' +
       '<div id="pvResult"></div>' +
       "</div>";
   }
@@ -289,24 +289,8 @@
             root.querySelector("#pvNote").textContent = p.note;
           }
         });
-        root.querySelector("#pvSave").addEventListener("click", function () {
-          var isP = root.querySelector('input[name="pvMode"]:checked').value === "preset";
-          s.provider = isP ? "preset" : "custom";
-          s.preset = root.querySelector("#pvSel").value;
-          s.apiKey = root.querySelector("#pvKey").value.trim();
-          if (isP) {
-            s.presetBaseUrl = root.querySelector("#pvBase").value.trim();
-            s.presetModel = root.querySelector("#pvModel").value.trim();
-          } else {
-            s.baseUrl = root.querySelector("#pvBase").value.trim();
-            s.model = root.querySelector("#pvModel").value.trim();
-          }
-          Store.saveSettings();
-          App.toast("模型设置已保存", "ok");
-          App.refresh();
-        });
-        root.querySelector("#pvTest").addEventListener("click", function () {
-          var box = root.querySelector("#pvResult");
+        // 测试连接（共用）：读当前输入 → 写回设置 → 调模型，把结果显示到 box
+        function testNow(box) {
           var isP = root.querySelector('input[name="pvMode"]:checked').value === "preset";
           if (isP) {
             s.preset = root.querySelector("#pvSel").value;
@@ -318,12 +302,48 @@
           }
           s.apiKey = root.querySelector("#pvKey").value.trim();
           box.innerHTML = '<p class="muted">测试中…<span class="spin dark"></span></p>';
-          LLM.testConnection().then(function (res) {
+          return LLM.testConnection().then(function (res) {
             box.innerHTML = '<div class="ok-line">连接正常，模型回复：' + H.esc(res) + "</div>";
             Store.saveSettings();
+            return true;
           }).catch(function (err) {
             box.innerHTML = '<div class="note">' + H.esc(err.message || "测试失败") + "</div>";
+            return false;
           });
+        }
+        // 保存即测：必填校验（缺项高亮+提示）→ 保存 → 自动测试连接
+        root.querySelector("#pvSave").addEventListener("click", function () {
+          var box = root.querySelector("#pvResult");
+          var isP = root.querySelector('input[name="pvMode"]:checked').value === "preset";
+          s.provider = isP ? "preset" : "custom";
+          s.preset = root.querySelector("#pvSel").value;
+          s.apiKey = root.querySelector("#pvKey").value.trim();
+          var base = root.querySelector("#pvBase").value.trim();
+          var model = root.querySelector("#pvModel").value.trim();
+          if (isP) { s.presetBaseUrl = base; s.presetModel = model; }
+          else { s.baseUrl = base; s.model = model; }
+          var fields = [["#pvBase", base, "接口地址"], ["#pvModel", model, "模型名"], ["#pvKey", s.apiKey, "API Key"]];
+          var missing = [];
+          fields.forEach(function (f) {
+            var el = root.querySelector(f[0]);
+            if (el) el.classList.toggle("err", !f[1]);
+            if (!f[1]) missing.push(f[2]);
+          });
+          if (missing.length) {
+            box.innerHTML = '<div class="note" style="color:var(--bad)">还缺：' + H.esc(missing.join("、")) + "。请补全后再保存。</div>";
+            App.toast("未保存：还有必填项空缺", "err");
+            return;
+          }
+          Store.saveSettings();
+          box.innerHTML = '<p class="muted">已保存，正在测试连接…<span class="spin dark"></span></p>';
+          App.toast("模型设置已保存，正在测试连接…", "ok");
+          testNow(box);
+        });
+        root.querySelector("#pvTest").addEventListener("click", function () { testNow(root.querySelector("#pvResult")); });
+        // 重新输入时清除缺项高亮
+        ["#pvBase", "#pvModel", "#pvKey"].forEach(function (sel) {
+          var el = root.querySelector(sel);
+          if (el) el.addEventListener("input", function () { el.classList.remove("err"); });
         });
       }
       function bindOther(root, s, usage, arts) {
