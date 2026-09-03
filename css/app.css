@@ -97,7 +97,10 @@ table.data th{background:#f4f7fa;color:#42536a;font-weight:600;white-space:nowra
 .modal-lg{width:min(860px,96vw);max-height:92vh}
 /* 摘要弹窗：单栏全宽、文本框高度随文字自适应，完整显示不滚动不截断 */
 .sm-body{padding:16px 20px}
+.sm-field .field-label, .sm-field label{display:flex;justify-content:space-between;align-items:center}
 .sm-title{font-size:14.5px}
+.sm-exp{background:none;border:none;color:var(--accent);font-size:12.5px;cursor:pointer;padding:0;line-height:1.5;flex:none}
+.sm-exp:hover{text-decoration:underline}
 .sm-ta{width:100%;overflow:hidden;resize:none;min-height:88px;font-size:14px;line-height:1.75;border:1px solid var(--line);border-radius:var(--radius-s);padding:9px 11px;outline:none}
 .sm-ta:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,127,209,.12)}
 .sm-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-top:16px;flex-wrap:wrap}
