@@ -115,14 +115,13 @@
       if (!s.autoCheck && !force) return;
       var repo = (s.updateRepo || "").trim();
       if (!repo || navigator.onLine === false) return;
-      // 节流 10 分钟：打开页面即查一次（新版本/公告更快送达）；弹窗与公告按 id 去重，不会反复打扰
+      // 节流 3 分钟：打开即查一次；切换回标签页也立查（新版本/公告更快送达）
       if (!force) {
         var gap = Date.now() - (s.lastUpdateCheck || 0);
-        if (s.lastUpdateCheck && gap < 10 * 60 * 1000) return;
+        if (s.lastUpdateCheck && gap < 3 * 60 * 1000) return;
       }
       s.lastUpdateCheck = Date.now();
       Store.saveSettings();
-      var localV = parseInt(s.versionCode, 10) || 0;
       // 通道顺序：GitHub Pages 同源（无 CORS、无 CDN 缓存墙，部署即新）→ jsdelivr（含 fallback 缓存）→ raw（部分网络直连）
       var urls = [
         "https://" + repo.split("/")[0] + ".github.io/" + repo.split("/")[1] + "/update.json",
@@ -139,46 +138,54 @@
         });
       });
       chain.then(function (j) {
-        // 公告广播（不依赖版本号：任何时刻推送，本机按 id 去重，只投递一次）
+        var v = parseInt(j.versionCode, 10) || 0;
+        var curV = parseInt(s.versionCode, 10) || 0;             // 当前运行代码版本
+        var toldV = parseInt(s.lastNotifiedVersion, 10) || 0;     // 本设备已告知的最高版本
+        var seen = s.seenNotices || {};
+        var newV = v > curV || v > toldV;                         // 有新版本可告知
+        if (newV) {
+          // 合并成“一条”更新通知（版本 + 公告合一），本机按版本去重，绝不重复打扰
+          var upk = "up" + v;
+          if (!seen[upk]) {
+            seen[upk] = 1;
+            s.seenNotices = seen;
+            s.lastNotifiedVersion = v;
+            Store.saveSettings();
+            var notes = j.notes || (j.notice && j.notice.title ? (j.notice.title + "\n\n" + (j.notice.body || "")) : "");
+            Store.inboxAdd("update", "新版本 " + (j.versionName || v), notes || "功能与内容已更新。");
+            App.refreshMail();
+            App.openModal(
+              '<div class="modal-head"><h3>已更新至 ' + H.esc(j.versionName || v) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +
+              '<div class="modal-body"><p>' + H.esc(notes || "功能与内容已更新。") + "</p>" +
+              '<p class="muted">点「立即更新」会自动刷新到最新版本，本地资料不受影响。</p>' +
+              '<div class="modal-actions"><button class="btn" data-close>稍后</button>' +
+              '<button class="btn primary" id="upNow">立即更新本页</button></div></div>'
+            );
+            var up = document.getElementById("upNow");
+            if (up) up.addEventListener("click", function () {
+              App.closeModal();
+              var base = location.href.split("#")[0];
+              var sep = base.indexOf("?") >= 0 ? "&" : "?";
+              // 加查询参数强制绕过缓存重新拉取最新 index，随后回到当前页面
+              location.replace(base + sep + "upd=" + v + (location.hash || "#/dashboard"));
+            });
+          }
+          return;
+        }
+        // 无新版本时，仅处理独立公告（运营/增补类，按 id 去重，避免与版本通知重复）
         var n = j.notice;
         if (n && n.id && n.body) {
-          var seen0 = s.seenNotices || {};
           var nk = "nt" + n.id;
-          if (!seen0[nk]) {
-            seen0[nk] = 1;
-            s.seenNotices = seen0;
+          if (!(seen[nk])) {
+            seen[nk] = 1;
+            s.seenNotices = seen;
             Store.saveSettings();
-            Store.inboxAdd("update", n.title || "新公告", n.body + (n.link ? "\n\n" + n.link : ""));
+            Store.inboxAdd("update", n.title || "新公告", n.body);
             App.refreshMail();
             App.toast("收到新公告 ✉，详见收件箱", "ok");
             if (current === "inbox") App.refresh();
           }
         }
-        var v = parseInt(j.versionCode, 10);
-        if (!(v > localV)) return;
-        var seen = s.seenNotices || {};
-        if (seen["up" + v]) return;
-        seen["up" + v] = 1;
-        s.seenNotices = seen;
-        Store.saveSettings();
-        var target = j.url || ("https://" + repo.split("/")[0] + ".github.io/" + repo.split("/")[1] + "/");
-        var notes = j.notes || "";
-        Store.inboxAdd("update", "新版本 " + (j.versionName || v), notes + "\n\n最新版地址：" + target);
-        App.openModal(
-          '<div class="modal-head"><h3>发现新版本 ' + H.esc(j.versionName || v) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +
-          '<div class="modal-body"><p>' + H.esc(notes || "功能与内容已更新。") + "</p>" +
-          '<p class="muted">点「立即更新」会自动刷新到最新版本，本地资料不受影响。若使用多个设备，可稍后在其它设备打开 ' + H.esc(target) + "。</p>" +
-          '<div class="modal-actions"><button class="btn" data-close>稍后</button>' +
-          '<button class="btn primary" id="upNow">立即更新本页</button></div></div>'
-        );
-        var up = document.getElementById("upNow");
-        if (up) up.addEventListener("click", function () {
-          App.closeModal();
-          var base = location.href.split("#")[0];
-          var sep = base.indexOf("?") >= 0 ? "&" : "?";
-          // 加查询参数强制绕过缓存重新拉取最新 index，随后回到当前页面
-          location.replace(base + sep + "upd=" + v + (location.hash || "#/dashboard"));
-        });
       }).catch(function () { /* 网络失败静默，下次再查 */ });
     },
     openModal: function (html, opts) {
@@ -338,9 +345,13 @@
           if (n > 0) { App.toast("已自动清理 " + n + " 篇过期资料", "ok"); App.refresh(); }
         });
       }, 3000);
-      // 自动检查更新与公告（打开约 2 秒即查一次，之后每 10 分钟复查；弹窗/公告按 id 去重）
+      // 自动检查更新与公告（打开约 2 秒即查一次，之后每 10 分钟复查；弹窗/公告按版本与 id 去重）
       setTimeout(function () { App.checkUpdate(); }, 2000);
       setInterval(function () { App.checkUpdate(); }, 600000);
+      // 切回本标签页时立查一次：长时间挂着不刷的老用户一回来就能收到新版本/公告
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) App.checkUpdate();
+      });
       // 周末简报：周六/周日首次打开自动投递（纯本地汇总，幂等）
       setTimeout(function () { if (window.BRIEF) BRIEF.tryAuto(); }, 6500);
       // 自动微调排序权重（P5）：可关 / 每日最多一次 / 尊重新近手动调权；打开页面稍后执行一次
