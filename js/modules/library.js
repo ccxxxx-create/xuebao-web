@@ -191,7 +191,7 @@
           }
         });
       }
-      /* 批量翻译本页全部缺中文标题的文章（顺次执行；失败不中断，翻页不影响后台继续） */
+      /* 批量翻译本页全部缺中文标题的文章（并发执行；失败不中断并如实统计，翻页不影响后台继续） */
       function doTitles() {
         if (!LLM.configured()) { App.toast("请先在 设置 → 模型 配置模型"); return; }
         var per = 20;
@@ -202,10 +202,16 @@
         var btn = document.querySelector(".lib-bar [data-act=\"titles\"]");
         var n = todo.length;
         if (btn) { btn.disabled = true; btn.textContent = "正在翻译标题…"; }
-        MIRROR.translateTitlesOnly(todo, function (i) {
-          if (btn) btn.textContent = "正在翻译标题 " + Math.min(i, n) + "/" + n + "…";
+        MIRROR.translateTitlesOnly(todo, function (done) {
+          if (btn) btn.textContent = "正在翻译标题 " + Math.min(done, n) + "/" + n + "…";
         }).then(function (cnt) {
-          App.toast(cnt > 0 ? "本页 " + cnt + " 条标题已翻译" : "未新增翻译，可能已全部完成", cnt > 0 ? "ok" : "");
+          if (cnt >= n) {
+            App.toast("本页 " + cnt + " 条标题已全部翻译", "ok");
+          } else if (cnt > 0) {
+            App.toast("已翻译本页 " + cnt + " 条，另有 " + (n - cnt) + " 条失败，可再点一次重试", "");
+          } else {
+            App.toast("翻译失败：模型可能未正确返回内容，请到 设置 → 模型 检查配置后重试", "err");
+          }
           App.refresh();
         }).catch(function (err) {
           App.toast((err && err.message) || "批量标题翻译中断，请重试", "err");

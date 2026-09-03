@@ -234,33 +234,53 @@
     });
   }
 
-  /* 标题翻译（顺次；跳过已锁定）。新版同时生成中文摘要 */
+  /* 通用并发池：独立条目（标题/摘要等互不依赖）并行执行，并发数 limit；
+     fn(item,i)=>Promise，返回 truthy 视为成功；失败不中断、不抛错。返回成功条数。 */
+  function mapLimit(items, limit, fn) {
+    if (!items || !items.length) return Promise.resolve(0);
+    var idx = 0, ok = 0;
+    function worker() {
+      if (idx >= items.length) return Promise.resolve(ok);
+      var i = idx++;
+      return Promise.resolve().then(function () { return fn(items[i], i); }).then(function (r) {
+        if (r) ok++;
+        return worker();
+      }).catch(function () { return worker(); });
+    }
+    var n = Math.max(1, Math.min(limit || 4, items.length));
+    var runs = [];
+    for (var k = 0; k < n; k++) runs.push(worker());
+    return Promise.all(runs).then(function () { return ok; });
+  }
+
+  /* 标题翻译（并发；跳过已锁定）。新版同时生成中文摘要 */
   function translateTitles(list, onProgress) {
     if (!list || !list.length) return Promise.resolve(0);
     return Store.getAllTerms().then(function (terms) {
       var glossary = LLM.glossaryLines(terms);
-      var done = 0;
-      function one(i) {
-        if (i >= list.length) return Promise.resolve(done);
-        var art = list[i];
-        if (art.titleZhLocked) return one(i + 1);
+      var done = 0, ok = 0;
+      function one(art) {
+        if (art.titleZhLocked) return Promise.resolve(false);
         return LLM.translateTitleSummary(art.title, art.summary || art.body, glossary).then(function (out) {
           var p = parseTriple(out);
           if (p.zh) { art.titleZh = p.zh; art.titleTrans = "ok"; }
           if (p.sumZh) art.summaryZh = p.sumZh;
           if (p.sumEn) art.summaryEn = p.sumEn;
           if (!(p.zh || p.sumZh || p.sumEn)) art.titleTrans = "failed";
-          return Store.putArticle(art);
+          return Store.putArticle(art).then(function () { return !!(p.zh || p.sumZh || p.sumEn); });
         }).catch(function () {
           art.titleTrans = "failed";
-          return Store.putArticle(art);
-        }).then(function () {
+          return Store.putArticle(art).then(function () { return false; });
+        }).then(function (r) {
+          if (r) ok++;
           done++;
-          if (onProgress) onProgress(i + 1, list.length, art);
-          return one(i + 1);
+          if (onProgress) onProgress(done, list.length, art);
+          return r;
         });
       }
-      return one(0);
+      return mapLimit(list, 4, one).then(function () {
+        return ok;
+      });
     });
   }
 
@@ -317,42 +337,42 @@
     return cleanSeg(s);
   }
 
-  /* 仅自动翻译标题（不动摘要），用于“打开即自动翻译标题” */
+  /* 仅自动翻译标题（不动摘要），用于“打开即自动翻译标题 / 批量译标题”：并发执行，返回真实成功条数 */
   function translateTitlesOnly(list, onProgress) {
     if (!list || !list.length) return Promise.resolve(0);
     return Store.getAllTerms().then(function (terms) {
       var glossary = LLM.glossaryLines(terms);
-      var done = 0;
-      function one(i) {
-        if (i >= list.length) return Promise.resolve(done);
-        var art = list[i];
-        if (art.titleZhLocked) return one(i + 1);
+      var done = 0, ok = 0;
+      function one(art) {
+        if (art.titleZhLocked) return Promise.resolve(false);
         return LLM.translateTitle(art.title, glossary).then(function (zh) {
-          art.titleZh = cleanTitle(zh);
-          art.titleTrans = "ok";
-          return Store.putArticle(art);
+          var t = cleanTitle(zh);
+          art.titleZh = t || "";
+          art.titleTrans = t ? "ok" : "failed";
+          return Store.putArticle(art).then(function () { return !!t; });
         }).catch(function () {
           art.titleTrans = "failed";
-          return Store.putArticle(art);
-        }).then(function () {
+          return Store.putArticle(art).then(function () { return false; });
+        }).then(function (r) {
+          if (r) ok++;
           done++;
-          if (onProgress) onProgress(i + 1, list.length, art);
-          return one(i + 1);
+          if (onProgress) onProgress(done, list.length, art);
+          return r;
         });
       }
-      return one(0);
+      return mapLimit(list, 4, one).then(function () {
+        return ok;
+      });
     });
   }
 
-  /* 摘要生成（中文+英文）：保留已有中文标题不动；失败/无产出时记 summaryFail，不覆盖已有摘要 */
+  /* 摘要生成（中文+英文）：保留已有中文标题不动；成功计 ok；失败/无产出记 summaryFail 且不覆盖已有摘要。并发执行 */
   function summarizeList(list, onProgress) {
     if (!list || !list.length) return Promise.resolve(0);
     return Store.getAllTerms().then(function (terms) {
       var glossary = LLM.glossaryLines(terms);
       var done = 0, ok = 0;
-      function one(i) {
-        if (i >= list.length) return Promise.resolve(ok);
-        var art = list[i];
+      function one(art) {
         return LLM.translateTitleSummary(art.title, art.summary || art.body, glossary).then(function (out) {
           var p = parseTriple(out);
           if (!art.titleZh && p.zh) { art.titleZh = p.zh; art.titleTrans = "ok"; }
@@ -360,18 +380,20 @@
           if (p.sumEn) art.summaryEn = p.sumEn;
           var got = !!(p.zh || p.sumZh || p.sumEn);
           art.summaryFail = got ? 0 : 1;
-          if (got) ok++;
-          return Store.putArticle(art);
+          return Store.putArticle(art).then(function () { return got; });
         }).catch(function () {
           art.summaryFail = 1;
-          return Store.putArticle(art);
-        }).then(function () {
+          return Store.putArticle(art).then(function () { return false; });
+        }).then(function (r) {
+          if (r) ok++;
           done++;
-          if (onProgress) onProgress(i + 1, list.length, art);
-          return one(i + 1);
+          if (onProgress) onProgress(done, list.length, art);
+          return r;
         });
       }
-      return one(0);
+      return mapLimit(list, 4, one).then(function () {
+        return ok;
+      });
     });
   }
 
