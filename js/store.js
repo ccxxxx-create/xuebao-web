@@ -21,7 +21,8 @@
     refreshSlots: {},          // 已完成刷新记录：{YYYYMMDD:[日内分钟数]}
     retentionDays: 90,         // 保留期：7~365 天
     // 自动化（除定时刷新外一律默认关闭，用户手动开启）
-    autoTranslate: false,      // 拉取后/进资料库时自动翻译新标题
+    autoTranslate: false,      // 拉取后自动翻译新标题（旧开关，可手动开）
+    autoTitleTr: true,         // 打开资料库时自动翻译新标题（默认开启，可按需关闭）
     favAutoTr: false,          // 收藏时自动：生成中文标题+摘要
     favAutoFull: false,        // 收藏时自动：全文翻译
     compareAutoFull: false,    // 中英对照时缺译文自动翻译全文
@@ -50,8 +51,9 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.6.3",
-    versionCode: 27,
+    appVersion: "1.7.0",
+    versionCode: 28,
+    libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     lastNotifiedVersion: 0,     // 本设备已告知过的最高版本号：被静默更新/老版本用户也能收到“已更新”通知

@@ -48,9 +48,9 @@
         '<button class="btn sm danger" id="ibClear">清空</button></div></div>' +
         (items.length
           ? items.map(function (x) {
-              return '<div class="art' + (x.read ? "" : ' style="border-left:3px solid #2f7fd1"') + '">' +
+              return '<div class="art inbox-card" data-id="' + H.esc(x.id) + '" title="点击查看详情"' + (x.read ? "" : ' style="border-left:3px solid #2f7fd1"') + '>' +
                 '<div class="art-head"><div style="flex:1;min-width:0">' +
-                '<div class="art-title" data-id="' + H.esc(x.id) + '" style="font-weight:600">' +
+                '<div class="art-title" style="font-weight:600">' +
                 (x.read ? "" : '<span class="badge state-error">新</span> ') +
                 H.esc(KIND[x.kind] || x.kind) + " · " + H.esc(x.title) + "</div>" +
                 '<div class="art-meta"><span>' + H.fmtDateTime(new Date(x.at)) + "</span></div>" +
@@ -70,9 +70,10 @@
               window.open(op.dataset.artUrl, "_blank", "noopener");
               return;
             }
-            var t = e.target.closest(".art-title[data-id]");
-            if (t) {
-              var id = t.dataset.id;
+            // 点击整张卡片（含标题与预览正文）都能展开详情，自动标记已读
+            var card = e.target.closest(".inbox-card");
+            if (card) {
+              var id = card.dataset.id;
               var item = Store.loadInbox().filter(function (x) { return x.id === id; })[0];
               if (item && !item.read) {
                 Store.inboxMarkRead(id);

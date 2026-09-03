@@ -26,6 +26,83 @@
 
   function mod(key) { return window.WB.modules[key]; }
 
+  /* —— 后台翻译任务栏（浮动小浮标 + 展开面板）：查看后台并行翻译进度，可取消 —— */
+  var TASK_UI = {
+    panelOpen: false,
+    _pastToast: {},
+    init: function () {
+      var wrap = document.createElement("div");
+      wrap.className = "task-ui"; wrap.id = "taskUI";
+      wrap.innerHTML =
+        '<div class="task-fab" id="taskFab" role="button" tabindex="0" title="后台翻译任务" hidden>' +
+        '<span class="tf-ico">◐</span><b class="tf-badge" id="taskBadge">0</b></div>' +
+        '<div class="task-panel" id="taskPanel" hidden></div>';
+      document.body.appendChild(wrap);
+      var fab = document.getElementById("taskFab");
+      var panel = document.getElementById("taskPanel");
+      fab.addEventListener("click", function () {
+        TASK_UI.panelOpen = !TASK_UI.panelOpen;
+        panel.hidden = !TASK_UI.panelOpen;
+        TASK_UI.renderPanel();
+      });
+      panel.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-cancel]");
+        if (b) MIRROR.taskCancel(b.dataset.cancel);
+      });
+      MIRROR.onTasks(function () { TASK_UI.refresh(); });
+      TASK_UI.refresh();
+    },
+    refresh: function () {
+      var ts = MIRROR.tasks();
+      var active = ts.filter(function (t) { return t.state === "queued" || t.state === "running"; });
+      var fab = document.getElementById("taskFab");
+      var badge = document.getElementById("taskBadge");
+      if (fab) fab.hidden = ts.length === 0;
+      if (badge) badge.textContent = active.length;
+      // 有全文翻译完成时给一次轻提示（避免闭门等待）
+      ts.forEach(function (t) {
+        if (t.kind === "full" && (t.state === "ok" || t.state === "failed" || t.state === "cancelled")) {
+          var k = t.id + ":" + t.state;
+          if (!TASK_UI._pastToast[k] && active.length === 0) {
+            TASK_UI._pastToast[k] = 1;
+            App.toast(t.state === "ok" ? "全文翻译完成：" + t.label : "全文翻译" + (t.state === "cancelled" ? "已取消" : "失败"), t.state === "ok" ? "ok" : "err");
+          }
+        }
+      });
+      if (TASK_UI.panelOpen) TASK_UI.renderPanel();
+    },
+    panelHtml: function (ts) {
+      if (!ts.length) return '<div class="tp-empty">没有进行中的翻译任务</div>';
+      var KIND = { full: "全文", title: "标题", summary: "摘要" };
+      return ts.map(function (t) {
+        var st = t.state, running = st === "running" || st === "queued";
+        var showProgress = t.kind === "full" && t.total > 0;
+        var pct = showProgress ? Math.round((t.done / t.total) * 100) : (running ? 0 : 100);
+        var bar = showProgress
+          ? '<div class="tp-bar"><div class="tp-fill" style="width:' + pct + '%"></div></div>' +
+            '<div class="tp-n">' + t.done + ' / ' + t.total + ' 段</div>'
+          : (running ? '<span class="spin small dark"></span>' : "");
+        var stateLabel = running ? (st === "queued" ? "排队中" : "翻译中") : (st === "ok" ? "已完成" : st === "cancelled" ? "已取消" : "失败");
+        var stateCls = st === "ok" ? " state-ok" : (st === "failed" ? " state-error" : "");
+        return '<div class="tp-item" data-st="' + st + '">' +
+          '<div class="tp-head"><span class="badge ghost">' + (KIND[t.kind] || t.kind) + "</span>" +
+          '<b class="tp-title" title="' + (t.label || "") + '">' + (t.label || "") + "</b>" +
+          '<span class="tp-st' + stateCls + '">' + stateLabel + "</span></div>" +
+          (bar || "") +
+          (running ? '<button class="btn sm" data-cancel="' + t.id + '" title="取消该任务">取消</button>' : "") +
+          (st === "failed" && t.err ? '<div class="tp-err">' + t.err + "</div>" : "") +
+          '</div>';
+      }).join("");
+    },
+    renderPanel: function () {
+      var panel = document.getElementById("taskPanel");
+      if (!panel) return;
+      panel.innerHTML = '<div class="tp-head"><h3>后台翻译任务</h3><button class="btn sm" id="tpClose">收起</button></div>' + '<div class="tp-body">' + TASK_UI.panelHtml(MIRROR.tasks()) + "</div>";
+      var c = panel.querySelector("#tpClose");
+      if (c) c.addEventListener("click", function () { TASK_UI.panelOpen = false; panel.hidden = true; });
+    }
+  };
+
   function renderNav() {
     var nav = document.getElementById("nav");
     nav.innerHTML = ORDER.map(function (k) {
@@ -142,12 +219,10 @@
         var seen = s.seenNotices || {};
         var newV = v > curV || v > toldV;                         // 有新版本可告知
         if (newV) {
-          // 合并成“一条”更新通知（版本 + 公告合一），本机按版本去重，绝不重复打扰
+          // 版本通知：合并成“一条”（版本 + 公告合一），按版本去重
           var upk = "up" + v;
           if (!seen[upk]) {
             seen[upk] = 1;
-            // 版本通知已包含公告内容：顺手把公告 id 也标为已读，避免后续再单独补投一次造成“重复”
-            if (j.notice && j.notice.id) seen["nt" + j.notice.id] = 1;
             s.seenNotices = seen;
             s.lastNotifiedVersion = v;
             Store.saveSettings();
@@ -166,22 +241,20 @@
               App.closeModal();
               var base = location.href.split("#")[0];
               var sep = base.indexOf("?") >= 0 ? "&" : "?";
-              // 加查询参数强制绕过缓存重新拉取最新 index，随后回到当前页面
               location.replace(base + sep + "upd=" + v + (location.hash || "#/dashboard"));
             });
           }
-          return;
         }
-        // 无新版本时，仅处理独立公告（运营/增补类，按 id 去重，避免与版本通知重复）
+        // 独立公告（与版本号解耦，按 id 去重）：即使版本未变、或上次仅随版本投递过，
+        // 采用“新公告 id”也能重新送达，修复“更新了却没收到公告”。同正文由 inboxAdd 自动去重。
         var n = j.notice;
-        if (n && n.id && n.body) {
-          var nk = "nt" + n.id;
-          if (!(seen[nk])) {
-            seen[nk] = 1;
-            s.seenNotices = seen;
-            Store.saveSettings();
-            Store.inboxAdd("update", n.title || "新公告", n.body);
-            App.refreshMail();
+        if (n && n.id && n.body && !seen["nt" + n.id]) {
+          seen["nt" + n.id] = 1;
+          s.seenNotices = seen;
+          Store.saveSettings();
+          Store.inboxAdd("update", n.title || "新公告", n.body);
+          App.refreshMail();
+          if (!newV) {
             App.toast("收到新公告 ✉，详见收件箱", "ok");
             if (current === "inbox") App.refresh();
           }
@@ -223,6 +296,13 @@
       var q = function (msg, type) { if (!opts.quiet) App.toast(msg, type); };
       q("正在拉取官方信源镜像…");
       return MIRROR.pull().then(function (json) {
+        // 通道可达但镜像无新增：视为“已是最新”，非失败
+        if (json && json.__fresh__ === false) {
+          var ss = Store.settings;
+          ss.lastPullAt = Date.now();
+          Store.saveSettings();
+          return { added: 0, noFresh: true };
+        }
         // 本设备停用的信源：不入库（历史数据保留）
         if (Store.settings.channelOns) {
           var offKeys = Object.keys(Store.settings.channelOns);
@@ -244,9 +324,11 @@
           }
           return added;
         });
-      }).then(function (added) {
+      }).then(function (r) {
         pulling = false;
-        q(added > 0 ? "更新完成，新增 " + added + " 条" : "已是最新（无新增条目）", "ok");
+        var r0 = (typeof r === "number") ? r : (r ? (r.added || 0) : 0);
+        var noFresh = (typeof r !== "number") && !!(r && r.noFresh);
+        q(noFresh ? "已是最新：镜像暂无新增条目" : (r0 > 0 ? "更新完成，新增 " + r0 + " 条" : "已是最新（无新增条目）"), "ok");
         App.refresh();
         App.maybeAutoClean(true).catch(function () {});
         if (window.BRIEF) BRIEF.tryAuto().catch(function () {});
@@ -331,6 +413,8 @@
       var me = document.getElementById("mailEntry");
       if (me) me.addEventListener("click", function () { App.route("#/inbox"); });
       window.addEventListener("hashchange", function () { App.route(location.hash); });
+      // 后台翻译任务栏（浮动小浮标 + 可取消面板）
+      if (window.MIRROR && MIRROR.onTasks) TASK_UI.init();
       var initial = location.hash;
       if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0])) initial = "#/dashboard";
       App.route(initial);

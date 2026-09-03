@@ -1,7 +1,7 @@
 /* modules/reader.js —— 阅读页 + UI 公共助手（摘要弹窗 / 标题自动翻译触发） */
 (function () {
   "use strict";
-  var state = { url: "", from: "library", tab: "pair", busyFull: false };
+  var state = { url: "", from: "library", tab: "pair" };
   /* 防重复渲染用的翻译进度索引（若在其它页面后台翻译，切回时不清 0） */
 
   function esc(s) { return H.esc(s); }
@@ -31,7 +31,9 @@
       );
       var box = document.getElementById("modalBox");
       var msg = box.querySelector("#smMsg");
-      box.querySelector("#smGen").addEventListener("click", function () {
+      var genBtn = box.querySelector("#smGen");
+      function runGen() {
+        genBtn.disabled = true;
         msg.innerHTML = "生成中…<span class='spin dark'></span>";
         MIRROR.summarizeList([a]).then(function () {
           return Store.getArticle(a.url);
@@ -42,11 +44,16 @@
             if (!box.querySelector("#smTitle").value) box.querySelector("#smTitle").value = cur.titleZh || "";
             a = cur;
           }
+          genBtn.disabled = false;
           msg.innerHTML = '<span style="color:var(--ok)">摘要已生成，请检查后点「保存」。</span>';
         }).catch(function (err) {
+          genBtn.disabled = false;
           msg.textContent = (err && err.message) || "生成失败，请重试";
         });
-      });
+      }
+      genBtn.addEventListener("click", runGen);
+      // 无摘要时直接自动生成，避免“又要点一次生成”造成空白
+      if (LLM.configured() && !(a.summaryZh || a.summaryEn)) runGen();
       box.querySelector("#smSave").addEventListener("click", function () {
         a.titleZh = box.querySelector("#smTitle").value.trim();
         a.summaryZh = box.querySelector("#smZh").value.trim();
@@ -188,13 +195,38 @@
         p.ls.forEach(function (ln, k) { line(p.y + (k + 1) * p.lh, ln, ML, bodyW, p.color); });
       }
     });
-    // 下载
-    var blobUrl = c.toDataURL("image/png");
-    var link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = (a.titleZh ? a.titleZh : a.title).replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 40) + "_" + modeLabel + ".png";
-    document.body.appendChild(link); link.click(); link.remove();
-    App.toast("图片已导出（PNG）", "ok");
+    // 下载 / 移动端系统分享
+    var name = (a.titleZh ? a.titleZh : a.title).replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 40) + "_" + modeLabel + ".png";
+    var dataUrl = c.toDataURL("image/png");
+    function dataUrlToBlob(u) {
+      var parts = u.split(",");
+      var mime = (parts[0].match(/data:([^;]+)/) || [])[1] || "image/png";
+      var bin = atob(parts[1]);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+    var blob = dataUrlToBlob(dataUrl);
+    function tryDownload() {
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      document.body.appendChild(link); link.click();
+      setTimeout(function () { URL.revokeObjectURL(link.href); link.remove(); }, 800);
+      App.toast("图片已保存（PNG）", "ok");
+    }
+    var file = new File([blob], name, { type: "image/png" });
+    // 移动端优先走系统“保存/分享图片”，实现存相册；不支持或取消时回退下载
+    if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: name, text: (a.titleZh || a.title || "") }).then(function () {
+        App.toast("已通过系统分享图片", "ok");
+      }).catch(function (e) {
+        if (e && e.name === "AbortError") return; // 用户主动取消，不打扰
+        tryDownload();
+      });
+    } else {
+      tryDownload();
+    }
   }
 
   /* PDF：交给浏览器原生打印（当前视图内容保留，只打印正文区），无第三方依赖、可离线 */
@@ -276,11 +308,18 @@
         // 中英对照：按原文段落逐段精确对齐（zhParas[i] 与枚举出的英文段一一对应，杜绝错位）
         if (a.zhState === "ok") {
           var enP = paras(a.body);
-          var zhP = Array.isArray(a.zhParas) ? a.zhParas : paras(a.zhFull);
+          // 旧译文（v1.6.3 之前翻译）没有逐段 zhParas 数据，检测到则提示重新翻译以逐段对齐
+          var hasPairs = Array.isArray(a.zhParas) && a.zhParas.length === enP.length &&
+            a.zhParas.every(function (s) { return !!String(s || "").trim(); });
+          var zhP = hasPairs ? a.zhParas : paras(a.zhFull); // 旧译文按空行尽力配对，仍展示但标注提示
+          var legacyWarn = hasPairs ? "" :
+            '<div class="legacy-warn"><b>此篇为旧版译文</b>，段落可能未逐段对齐。' +
+            '点下方「重新翻译全文」即可按原文段落一一对应（翻译时会显示进度条）。' +
+            '<button class="btn sm primary" id="rgReTr" type="button">重新翻译全文（逐段对齐）</button></div>';
           var rows = enP.map(function (p, i) {
             return '<tr><td class="pair-en">' + esc(p) + '</td><td class="pair-zh">' + esc(zhP[i] || "") + "</td></tr>";
           }).join("");
-          return '<table class="pair-tbl"><thead><tr><th>English 原文</th><th>中文（AI 翻译 · 逐段对齐）</th></tr></thead><tbody>' + rows + "</tbody></table>";
+          return legacyWarn + '<table class="pair-tbl"><thead><tr><th>English 原文</th><th>中文（AI 翻译 · 逐段对齐）</th></tr></thead><tbody>' + rows + "</tbody></table>";
         }
         var auto = Store.settings.compareAutoFull && LLM.configured();
         return '<div class="note">对照需要中文译文（尚未翻译）。' + (auto ? "" : " 点上方「" + fullLabel + "」翻译全文。") + "</div>" +
@@ -297,11 +336,9 @@
             return Store.putArticle(x).then(function () {
               if (nowOn) {
                 a.like = 1;
-                Store.logPreference("like", x.url, x.titleZh || x.title); // 正向学习信号
-                App.toast("已喜欢，将提升本类内容权重", "ok");
+                Store.logPreference("like", x.url, x.titleZh || x.title); // 正向学习信号（静默记录，不打扰）
               } else {
                 a.like = 0;
-                App.toast("已取消喜欢");
               }
               App.refresh();
             });
@@ -312,13 +349,22 @@
             x.fav = x.fav ? 0 : 1;
             var nowOn = !!x.fav;
             return Store.putArticle(x).then(function () {
-              if (nowOn) { Store.logPreference("fav", x.url, x.titleZh || x.title); window.UI.afterFav(x); }
-              else { App.toast("已取消收藏"); App.refresh(); }
+              if (nowOn) {
+                Store.logPreference("fav", x.url, x.titleZh || x.title);
+                App.toast("已收藏", "ok");
+                window.UI.afterFav(x);
+              } else {
+                App.toast("已取消收藏");
+                App.refresh();
+              }
             });
           });
         });
         root.querySelector("#rdSum").addEventListener("click", function () { summaryModal(a.url); });
         root.querySelector("#rdFull").addEventListener("click", function () { doFull(a); });
+        // 旧译文提示条中的「重新翻译全文」按钮（文内元素在 bodyHtml 里渲染）
+        var reTr = root.querySelector("#rgReTr");
+        if (reTr) reTr.addEventListener("click", function () { doFull(a); });
         root.querySelectorAll("[data-tab]").forEach(function (b) {
           b.addEventListener("click", function () {
             state.tab = b.dataset.tab;
@@ -327,63 +373,22 @@
         });
         // 「中英对照」缺译文且开启自动翻译时后台触发全文翻译；容错不打断渲染
         try {
-          if (state.tab === "pair" && a.zhState !== "ok" && Store.settings.compareAutoFull && LLM.configured() && !state.busyFull) {
-            state.busyFull = true;
+          if (state.tab === "pair" && a.zhState !== "ok" && Store.settings.compareAutoFull && LLM.configured() && !MIRROR.hasFull(a.url)) {
             doFull(a, true);
           }
-        } catch (e) { state.busyFull = false; }
+        } catch (e) {}
       }
+      /* 全文翻译：提交后台调度器即返回，进度与取消由右下角任务栏接管（多篇可并行、可后台、文内保序） */
       function doFull(a, silent) {
         if (!LLM.configured()) { App.toast("请先在 设置 → 模型 配置模型"); return; }
-        if (state.busyFull) { App.toast("正在翻译全文，请稍候"); return; }
-        state.busyFull = true;
-        var cancelled = false;
-        // 进度条弹层：避免用户因看不到进度而反复点击 / 误以为卡死
-        App.openModal(
-          '<div class="modal-head"><h3>全文翻译</h3>' +
-          '<button class="btn sm" id="tfCancel">取消</button>' +
-          '<button class="btn sm" data-close disabled style="opacity:.6">×</button></div>' +
-          '<div class="modal-body">' +
-          '<div class="tf-msg">已译 <b id="tfCur">0</b> / <span id="tfTotal">…</span> 段</div>' +
-          '<div class="tf-bar"><div class="tf-fill" id="tfFill" style="width:0%"></div></div>' +
-          '<div class="muted" id="tfTip" style="margin-top:8px">正在翻译… 通常每段 1–3 秒，请耐心等待。</div>' +
-          "</div>",
-          { noClose: true }
-        );
-        var box = document.getElementById("modalBox");
-        var curEl = box.querySelector("#tfCur");
-        var totalEl = box.querySelector("#tfTotal");
-        var fill = box.querySelector("#tfFill");
-        var tip = box.querySelector("#tfTip");
-        var cancelBtn = box.querySelector("#tfCancel");
-        if (cancelBtn) cancelBtn.addEventListener("click", function () {
-          cancelled = true;
-          cancelBtn.disabled = true;
-          if (tip) tip.textContent = "正在停下，已译内容已保存，可稍后续译…";
-        });
-        var started = false;
+        if (MIRROR.hasFull(a.url)) { if (!silent) App.toast("该文章已在后台翻译中", "ok"); return; }
         Store.getArticle(a.url).then(function (cur) {
           if (cur.zhState === "ok") { cur.zhFull = ""; cur.zhParas = []; cur.zhDone = 0; cur.zhState = "none"; }
-          return MIRROR.translateFull(cur, {
-            onChunk: function (i, total) {
-              started = true;
-              if (totalEl && total) totalEl.textContent = total;
-              if (curEl) curEl.textContent = i;
-              if (fill && total) fill.style.width = Math.round(i / total * 100) + "%";
-            },
-            onState: function (st) {
-              state.busyFull = false;
-              App.closeModal();
-              App.toast(st === "ok" ? "全文翻译完成，已按段落对齐" : "翻译已停下（已译内容已保存）", st === "ok" ? "ok" : "err");
-              App.refresh();
-            },
-            isCancelled: function () { return cancelled; }
-          });
+          return MIRROR.submitFull(cur);
         }).catch(function (err) {
-          state.busyFull = false;
-          App.closeModal();
-          App.toast(err && err.message ? err.message : "翻译失败", "err");
-          App.refresh();
+          var m = (err && err.message) || "提交全文翻译失败，请重试";
+          if (m.indexOf("已在翻译中") >= 0) { if (!silent) App.toast(m, "ok"); return; }
+          App.toast(m, "err");
         });
       }
     }
@@ -397,7 +402,7 @@
   window.UI.openArticle = openArticle;
   window.UI.ensureAutoTitles = function (articles) {
     var s = Store.settings;
-    if (!LLM.configured() || !s.autoTranslate) return Promise.resolve(0);
+    if (!LLM.configured() || !s.autoTitleTr) return Promise.resolve(0);
     var todo = MIRROR.pendingTitles(articles || []);
     if (!todo.length) return Promise.resolve(0);
     return MIRROR.translateTitlesOnly(todo);

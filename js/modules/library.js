@@ -1,7 +1,7 @@
 /* modules/library.js —— 资料库 v3：点击标题进阅读页；摘要独立；标题自动翻译 */
 (function () {
   "use strict";
-  var state = { q: "", channel: "", trans: "", from: "", to: "", sort: "time", page: 1, mode: "zh", doneAuto: false };
+  var state = { q: "", channel: "", trans: "", from: "", to: "", sort: "time", page: 1, doneAuto: false };
   var running = {};
 
   function artBadges(a) {
@@ -30,11 +30,7 @@
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">资料库</h1>' +
         '<p class="view-sub">共 ' + all.length + " 篇 · 显示 " + arts.length + " 篇 · 收藏 " + favN + " 篇 · 学报选文 " + selN + " 篇 · 点击标题进入阅读页</p></div>" +
-        '<div class="head-actions">' +
-        '<div class="filters" style="margin-bottom:0">' +
-        '<button class="btn sm ' + (state.mode === "zh" ? "primary" : "") + '" id="mZh">中文标题</button>' +
-        '<button class="btn sm ' + (state.mode === "en" ? "primary" : "") + '" id="mEn">English</button>' +
-        "</div></div></div>" +
+        '<div class="head-actions"><a class="btn sm" href="#/settings" title="在设置里切换 资料库标题 的显示方式">标题显示设置</a></div></div>' +
         '<div class="filters">' +
         '<input class="search" id="fQ" placeholder="关键词（标题/正文/摘要/作者）" value="' + H.esc(state.q) + '">' +
         '<select id="fCh"><option value="">全部信源</option>' + chOptions(all) + "</select>" +
@@ -56,7 +52,7 @@
         var q = state.q.trim().toLowerCase();
         return list.filter(function (a) {
           if (state.channel && a.channel !== state.channel) return false;
-          if (state.trans === "pending" && (a.titleZh || a.titleTrans !== "pending")) return false;
+          if (state.trans === "pending" && a.titleZh) return false;
           if (state.trans === "ok" && !a.titleZh) return false;
           if (state.trans === "failed" && a.titleTrans !== "failed") return false;
           var d = (a.pubDate || "").slice(0, 10);
@@ -95,9 +91,10 @@
       function cardHtml(a, kws) {
         var run = running[a.url];
         var kwr = kws.length ? H.kwScore(kws, a) : null;
-        var zhMode = state.mode === "zh";
-        var titleShow = zhMode ? (a.titleZh || a.title) : (a.title || a.titleZh || "");
-        var sub = zhMode ? (a.titleZh ? a.title : "") : (a.titleZh ? a.titleZh : "");
+        var dual = Store.settings.libDualTitle !== false;
+        // 主标题：有中文则中文，否则英文；双语开关关闭时仅英文
+        var titleShow = dual ? (a.titleZh || a.title) : (a.title || "");
+        var sub = (dual && a.titleZh && a.titleZh !== a.title) ? a.title : "";
         return '<div class="art">' +
           '<div class="art-title" data-url="' + H.esc(a.url) + '" title="点击进入阅读页">' + H.esc(titleShow) + "</div>" +
           (sub ? '<div class="art-title-en">' + H.esc(sub) + "</div>" : "") +
@@ -109,6 +106,7 @@
           '<div class="art-actions">' +
           '<button class="btn sm" data-act="fav" data-url="' + H.esc(a.url) + '">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
           '<button class="btn sm' + (a.selected ? " primary" : "") + '" data-act="sel" data-url="' + H.esc(a.url) + '" title="加入学报出刊队列">' + (a.selected ? "✓ 已选入学报" : "选入学报") + "</button>" +
+          '<button class="btn sm" data-act="title" data-url="' + H.esc(a.url) + '" title="单独翻译这一篇的中文标题">译标题</button>' +
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
@@ -122,10 +120,7 @@
         root.querySelector("#fCh").addEventListener("change", function (e) { state.channel = e.target.value; state.page = 1; App.refresh(); });
         root.querySelector("#fTr").addEventListener("change", function (e) { state.trans = e.target.value; state.page = 1; App.refresh(); });
         root.querySelector("#fSort").addEventListener("change", function (e) { state.sort = e.target.value; App.refresh(); });
-        root.querySelector("#fFrom").addEventListener("change", function (e) { state.from = e.target.value; state.page = 1; App.refresh(); });
         root.querySelector("#fTo").addEventListener("change", function (e) { state.to = e.target.value; state.page = 1; App.refresh(); });
-        root.querySelector("#mZh").addEventListener("click", function () { state.mode = "zh"; App.refresh(); });
-        root.querySelector("#mEn").addEventListener("click", function () { state.mode = "en"; App.refresh(); });
         if (!root.__lb) {
           root.__lb = true;
           root.addEventListener("click", function (e) {
@@ -137,6 +132,7 @@
             if (act === "pg") { var p = parseInt(btn.dataset.pg, 10); if (p >= 1) { state.page = p; App.refresh(); } }
             else if (act === "fav") doFav(url);
             else if (act === "sel") doSel(url);
+            else if (act === "title") doTitle(url);
             else if (act === "sum") window.UI.summaryModal(url);
             else if (act === "full") doFull(url);
             else if (act === "journal") {
@@ -153,40 +149,73 @@
           a.fav = a.fav ? 0 : 1;
           var nowOn = !!a.fav;
           return Store.putArticle(a).then(function () {
-            if (nowOn) { Store.logPreference("fav", a.url, a.titleZh || a.title); window.UI.afterFav(a); }
+            if (nowOn) {
+              Store.logPreference("fav", a.url, a.titleZh || a.title);
+              App.toast("已收藏", "ok");
+              window.UI.afterFav(a);
+            }
             else { App.toast("已取消收藏"); App.refresh(); }
           });
         });
       }
-      /* 选入学报队列（出刊需要中文标题，未译先提示） */
+      /* 选入学报队列（出刊需要中文标题）：缺标题时先自动翻译标题，闭环出刊入口 */
       function doSel(url) {
         Store.getArticle(url).then(function (a) {
           if (!a) return;
-          if (!a.titleZh) { App.toast("该文章标题尚未翻译，出刊需要中文标题，请先「全文翻译/摘要」生成", "err"); return; }
-          a.selected = a.selected ? 0 : 1;
-          return Store.putArticle(a).then(function () {
-            App.toast(a.selected ? "已选入学报（到「学报」页逐个出刊）" : "已移出学报选文", a.selected ? "ok" : "");
-            App.refresh();
-          });
+          var step = Promise.resolve();
+          if (!a.titleZh) {
+            if (!LLM.configured()) { App.toast("该文章缺中文标题且未配置模型，无法选入学报（请先在设置配置模型）", "err"); return; }
+            step = step.then(function () {
+              return LLM.translateTitle(a.title, null).then(function (zh) {
+                a.titleZh = MIRROR.cleanTitle(zh);
+                a.titleTrans = a.titleZh ? "ok" : "failed";
+                return Store.putArticle(a);
+              });
+            }).then(function () {
+              if (!a.titleZh) { App.toast("标题自动翻译失败，请重试或稍后手动「译标题」", "err"); App.refresh(); return; }
+              a.selected = 1;
+              return Store.putArticle(a).then(function () { App.toast("已自动翻译标题并选入学报", "ok"); App.refresh(); });
+            }).catch(function (e) { App.toast(((e && e.message) || "操作失败"), "err"); App.refresh(); });
+          } else {
+            step = step.then(function () {
+              a.selected = a.selected ? 0 : 1;
+              return Store.putArticle(a).then(function () {
+                App.toast(a.selected ? "已选入学报（到「学报」页逐个出刊）" : "已移出学报选文", "ok");
+                App.refresh();
+              });
+            });
+          }
         });
       }
+      /* 单独翻译这一篇中文标题 */
+      function doTitle(url) {
+        if (!LLM.configured()) { App.toast("请先在 设置 → 模型 配置模型"); return; }
+        Store.getArticle(url).then(function (a) {
+          if (!a) return;
+          return LLM.translateTitle(a.title, null).then(function (zh) {
+            a.titleZh = MIRROR.cleanTitle(zh);
+            a.titleTrans = a.titleZh ? "ok" : "failed";
+            return Store.putArticle(a);
+          });
+        }).then(function () {
+          App.toast("中文标题已翻译", "ok");
+          App.refresh();
+        }).catch(function (err) {
+          App.toast((err && err.message) || "标题翻译失败，请重试", "err");
+          App.refresh();
+        });
+      }
+      /* 全文翻译：后台提交（多篇并行、可后台），进度与取消由右下角任务栏接管 */
       function doFull(url) {
         if (!LLM.configured()) { App.toast("请先在 设置 → 模型 配置模型"); return; }
-        running[url] = true; App.refresh();
+        if (MIRROR.hasFull(url)) { App.toast("该文章已在后台翻译中", "ok"); return; }
         Store.getArticle(url).then(function (a) {
-          if (a.zhState === "ok") { a.zhFull = ""; a.zhDone = 0; a.zhState = "none"; }
-          return MIRROR.translateFull(a, {
-            onChunk: function () {},
-            onState: function (st) {
-              delete running[url];
-              App.toast(st === "ok" ? "全文翻译完成" : "翻译中断，可续译", st === "ok" ? "ok" : "err");
-              App.refresh();
-            }
-          });
+          if (a.zhState === "ok") { a.zhFull = ""; a.zhParas = []; a.zhDone = 0; a.zhState = "none"; }
+          return MIRROR.submitFull(a);
         }).catch(function (err) {
-          delete running[url];
-          App.toast(err && err.message ? err.message : "翻译失败", "err");
-          App.refresh();
+          var m = (err && err.message) || "提交全文翻译失败，请重试";
+          if (m.indexOf("已在翻译中") >= 0) { App.toast(m, "ok"); return; }
+          App.toast(m, "err");
         });
       }
     }

@@ -70,29 +70,13 @@
     label: "学报",
     generateOne: doGenerate,
     async render(el) {
-      var arts = await Store.getAllArticles();
       var journals = await Store.getAllJournals();
-      var sel = arts.filter(function (a) { return a.selected; });
-      var cn = {};
-      arts.forEach(function (a) { cn[a.url] = a; });
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">学报出刊</h1>' +
-        '<p class="view-sub">从资料库勾选文章 → 这里逐个生成学报 Word 文档 · 已选 ' + sel.length + " 篇 · 出刊记录 " + journals.length + " 份</p></div>" +
+        '<p class="view-sub">从资料库挑文章 → 点「直接出刊」逐个生成学报 Word 文档 · 出刊记录 ' + journals.length + " 份</p></div>" +
         '<div class="head-actions"><a class="btn primary" href="#/library">去资料库选文 →</a></div></div>' +
 
-        '<div class="card"><h3>① 已选文章（逐个生成）</h3>' +
-        (sel.length ? sel.map(function (a) {
-          return '<div class="art" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">' +
-            '<div style="flex:1;min-width:200px"><div style="font-weight:600">' + H.esc(a.titleZh || a.title) + "</div>" +
-            '<div class="muted">' + H.esc(a.title) + " · " + H.esc(a.channelName || a.channel) + " · " + H.fmtDay(a.pubDate) + "</div></div>" +
-            '<div class="art-actions" style="margin:0">' +
-            '<button class="btn sm" data-unsel="' + H.esc(a.url) + '">移除</button>' +
-            '<button class="btn sm accent" data-gen="' + H.esc(a.url) + '"' + (genBusy || !a.titleZh ? " disabled" : "") + ">" +
-            (genBusy ? "生成中…" : "生成学报 docx") + "</button></div></div>";
-        }).join("") : '<div class="empty"><b>还没有选文</b>在「资料库」点「选入学报」，勾选的文章会出现在这里。</div>') +
-        "</div>" +
-
-        '<div class="card"><h3>② 出刊记录</h3>' +
+        '<div class="card"><h3>出刊记录</h3>' +
         (journals.length
           ? '<div class="tbl-wrap"><table class="data"><thead><tr><th>生成时间</th><th>中文标题</th><th>原文标题</th><th>文件</th><th>版式校验</th><th>操作</th></tr></thead><tbody>' +
           journals.map(function (j) {
@@ -108,28 +92,10 @@
               '<button class="btn sm" data-vrf="' + j.id + '">校验报告</button> ' +
               '<button class="btn sm danger" data-del="' + j.id + '">删除</button></td></tr>';
           }).join("") + "</tbody></table></div>"
-          : '<div class="empty"><b>暂无出刊记录</b>生成后在此回看、重新下载。</div>') +
+          : '<div class="empty"><b>暂无出刊记录</b>在「资料库」给文章点「直接出刊」，生成后的文件会记录在这里可回看、重新下载。</div>') +
         "</div>" +
         '<div class="note">生成的 Word 采用规范学报版式（A4 · 标题加粗 · 正文仿宋），“供稿”默认是占位文字，可在 Word 中直接改为真实署名。</div>';
 
-      el.querySelectorAll("[data-gen]").forEach(function (b) {
-        b.addEventListener("click", function () {
-          var a = cn[b.dataset.gen];
-          if (a) doGenerate(a);
-        });
-      });
-      el.querySelectorAll("[data-unsel]").forEach(function (b) {
-        b.addEventListener("click", function () {
-          Store.getArticle(b.dataset.unsel).then(function (a) {
-            if (!a) return;
-            a.selected = 0;
-            return Store.putArticle(a).then(function () {
-              App.toast("已移出学报选文", "ok");
-              App.refresh();
-            });
-          });
-        });
-      });
       el.querySelectorAll("[data-reload]").forEach(function (b) {
         b.addEventListener("click", function () {
           var j = journals.find(function (x) { return x.id === Number(b.dataset.reload); });

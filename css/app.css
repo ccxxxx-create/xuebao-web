@@ -114,6 +114,8 @@ table.data th{background:#f4f7fa;color:#42536a;font-weight:600;white-space:nowra
 hr.sep{border:0;border-top:1px dashed var(--line);margin:14px 0}
 .note{background:var(--warn-weak);border:1px solid #ecd9ae;color:#7a5b1e;border-radius:10px;padding:10px 14px;font-size:12.8px;margin:10px 0}
 .ok-line{background:var(--ok-weak);border:1px solid #bfe0d4;color:#0b5f55;border-radius:10px;padding:10px 14px;font-size:12.8px;margin:10px 0}
+.legacy-warn{background:#fff4e0;border:1px solid #eccb8a;color:#6b4a12;border-radius:10px;padding:10px 14px;font-size:12.8px;margin:10px 0;line-height:1.8}
+.legacy-warn .btn{margin-left:10px}
 .chip{display:inline-block;background:#eef1f5;border-radius:6px;padding:1px 7px;font-size:12px;color:var(--text2);margin-right:6px}
 /* 移动端 */
 @media (max-width:760px){
@@ -252,6 +254,7 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .bg-body{padding:12px}
 
 /* 收件箱正文（简报等） */
+.inbox-card{cursor:pointer}
 .inbox-body{white-space:pre-wrap;word-break:break-word;margin:7px 0 0;font-size:.86rem;color:var(--text2);line-height:1.7;max-height:176px;overflow:hidden}
 .inbox-body .art-open{display:inline-block;margin:2px 0;padding:2px 10px;color:#0b6bcb;background:#eaf3fc;border-radius:6px;font-size:.82rem;cursor:pointer;text-decoration:none}
 .inbox-body .art-open:hover{background:#d9eafa;color:#094e92}
@@ -483,3 +486,29 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   .pair-tbl{width:100%}
   a{color:inherit!important;text-decoration:none!important}
 }
+
+/* —— 后台翻译任务栏（浮动小浮标 + 面板） —— */
+.task-ui{position:fixed;right:18px;bottom:18px;z-index:990;font-family:var(--body-font,"Microsoft YaHei",sans-serif)}
+.task-fab{cursor:pointer;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary,#2f7fd1),var(--accent,#6bb0f0));
+  color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(20,60,120,.35);position:relative}
+.task-fab:hover{transform:scale(1.06)}
+.task-fab .tf-ico{font-size:20px}
+.task-fab .tf-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:10px;background:#e23b3b;color:#fff;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.task-panel{position:absolute;right:0;bottom:54px;width:320px;max-width:calc(100vw - 24px);background:var(--card,#fff);
+  border:1px solid var(--line,#dde3ea);border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.16);overflow:hidden}
+.task-panel .tp-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line,#eef1f5);background:var(--bg-soft,#f8fafc)}
+.task-panel .tp-head h3{margin:0;font-size:14px}
+.task-panel .tp-body{max-height:56vh;overflow:auto;padding:8px}
+.tp-item{border:1px solid var(--line,#eef1f5);border-radius:10px;padding:9px 11px;margin-bottom:8px;background:var(--bg,#fff)}
+.tp-item .tp-head{display:flex;align-items:center;gap:8px;border:none;background:none;padding:0;margin-bottom:6px}
+.tp-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.tp-st{font-size:12px;color:var(--text2,#5a6472);white-space:nowrap}
+.tp-st.state-ok{color:var(--ok,#0b5f55)}
+.tp-st.state-error{color:var(--bad,#c0392b)}
+.tp-bar{height:6px;border-radius:4px;background:var(--line,#e6eaef);overflow:hidden;margin-bottom:4px}
+.tp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--primary,#2f7fd1),var(--accent,#6bb0f0));transition:width .25s ease}
+.tp-n{font-size:11.5px;color:var(--text2,#5a6472);margin-bottom:4px}
+.tp-err{font-size:11.5px;color:var(--bad,#c0392b);margin-top:4px;word-break:break-all}
+.tp-empty{padding:18px;text-align:center;color:var(--text2,#5a6472);font-size:13px}
+@media print{.task-ui{display:none!important}}

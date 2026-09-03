@@ -9,7 +9,8 @@
       var journals = await Store.getAllJournals();
       var today = H.ymd();
       var todayAdd = arts.filter(function (a) { return H.ymd(new Date(a.fetchedAt)) === today; }).length;
-      var pending = MIRROR.pendingTitles(arts).length;
+      // 待译标题口径：凡缺中文标题均计入（含翻译失败的），与资料库“标题待译”筛选一致
+      var pending = arts.filter(function (a) { return !a.titleZh && !a.titleZhLocked; }).length;
       var favN = arts.filter(function (a) { return a.fav; }).length;
       var selected = arts.filter(function (a) { return a.selected; }).length;
       var s = Store.settings;

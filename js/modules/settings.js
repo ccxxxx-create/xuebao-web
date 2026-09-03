@@ -86,6 +86,7 @@
       '<input type="range" id="dsRange" min="12" max="24" step="1" value="' + px + '" style="flex:1;min-width:160px;max-width:320px">' +
       '<span class="badge" id="dsVal" style="background:#e4f1fd;color:#0b4f8f;font-size:.9rem;min-width:52px;text-align:center">' + px + " px</span>" +
       "</div>" +
+      '<div class="field" style="margin:4px 0 0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dsDualTitle"' + (s.libDualTitle !== false ? " checked" : "") + "> 资料库标题：中英双语显示（关闭后仅显示英文标题）</label></div>" +
       '<div class="fz-preview" id="fzSample">预览：英语情报 · 今日新增 29 篇 · “相关角标与摘要随字号实时缩放”</div>' +
       "</div>";
   }
@@ -134,13 +135,13 @@
       slider("rwSource", "来源权威（官方直连加权）", rw("source")) +
       slider("rwHeat", "热度（收藏 / 出刊 / 同主题）", rw("heat")) +
       slider("rwEx", "探索率（给非关键词内容留的比例）", ex, 30) +
-      '<div class="art-actions" style="margin-top:4px">' +
+      '<div class="art-actions" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px">' +
       '<button class="btn sm" id="rwReset">恢复默认</button>' +
       '<button class="btn sm primary" id="btRun">运行一次离线回测</button></div>' +
-      '<div id="rwMsg" class="muted" style="margin-top:8px">离线回测：把您的收藏当标准答案，按当前权重统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
-      '<div class="field" style="margin-top:6px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
-      '<div class="field" style="margin-top:0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoTune"' + (s.autoTune ? " checked" : "") + "> 自动微调排序权重（每日最多一次；您 24 小时内手动调过则跳过，尊重手动）</label></div>" +
-      '<p class="muted" style="margin:4px 0 0">上次回测：' + btLast + '</p></div>';
+      '<div id="rwMsg" class="muted" style="margin-top:10px;font-size:.86rem;line-height:1.6">离线回测：把您的收藏当标准答案，按当前权重统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
+      '<div class="field" style="margin-top:12px;margin-bottom:6px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
+      '<div class="field" style="margin:0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoTune"' + (s.autoTune ? " checked" : "") + "> 自动微调排序权重（每日最多一次；您 24 小时内手动调过则跳过，尊重手动）</label></div>" +
+      '<p class="muted" style="margin:10px 0 0">上次回测：' + btLast + '</p></div>';
   }
 
   /* 二级手风琴分组头 */
@@ -170,7 +171,7 @@
     return '<div class="card"><h3>自动化与行为</h3>' +
       '<p class="muted" style="margin:2px 0 10px">除「资料刷新」外，其余自动化默认全部关闭（点组标题展开）。涉及 AI 的功能会消耗模型额度，请按需开启。</p>' +
       grp("翻译与摘要自动化", true,
-        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTranslate ? " checked" : "") + "> 进资料库时自动翻译新标题</label>" +
+        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTitleTr ? " checked" : "") + "> 进资料库时自动翻译新标题（默认开，可按需关闭）</label>" +
         '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavTr"' + (s.favAutoTr ? " checked" : "") + "> 收藏时自动：生成中文标题 + 中/英摘要</label>" +
         '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavFull"' + (s.favAutoFull ? " checked" : "") + "> 收藏时自动：全文翻译（可与上项组合）</label>" +
         '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfCmpAuto"' + (s.compareAutoFull ? " checked" : "") + "> 阅读页「中英对照」缺译文时自动翻译全文</label>") +
@@ -324,6 +325,13 @@
           App.applyFont();
           App.toast("字号已调整为 " + s.fontSizePx + " px", "ok");
         });
+        // 资料库标题显示（双语 / 仅英文）
+        var dual = root.querySelector("#dsDualTitle");
+        if (dual) dual.addEventListener("change", function () {
+          s.libDualTitle = dual.checked;
+          Store.saveSettings();
+          App.toast(s.libDualTitle ? "资料库标题：中英双语显示" : "资料库标题：仅英文显示", "ok");
+        });
         // 主题切换：即时生效并回写设置
         var thGrid = root.querySelector("#thGrid");
         if (thGrid) {
@@ -454,6 +462,7 @@
         // 自动化与行为
         root.querySelector("#bfSave").addEventListener("click", function () {
           s.signatureText = root.querySelector("#bfSign").value.trim();
+          s.autoTitleTr = root.querySelector("#bfAutoTr").checked;
           s.autoTranslate = root.querySelector("#bfAutoTr").checked;
           s.favAutoTr = root.querySelector("#bfFavTr").checked;
           s.favAutoFull = root.querySelector("#bfFavFull").checked;

@@ -64,26 +64,8 @@
       bind(el, all);
 
       function bodyHtml(all) {
-        if (state.tab === "mine") return rqPanelHtml(Store.settings) + mineHtml(all);
+        if (state.tab === "mine") return mineHtml(all);
         return todayHtml(all);
-      }
-      /* 兴趣榜顶部：权重/探索率快捷调节（松手生效并回写设置，与 设置→排序与喜好学习 同步） */
-      function rqPanelHtml(s) {
-        var w = s.rankWeights || {};
-        var rw = function (k) { var v = parseInt(w[k], 10); return isNaN(v) || v < 0 ? 0 : v; };
-        var ex = Math.round(((s.exploreRate == null ? 0.1 : s.exploreRate)) * 100);
-        function slider(id, label, v, max) {
-          max = max || 100;
-          return '<label class="rq"><span>' + label + '</span><input type="range" id="' + id + '" min="0" max="' + max + '" step="5" value="' + Math.min(max, v) + '"><b id="' + id + 'V">' + v + "%</b></label>";
-        }
-        return '<div class="card" data-rq style="padding:12px 14px;margin-bottom:12px">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
-          '<span style="font-weight:600">权重即时调节</span>' +
-          '<span class="muted" style="font-size:12px">松手生效 · 与 设置→排序与喜好学习 同步 · 四项自动归一</span></div>' +
-          '<div class="rq-sliders">' +
-          slider("rqRel", "相关", rw("rel")) + slider("rqFresh", "新鲜", rw("fresh")) +
-          slider("rqSource", "来源", rw("source")) + slider("rqHeat", "热度", rw("heat")) + slider("rqEx", "探索", ex, 30) +
-          "</div></div>";
       }
       function todayHtml(all) {
         var cands = all.filter(function (a) { return H.ageDays(a) <= 14; });
@@ -132,39 +114,6 @@
         return '<div class="empty"><b>' + H.esc(t) + "</b></div>";
       }
       function bind(root, all) {
-        var s = Store.settings;
-        // 快捷权重调节：松手保存并即时重排，同时记下手动调权时间（供 P5 自动微调短时回避）
-        var panel = root.querySelector("[data-rq]");
-        if (panel) {
-          function markManual() { s.lastManualRankAt = Date.now(); Store.saveSettings(); }
-          var map = [["rqRel", "rel"], ["rqFresh", "fresh"], ["rqSource", "source"], ["rqHeat", "heat"]];
-          map.forEach(function (p) {
-            var r = panel.querySelector("#" + p[0]);
-            if (!r) return;
-            r.addEventListener("input", function () {
-              var v = panel.querySelector("#" + p[0] + "V");
-              if (v) v.textContent = r.value + "%";
-            });
-            r.addEventListener("change", function () {
-              s.rankWeights = s.rankWeights || {};
-              s.rankWeights[p[1]] = parseInt(r.value, 10);
-              markManual();
-              App.refresh();
-            });
-          });
-          var ex = panel.querySelector("#rqEx");
-          if (ex) {
-            ex.addEventListener("input", function () {
-              var v = panel.querySelector("#rqExV");
-              if (v) v.textContent = ex.value + "%";
-            });
-            ex.addEventListener("change", function () {
-              s.exploreRate = parseFloat(ex.value) / 100;
-              markManual();
-              App.refresh();
-            });
-          }
-        }
         if (!root.__rk) {
           root.__rk = true;
           root.addEventListener("click", function (e) {
