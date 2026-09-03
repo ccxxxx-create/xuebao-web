@@ -457,3 +457,29 @@ html[data-theme="gray"] .art:hover{border-color:#c2c9d1}
 html[data-theme="gray"] .art-sum{background:var(--accent-weak);color:#3c4a57;border-left-color:var(--accent)}
 html[data-theme="gray"] .kw-tag{background:var(--accent-weak);border-color:#cfd6dd;color:#3c4a57}
 html[data-theme="gray"] .nav .ico .nav-flag{border-color:#f6f7f9}
+
+/* —— 翻译进度条 —— */
+.tf-msg{font-size:.95rem;margin-bottom:8px}
+.tf-bar{height:10px;border-radius:8px;background:var(--line, #dfe4ea);overflow:hidden}
+html[data-theme="paper"] .tf-bar{background:#e8ddc2}
+html[data-theme="gray"] .tf-bar{background:#dfe3e7}
+.tf-fill{height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,var(--primary,#2f7fd1),var(--accent,#6bb0f0));
+  transition:width .3s ease}
+
+/* —— 文章配图（仅英文原文 / 中文全文界面） —— */
+.art-fig{margin:0 0 16px}
+.art-img{max-width:100%;max-height:320px;border-radius:8px;display:block;box-shadow:var(--shadow,0 1px 4px rgba(0,0,0,.12));
+  border:1px solid var(--line, #e2e6ea)}
+
+/* —— 分享/导出：整宽按钮 —— */
+.btn.block{display:block;width:100%;text-align:center}
+
+/* —— 打印（导出 PDF）：只保留文章正文区 —— */
+@media print{
+  .sidebar,.mail-entry,.side-foot,#nav,.head-actions,.detail-tabs,.art-src,.toast-wrap,.modal-mask{display:none!important}
+  #app{display:block}
+  #content{padding:0!important;margin:0!important;max-width:none!important}
+  body{background:#fff!important}
+  .pair-tbl{width:100%}
+  a{color:inherit!important;text-decoration:none!important}
+}

@@ -30,10 +30,8 @@
     var nav = document.getElementById("nav");
     nav.innerHTML = ORDER.map(function (k) {
       var m = mod(k);
-      // 需在线模型才可完整使用的入口：模型未配置时打点，提醒先去设置（c5 提示增强）
-      var needModel = (k === "journal") && !LLM.configured();
       return '<button data-view="' + k + '" class="' + (current === k ? "active" : "") + '" title="' + m.label + '">' +
-        '<span class="ico" style="background:' + COLORS[k] + '">' + ICO[k] + (needModel ? '<i class="nav-flag" title="需先配置在线模型"></i>' : "") + "</span>" +
+        '<span class="ico" style="background:' + COLORS[k] + '">' + ICO[k] + "</span>" +
         "<span>" + m.label + "</span></button>";
     }).join("");
     nav.querySelectorAll("button").forEach(function (b) {
@@ -336,6 +334,8 @@
       var initial = location.hash;
       if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0])) initial = "#/dashboard";
       App.route(initial);
+      // 清理历史重复公告（同 kind+正文 只留最新一条），避免老用户看两条一样的
+      if (Store.inboxDedup() > 0) App.refreshMail();
       // 每日固定时间自动刷新（取代旧版“打开即拉取”，仅在设定的时间点静默拉取一次）
       App.refreshIfDue();
       setInterval(function () { App.refreshIfDue(); }, 60000);

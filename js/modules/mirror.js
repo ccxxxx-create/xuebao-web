@@ -80,6 +80,8 @@
           summaryZh: "",
           summaryEn: "",
           fav: 0,
+          like: 0,
+          image: it.image || it.ogImage || it.thumbnail || "",
           zhFull: "",
           zhState: "none",
           zhDone: 0,
@@ -245,63 +247,56 @@
     });
   }
 
-  /* 全文翻译：按段落分块（每块约 1500 字符），断点续传 */
-  function chunkBody(body) {
-    var paras = String(body || "").split(/\n{2,}/).map(function (s) { return s.trim(); }).filter(Boolean);
-    var chunks = [], cur = "";
-    paras.forEach(function (p) {
-      if ((cur + "\n\n" + p).length > 1500 && cur) { chunks.push(cur); cur = p; }
-      else cur = cur ? cur + "\n\n" + p : p;
-    });
-    if (cur) chunks.push(cur);
-    return chunks;
+  /* 原文段落切分：与阅读页 paras() 规则一致（连续空行分段），确保段落索引一一对应 */
+  function splitParas(body) {
+    return String(body || "").split(/\n{2,}/).map(function (s) { return s.trim(); }).filter(Boolean);
   }
 
-  /* art: 文章对象（含 url）；opts: {onChunk, onState, isCancelled} */
+  /* 全文翻译：按原文段落逐段翻译，每段译文独立存取 zhParas[i]，段段对应、断点续传；
+     同步产出 zhFull(join) 供纯中文视图；zhParas 供中英对照精确对齐，杜绝错位。
+     opts: {onChunk(i,total), onState("ok"/"failed"), isCancelled()} */
   function translateFull(art, opts) {
     if (busy) return Promise.reject(new Error("已有翻译任务在运行，请稍候"));
     busy = true;
     opts = opts || {};
     return Store.getAllTerms().then(function (terms) {
       var glossary = LLM.glossaryLines(terms);
-      var chunks = chunkBody(art.body);
-      art.zhChunks = chunks.length;
-      return Store.putArticle(art).then(function () { return { chunks: chunks, glossary: glossary }; });
+      var paras = splitParas(art.body);
+      art.zhChunks = paras.length;
+      return Store.putArticle(art).then(function () { return { paras: paras, glossary: glossary }; });
     }).then(function (p) {
       return Store.getArticle(art.url).then(function (cur) {
-        var chunks = p.chunks, glossary = p.glossary;
-        var resume = cur && (cur.zhState === "running" || cur.zhState === "failed") && cur.zhDone > 0;
+        var paras = p.paras, glossary = p.glossary;
+        var resume = cur && (cur.zhState === "running" || cur.zhState === "failed") && cur.zhDone > 0 &&
+          Array.isArray(cur.zhParas) && cur.zhParas.length === paras.length;
         var from = resume ? (cur.zhDone || 0) : 0;
-        var acc = resume ? (cur.zhFull || "") : "";
+        var acc = [];
+        for (var k = 0; k < paras.length; k++) acc[k] = (resume && cur.zhParas[k]) || "";
         var i = from;
         function step() {
-          if (i >= chunks.length) {
+          if (i >= paras.length) {
             cur.zhState = "ok";
-            cur.zhFull = acc;
-            cur.zhDone = chunks.length;
+            cur.zhParas = acc;
+            cur.zhFull = acc.filter(Boolean).join("\n\n");
+            cur.zhDone = paras.length;
             cur.zhTransFail = undefined;
-            return Store.putArticle(cur).then(function () {
-              if (opts.onState) opts.onState("ok");
-            });
+            return Store.putArticle(cur).then(function () { if (opts.onState) opts.onState("ok"); });
           }
           if (opts.isCancelled && opts.isCancelled()) {
             cur.zhState = "failed";
-            return Store.putArticle(cur).then(function () {
-              if (opts.onState) opts.onState("failed");
-            });
+            return Store.putArticle(cur).then(function () { if (opts.onState) opts.onState("failed"); });
           }
-          if (opts.onChunk) opts.onChunk(i + 1, chunks.length);
-          return LLM.translateChunk(chunks[i], glossary).then(function (zh) {
-            acc = acc ? acc + "\n\n" + zh : zh;
+          if (opts.onChunk) opts.onChunk(i + 1, paras.length);
+          return LLM.translateChunk(paras[i], glossary).then(function (zh) {
+            acc[i] = String(zh || "").trim();
             cur.zhState = "running";
-            cur.zhFull = acc;
+            cur.zhParas = acc.slice();
+            cur.zhFull = acc.filter(Boolean).join("\n\n");
             cur.zhDone = i + 1;
             return Store.putArticle(cur).then(function () { i++; return step(); });
           }).catch(function () {
             cur.zhState = "failed";
-            return Store.putArticle(cur).then(function () {
-              if (opts.onState) opts.onState("failed");
-            });
+            return Store.putArticle(cur).then(function () { if (opts.onState) opts.onState("failed"); });
           });
         }
         return step();

@@ -50,8 +50,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.6.2",
-    versionCode: 26,
+    appVersion: "1.6.3",
+    versionCode: 27,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     lastNotifiedVersion: 0,     // 本设备已告知过的最高版本号：被静默更新/老版本用户也能收到“已更新”通知
@@ -180,11 +180,27 @@
       try { localStorage.setItem(this.INBOX_KEY, JSON.stringify(arr)); } catch (e) { /* ignore */ }
     },
     inboxAdd: function (kind, title, body) {
-      var arr = this.loadInbox();
+      // 去重：同 kind 且同正文（作者发重复公告/版本提示）不再新增一条，避免收两条
+      var arr = this.loadInbox().filter(function (x) { return !(x.kind === kind && x.body && x.body === body); });
       arr.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kind: kind, title: title || "", body: body || "", at: Date.now(), read: 0 });
       if (arr.length > 60) arr = arr.slice(0, 60);
       this.saveInbox(arr);
       return arr;
+    },
+    /* 收件箱去重补收：同 (kind+正文) 只留最新一条，其余（含旧重复公告）删除；返回删除条数 */
+    inboxDedup: function () {
+      var arr = this.loadInbox();
+      if (!arr.length) return 0;
+      var groups = {}, keep = {}, out = [];
+      arr.forEach(function (x) { var k = x.kind + ":" + (x.body || ""); (groups[k] = groups[k] || []).push(x); });
+      Object.keys(groups).forEach(function (k) {
+        var g = groups[k].slice().sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+        keep[g[0].id] = 1;
+      });
+      arr.forEach(function (x) { if (keep[x.id]) out.push(x); });
+      out.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+      this.saveInbox(out);
+      return arr.length - out.length;
     },
     inboxUnread: function () {
       return this.loadInbox().filter(function (x) { return !x.read; }).length;

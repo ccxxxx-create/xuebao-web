@@ -142,6 +142,7 @@
       var heat = Math.min(1, (parseInt(ctx.favHit, 10) || 0) / 6);
       var sf = ctx.self || {};
       if (sf.fav) heat = Math.min(1, heat + 0.3);
+      if (sf.like) heat = Math.min(1, heat + 0.2);
       if (sf.journal) heat = Math.min(1, heat + 0.2);
       if (sf.selected) heat = Math.min(1, heat + 0.15);
       return { rel: rel, fresh: fresh, src: src, heat: heat, hits: hits, age: age };
