@@ -35,7 +35,7 @@
     }).join("");
     return '<div class="card"><h3>模型（翻译 / 编译在线直连）</h3>' +
       '<p style="margin:0 0 6px">状态：' + statusBadge(s) + "</p>" +
-      '<p class="muted">仅使用在线 API（OpenAI 兼容）。Key 只存在本设备，谁打开页面用谁的 Key；未配置时翻译与出刊会提示。</p>' +
+      '<p class="muted">翻译与出刊调用在线大模型接口。密钥仅保存在本机、不会上传；未配置时翻译与出刊会先提示去配置。</p>' +
       '<div class="filters" style="margin-top:6px">' +
       '<label class="chip"><input type="radio" name="pvMode" value="preset"' + (isPreset ? " checked" : "") + "> 厂商预置</label>" +
       '<label class="chip"><input type="radio" name="pvMode" value="custom"' + (!isPreset ? " checked" : "") + "> 自定义端点</label>" +
@@ -130,14 +130,18 @@
       '<div class="bg-body"' + (open ? "" : " hidden") + ">" + inner + "</div></div>";
   }
 
-  /* 资料刷新（唯一自动取数通道，默认开） */
+  /* 资料刷新（唯一自动取数通道，默认开）；时间点用时段多选，免手填 */
+  var TIME_OPTS = ["06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
   function refreshSectionHtml(s) {
-    var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes.join(", ") : "09:00, 12:00, 18:00";
+    var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
     return '<div class="card"><h3>资料刷新（自动抓取）</h3>' +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="rfOn"' + (s.autoRefresh ? " checked" : "") + "> 每日定时自动刷新官方信源镜像</label>" +
-      '<div class="field"><label>每日刷新时间点（24 小时制 HH:MM，英文逗号分隔）</label>' +
-      '<input id="rfTimes" value="' + H.esc(rt) + '" placeholder="09:00, 12:00, 18:00"></div>' +
-      '<p class="muted">只在设定时间点各静默拉取一次；失败不弹窗打扰，留待下一时段重试。这是本应用唯一的自动取数通道。</p>' +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="rfOn"' + (s.autoRefresh ? " checked" : "") + "> 每日定时自动刷新官方信源</label>" +
+      '<div class="field"><label>刷新时段（多选，至少一个；到点各静默拉取一次）</label>' +
+      '<div class="time-chips" id="rfChips">' +
+      TIME_OPTS.map(function (t) {
+        return '<button type="button" class="time-chip' + (rt.indexOf(t) >= 0 ? " on" : "") + '" data-t="' + t + '">' + t + "</button>";
+      }).join("") + "</div></div>" +
+      '<p class="muted">到设定时间各静默拉取一次；失败不打扰，留待下一时段自动重试。这是资料更新的主要途径。</p>' +
       '<div class="art-actions"><button class="btn primary" id="rfSave">保存刷新设置</button></div></div>';
   }
 
@@ -161,7 +165,7 @@
         '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button><button class="btn" id="clRun">立即清理过期文章</button></div>' +
         '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div>') +
       grp("系统与更新", false,
-        '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动检查新版本与公告（约 6 小时一次，仅读通知不耗模型）</label>") +
+        '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动接收新版本与公告（打开页面即检查，约 10 分钟一次；仅读通知不耗模型）</label>") +
       grp("供稿署名", false,
         '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label><input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>') +
       '<div class="modal-actions" style="margin-top:12px"><button class="btn primary" id="bfSave">保存自动化与行为设置</button></div></div>';
@@ -204,7 +208,7 @@
       var arts = await Store.getAllArticles();
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">设置</h1>' +
-        '<p class="view-sub">设置项均占满整行，点标题展开/收起；默认展开：模型、资料刷新、自动化与行为、数据、关于</p></div></div>' +
+        '<p class="view-sub">设置按分类收纳：点击标题展开或收起。除每日定时刷新外，所有自动化默认关闭，请按需开启。</p></div></div>' +
         modelSectionHtml(s) +
         refreshSectionHtml(s) +
         behaviorSectionHtml(s) +
@@ -213,10 +217,9 @@
         mirrorSectionHtml(s) +
         dataSectionHtml() +
         '<div class="card"><h3>关于</h3>' +
-        '<div class="muted">英语情报 · 信息搜集与情报工作台 v' + H.esc(s.appVersion || "1.2.0") +
-        "（build " + (s.versionCode || 2) + "）<br>形态：纯静态网页应用（参照个人工作台模式），双击 index.html 即可用；" +
-        "部署成网址后电脑/平板/手机打开即用，各设备数据独立。<br>采集：9 个官方直连源（含国防部/陆战队/空军等）由 GitHub Actions 每天 09:00 抓取镜像，每源每轮 ≤20 条；" +
-        "docx 版式严格遵循范文《以色列研发智能反无人机系统Iron Drone Raider.docx》。</div></div>";
+        '<div class="muted">英语情报 v' + H.esc(s.appVersion || "1.0.0") +
+        "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作者的外军防务资讯情报台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
+        "数据与设置只保存在本机浏览器中，导出备份即可迁移到其它设备。</div></div>";
 
       collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "数据与本机占用", "关于"]);
       bindModel(el, s);
@@ -381,20 +384,22 @@
             h.classList.toggle("collapsed", !show);
           });
         });
-        // 资料刷新（定时自动取数）
+        // 资料刷新（定时自动取数；时段 chips 多选）
         var rfOn = root.querySelector("#rfOn");
+        root.querySelector("#rfChips").addEventListener("click", function (e) {
+          var chip = e.target.closest(".time-chip");
+          if (!chip) return;
+          chip.classList.toggle("on");
+        });
         root.querySelector("#rfSave").addEventListener("click", function () {
-          var v = root.querySelector("#rfTimes").value;
-          var seen = {}, times = [];
-          String(v || "").split(/[,，\s]+/).forEach(function (t) {
-            t = (t || "").trim();
-            if (/^\d{1,2}:\d{2}$/.test(t) && !seen[t]) { seen[t] = 1; times.push(t); }
-          });
-          if (!times.length) { times = ["09:00", "12:00", "18:00"]; root.querySelector("#rfTimes").value = times.join(", "); }
+          var times = Array.prototype.map.call(root.querySelectorAll("#rfChips .time-chip.on"), function (c) {
+            return c.dataset.t;
+          }).sort();
+          if (!times.length) { App.toast("请至少选择一个刷新时段", "err"); return; }
           s.autoRefresh = rfOn.checked;
           s.refreshTimes = times;
           Store.saveSettings();
-          App.toast("刷新设置已保存，下次拉取按新时间点执行", "ok");
+          App.toast("刷新设置已保存：每天 " + times.join("、") + " 自动更新", "ok");
           App.refresh();
         });
         // —— 兴趣相关（关键词/喜好学习）已移至左侧「兴趣中心」页 ——

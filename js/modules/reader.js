@@ -61,8 +61,36 @@
   }
 
   function openArticle(url, from) {
-    state.url = url; state.from = from || "library"; state.tab = "pair";
+    state.url = url; state.from = from || "library";
+    // 从资料库进入优先看英文原文；其它入口（收藏夹/榜单）默认中英对照
+    state.tab = from === "library" ? "en" : "pair";
     location.hash = "#/reader";
+  }
+
+  /* 分享文章：优先系统分享（平板/手机），否则复制 链接+标题 到剪贴板 */
+  function copyText(txt, okMsg) {
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      ta.remove();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () {
+        App.toast(okMsg || "已复制到剪贴板", "ok");
+      }).catch(function () { fallback(); App.toast(okMsg || "已复制到剪贴板", "ok"); });
+    } else { fallback(); App.toast(okMsg || "已复制到剪贴板", "ok"); }
+  }
+  function shareArticle(a) {
+    if (!a) return;
+    var t = (a.titleZh && a.titleZh !== a.title) ? a.titleZh + " / " + a.title : (a.titleZh || a.title);
+    var text = t + "（" + (a.channelName || a.channel || "") + " · " + H.fmtDay(a.pubDate) + "）";
+    if (navigator.share) {
+      navigator.share({ title: t, text: text, url: a.url }).catch(function () {});
+      return;
+    }
+    copyText(a.url + "\n" + text, "已复制原文链接与标题");
   }
 
   var M = {
@@ -87,6 +115,7 @@
         "</div></div>" +
         '<div class="head-actions">' +
         '<button class="btn sm" id="rdBack">← 返回</button>' +
+        '<button class="btn sm" id="rdShare" title="分享这篇文章">分享</button>' +
         '<button class="btn sm" id="rdFav">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
         '<button class="btn sm primary" id="rdSum">摘要（中/英）</button>' +
         '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + ">" + fullLabel + "</button>" +
@@ -98,7 +127,7 @@
         '<button class="' + (state.tab === "zh" ? "active" : "") + '" data-tab="zh">中文全文</button>' +
         "</div>" +
         '<div id="rdBody">' + bodyHtml(a) +
-        '<div class="art-src">来源：' + esc(a.channelName || a.channel || "") + ' · <a class="muted" href="' + esc(a.url) + '" target="_blank" rel="noopener" title="在浏览器打开原网页">打开原网页 ↗</a></div>' +
+        '<div class="art-src">原文链接：<a class="src-link" href="' + esc(a.url) + '" target="_blank" rel="noopener" title="点击在浏览器打开原文">' + esc(a.url) + "</a></div>" +
         "</div>";
 
       bind(el, a);
@@ -130,6 +159,7 @@
       }
       function bind(root, a) {
         root.querySelector("#rdBack").addEventListener("click", function () { location.hash = "#/" + state.from; });
+        root.querySelector("#rdShare").addEventListener("click", function () { shareArticle(a); });
         root.querySelector("#rdFav").addEventListener("click", function () {
           Store.getArticle(a.url).then(function (x) {
             x.fav = x.fav ? 0 : 1;

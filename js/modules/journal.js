@@ -77,7 +77,7 @@
       arts.forEach(function (a) { cn[a.url] = a; });
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">学报出刊</h1>' +
-        '<p class="view-sub">已选 ' + sel.length + " 篇 · 出刊记录 " + journals.length + " 份 · 版式严格遵循范文（A4 · 标题黑体18pt · 正文仿宋_GB2312 16pt · 同段）</p></div>" +
+        '<p class="view-sub">从资料库勾选文章 → 这里逐个生成学报 Word 文档 · 已选 ' + sel.length + " 篇 · 出刊记录 " + journals.length + " 份</p></div>" +
         '<div class="head-actions"><a class="btn" href="#/library">去资料库选文 →</a></div></div>' +
 
         '<div class="card"><h3>① 已选文章（逐个生成）</h3>' +
@@ -85,9 +85,11 @@
           return '<div class="art" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">' +
             '<div style="flex:1;min-width:200px"><div style="font-weight:600">' + H.esc(a.titleZh || a.title) + "</div>" +
             '<div class="muted">' + H.esc(a.title) + " · " + H.esc(a.channelName || a.channel) + " · " + H.fmtDay(a.pubDate) + "</div></div>" +
-            '<button class="btn accent" data-gen="' + H.esc(a.url) + '"' + (genBusy || !a.titleZh ? " disabled" : "") + ">" +
-            (genBusy ? "生成中…" : "生成学报 docx") + "</button></div>";
-        }).join("") : '<div class="empty"><b>还没有选文</b>在「资料库」勾选文章即可在此生成学报。</div>') +
+            '<div class="art-actions" style="margin:0">' +
+            '<button class="btn sm" data-unsel="' + H.esc(a.url) + '">移除</button>' +
+            '<button class="btn sm accent" data-gen="' + H.esc(a.url) + '"' + (genBusy || !a.titleZh ? " disabled" : "") + ">" +
+            (genBusy ? "生成中…" : "生成学报 docx") + "</button></div></div>";
+        }).join("") : '<div class="empty"><b>还没有选文</b>在「资料库」点「选入学报」，勾选的文章会出现在这里。</div>') +
         "</div>" +
 
         '<div class="card"><h3>② 出刊记录</h3>' +
@@ -108,12 +110,24 @@
           }).join("") + "</tbody></table></div>"
           : '<div class="empty"><b>暂无出刊记录</b>生成后在此回看、重新下载。</div>') +
         "</div>" +
-        '<div class="note">范文路径：f:\\英语学报\\资料\\以色列研发智能反无人机系统Iron Drone Raider.docx。docx 内「供稿」默认为范文同款占位，您可在 Word 中直接改为真实署名。</div>';
+        '<div class="note">生成的 Word 采用规范学报版式（A4 · 标题加粗 · 正文仿宋），“供稿”默认是占位文字，可在 Word 中直接改为真实署名。</div>';
 
       el.querySelectorAll("[data-gen]").forEach(function (b) {
         b.addEventListener("click", function () {
           var a = cn[b.dataset.gen];
           if (a) doGenerate(a);
+        });
+      });
+      el.querySelectorAll("[data-unsel]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          Store.getArticle(b.dataset.unsel).then(function (a) {
+            if (!a) return;
+            a.selected = 0;
+            return Store.putArticle(a).then(function () {
+              App.toast("已移出学报选文", "ok");
+              App.refresh();
+            });
+          });
         });
       });
       el.querySelectorAll("[data-reload]").forEach(function (b) {

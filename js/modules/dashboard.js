@@ -18,7 +18,7 @@
       el.innerHTML =
         '<div class="view-head"><div>' +
         '<h1 class="view-title">总览</h1>' +
-        '<p class="view-sub">英语情报 · 信息搜集为主、学报输出为辅（纯本地网页版，各设备数据独立）</p>' +
+        '<p class="view-sub">外军防务资讯智能情报台 · 每日自动更新 · 支持中英对照阅读与一键出刊</p>' +
         "</div>" +
         '<div class="head-actions" style="flex-direction:column;align-items:flex-end">' +
         '<button class="btn sm primary" id="dfPull">↻ 立即更新</button>' +

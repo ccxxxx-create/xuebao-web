@@ -20,6 +20,7 @@
       var kws = H.splitKeywords(Store.settings.interestKeywords || "");
       var arts = filter(all);
       var favN = all.filter(function (a) { return a.fav; }).length;
+      var selN = all.filter(function (a) { return a.selected; }).length;
       if (!arts.length) state.page = 1;
       // 打开资料库时自动翻译待译标题（已配置模型且开启自动翻译）
       if (!state.doneAuto) {
@@ -28,7 +29,7 @@
       }
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">资料库</h1>' +
-        '<p class="view-sub">共 ' + all.length + " 篇 · 显示 " + arts.length + " 篇 · 收藏 " + favN + " 篇 · 点击标题进入阅读页</p></div>" +
+        '<p class="view-sub">共 ' + all.length + " 篇 · 显示 " + arts.length + " 篇 · 收藏 " + favN + " 篇 · 学报选文 " + selN + " 篇 · 点击标题进入阅读页</p></div>" +
         '<div class="head-actions">' +
         '<div class="filters" style="margin-bottom:0">' +
         '<button class="btn sm ' + (state.mode === "zh" ? "primary" : "") + '" id="mZh">中文标题</button>' +
@@ -107,10 +108,11 @@
           "</div>" +
           '<div class="art-actions">' +
           '<button class="btn sm" data-act="fav" data-url="' + H.esc(a.url) + '">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
+          '<button class="btn sm' + (a.selected ? " primary" : "") + '" data-act="sel" data-url="' + H.esc(a.url) + '" title="加入学报出刊队列">' + (a.selected ? "✓ 已选入学报" : "选入学报") + "</button>" +
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
-          (a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '">生成学报 docx</button>' : "") +
+          (a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '" title="直接为这一篇生成学报 docx">直接出刊</button>' : "") +
           "</div>" +
           "</div>";
       }
@@ -134,6 +136,7 @@
             var act = btn.dataset.act, url = btn.dataset.url;
             if (act === "pg") { var p = parseInt(btn.dataset.pg, 10); if (p >= 1) { state.page = p; App.refresh(); } }
             else if (act === "fav") doFav(url);
+            else if (act === "sel") doSel(url);
             else if (act === "sum") window.UI.summaryModal(url);
             else if (act === "full") doFull(url);
             else if (act === "journal") {
@@ -152,6 +155,18 @@
           return Store.putArticle(a).then(function () {
             if (nowOn) { Store.logPreference("fav", a.url, a.titleZh || a.title); window.UI.afterFav(a); }
             else { App.toast("已取消收藏"); App.refresh(); }
+          });
+        });
+      }
+      /* 选入学报队列（出刊需要中文标题，未译先提示） */
+      function doSel(url) {
+        Store.getArticle(url).then(function (a) {
+          if (!a) return;
+          if (!a.titleZh) { App.toast("该文章标题尚未翻译，出刊需要中文标题，请先「全文翻译/摘要」生成", "err"); return; }
+          a.selected = a.selected ? 0 : 1;
+          return Store.putArticle(a).then(function () {
+            App.toast(a.selected ? "已选入学报（到「学报」页逐个出刊）" : "已移出学报选文", a.selected ? "ok" : "");
+            App.refresh();
           });
         });
       }

@@ -36,7 +36,7 @@
       b.addEventListener("click", function () { App.route("#/" + b.dataset.view); });
     });
     var foot = document.getElementById("sideFoot");
-    if (foot) foot.textContent = "v" + (Store.settings.appVersion || "1.0.0") + " · 本地静态应用 · 数据在本设备";
+    if (foot) foot.textContent = "英语情报 · v" + (Store.settings.appVersion || "1.0.0");
   }
 
   var App = {
@@ -103,9 +103,10 @@
       if (!s.autoCheck && !force) return;
       var repo = (s.updateRepo || "").trim();
       if (!repo || navigator.onLine === false) return;
+      // 节流 10 分钟：打开页面即查一次（新版本/公告更快送达）；弹窗与公告按 id 去重，不会反复打扰
       if (!force) {
         var gap = Date.now() - (s.lastUpdateCheck || 0);
-        if (s.lastUpdateCheck && gap < 6 * 3600 * 1000) return;
+        if (s.lastUpdateCheck && gap < 10 * 60 * 1000) return;
       }
       s.lastUpdateCheck = Date.now();
       Store.saveSettings();
@@ -324,8 +325,9 @@
           if (n > 0) { App.toast("已自动清理 " + n + " 篇过期资料", "ok"); App.refresh(); }
         });
       }, 3000);
-      // 自动检查更新（约 6 小时一次）
-      setTimeout(function () { App.checkUpdate(); }, 4200);
+      // 自动检查更新与公告（打开约 2 秒即查一次，之后每 10 分钟复查；弹窗/公告按 id 去重）
+      setTimeout(function () { App.checkUpdate(); }, 2000);
+      setInterval(function () { App.checkUpdate(); }, 600000);
       // 周末简报：周六/周日首次打开自动投递（纯本地汇总，幂等）
       setTimeout(function () { if (window.BRIEF) BRIEF.tryAuto(); }, 6500);
     }

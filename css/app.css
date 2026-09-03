@@ -301,6 +301,14 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .rw-field input[type=range],.fz-preview + input[type=range],input[type=range]{accent-color:var(--primary);height:22px;cursor:pointer;width:100%}
 
 /* 阅读页来源底注（置于正文之后） */
-.art-src{margin-top:16px;padding-top:10px;border-top:1px dashed var(--line);color:var(--text3);font-size:12.5px}
-.art-src a{color:var(--primary);text-decoration:none}
-.art-src a:hover{text-decoration:underline}
+.art-src{margin-top:16px;padding-top:10px;border-top:1px dashed var(--line);color:var(--text3);font-size:12.5px;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;word-break:break-all}
+.art-src .src-link{color:var(--primary);text-decoration:none;word-break:break-all}
+.art-src .src-link:hover{text-decoration:underline}
+
+/* —— v1.5.1 增补：刷新时段 chips / 信源页动作区 —— */
+.time-chips{display:flex;flex-wrap:wrap;gap:8px}
+.time-chip{border:1px solid var(--line);background:#fff;color:var(--text2);border-radius:20px;padding:5px 14px;font-size:13px;cursor:pointer;transition:.15s}
+.time-chip:hover{border-color:#9cc0e0;color:var(--primary)}
+.time-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+.src-actions{align-items:flex-end;gap:6px}
+.src-actions .src-state{font-size:12px;line-height:1.5;text-align:right}

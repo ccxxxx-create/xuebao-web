@@ -2,15 +2,15 @@
 (function () {
   "use strict";
   var CH = [
-    { id: "defensenews", name: "Defense News", note: "feed 含全文；试点" },
-    { id: "airandspaceforces", name: "Air & Space Forces", note: "feed 含全文；试点" },
-    { id: "govuk_mod", name: "英国国防部（gov.uk）", note: "摘要型，镜像抓正文页" },
-    { id: "afresearchlab", name: "美国空军研究实验室 AFRL", note: "feed 含全文；更新较慢" },
-    { id: "westpoint", name: "美国西点军校", note: "云端机房被 403（本机网络正常），处理见受阻源方案" },
-    { id: "rand", name: "美国兰德公司 RAND", note: "报告落地页正文" },
-    { id: "us_dod", name: "美国国防部 defense.gov", note: "官方每日新闻，DVIDS 兜底" },
-    { id: "us_marines", name: "美国海军陆战队 marines.mil", note: "官方 + DVIDS 陆战队兜底" },
-    { id: "us_airforce", name: "美国空军 af.mil", note: "官方每日新闻" }
+    { id: "defensenews", name: "Defense News", note: "防务头条媒体，通常附全文" },
+    { id: "airandspaceforces", name: "Air & Space Forces", note: "权威防务杂志，通常附全文" },
+    { id: "govuk_mod", name: "英国国防部（gov.uk）", note: "英国国防部官方发布" },
+    { id: "afresearchlab", name: "美国空军研究实验室 AFRL", note: "官方研究实验室，更新较慢" },
+    { id: "westpoint", name: "美国西点军校", note: "官方动态；站点偶发拦截会自动重试" },
+    { id: "rand", name: "美国兰德公司 RAND", note: "研究报告与评论" },
+    { id: "us_dod", name: "美国国防部 defense.gov", note: "美国防部每日官方新闻" },
+    { id: "us_marines", name: "美国海军陆战队 marines.mil", note: "海军陆战队官方新闻" },
+    { id: "us_airforce", name: "美国空军 af.mil", note: "美国空军官方新闻" }
   ];
 
   var M = {
@@ -23,10 +23,11 @@
       var nowH = H.fmtDateTime ? H.fmtDateTime(Date.now()) : "";
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">信源与镜像</h1>' +
-        '<p class="view-sub">9 个官方直连源 · 每天 09:00 云端抓取 · 每日定时自动拉取到本机 · 本页可对本设备启用/停用单个信源（停用后不再收录该源新内容，历史数据保留）</p></div>' +
-        '<div class="head-actions" style="flex-direction:column;align-items:flex-end">' +
+        '<p class="view-sub">9 个官方信源每日定时汇集最新动态；可在此启用或停用单个信源（停用后不再收录新内容，历史数据保留）</p></div>' +
+        '<div class="head-actions src-actions">' +
         '<button class="btn sm primary" id="srcPull">↻ 立即更新</button>' +
-        '<div class="muted" style="text-align:right">定时拉取：' + H.esc(((s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"]).join("、")) + "<br>上次拉取：" + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") + "</div></div></div>" +
+        '<div class="muted src-state">定时拉取：' + H.esc(((s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"]).join("、")) +
+        " · 上次拉取：" + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") + "</div></div></div>" +
 
         '<div class="card"><h3>镜像概览</h3>' +
         '<p class="muted">上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) + "（" + H.ago(s.lastPullAt) + "）" : "从未") +
@@ -35,7 +36,7 @@
         '<a class="btn sm" target="_blank" rel="noopener" href="https://github.com/' + H.esc(repo) + '">GitHub 仓库（只读展示）</a>' +
         '<a class="btn sm" target="_blank" rel="noopener" href="https://github.com/' + H.esc(repo) + '/actions">定时任务 Actions</a>' +
         "</div>" +
-        '<p class="muted" style="margin-top:6px">仓库与任务由部署方统一维护，页面不提供修改，避免误改损坏。</p></div>' +
+        '<p class="muted" style="margin-top:6px">信源镜像与定时抓取由系统统一维护，此处仅供查看。</p></div>' +
 
         '<div class="card"><h3>各源状态（云端抓取结果 + 本设备开关）</h3>' +
         '<div class="tbl-wrap"><table class="data"><thead><tr><th>信源</th><th>云端状态</th><th>云端条数</th><th>本设备</th><th>备注</th></tr></thead><tbody>' +
