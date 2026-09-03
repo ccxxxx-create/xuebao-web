@@ -95,27 +95,76 @@
     var sel = opts.map(function (o) {
       return '<option value="' + o[0] + '"' + (parseInt(s.retentionDays, 10) === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
     }).join("");
-    return '<div class="card"><h3>资料清理</h3>' +
-      '<p class="muted">自动清理已在「行为默认值」开启（默认开）。<b>收藏、已选、已出刊</b>的文章永不自动删除。</p>' +
-      '<div class="filters"><span class="muted">保留期</span><select id="clDays">' + sel + "</select></div>" +
-      '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button>' +
-      '<button class="btn" id="clRun">立即清理过期文章</button></div>' +
-      '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div></div>';
+    return sel;
   }
 
+  /* 排序与喜好学习：权重滑条 + 探索率 + 离线回测（榜单/简报共用，纯本地零成本） */
+  function rankSectionHtml(s) {
+    var w = s.rankWeights || {};
+    var rw = function (k) { var v = parseInt(w[k], 10); return isNaN(v) || v < 0 ? 0 : v; };
+    var ex = Math.round(((s.exploreRate == null ? 0.1 : s.exploreRate)) * 100);
+    var btLast = s.btLastAt ? H.fmtDateTime(s.btLastAt) + "（" + H.ago(s.btLastAt) + "）" : "从未";
+    function slider(id, label, v, max) {
+      max = max || 100;
+      return '<div class="field rw-field"><label class="wlab"><span>' + label + '</span><b id="' + id + 'V">' + v + "%</b></label>" +
+        '<input type="range" id="' + id + '" min="0" max="' + max + '" step="5" value="' + Math.min(max, v) + '"></div>';
+    }
+    return '<div class="card"><h3>排序与喜好学习</h3>' +
+      '<p class="muted">四项权重作用于「兴趣榜」与「周末简报」的排序（自动按总和归一）；松手即保存，纯本地生效。</p>' +
+      slider("rwRel", "兴趣相关（关键词命中）", rw("rel")) +
+      slider("rwFresh", "新鲜度（越新分越高）", rw("fresh")) +
+      slider("rwSource", "来源权威（官方直连加权）", rw("source")) +
+      slider("rwHeat", "热度（收藏 / 出刊 / 同主题）", rw("heat")) +
+      slider("rwEx", "探索率（给非关键词内容留的比例）", ex, 30) +
+      '<div class="art-actions" style="margin-top:4px">' +
+      '<button class="btn sm" id="rwReset">恢复默认</button>' +
+      '<button class="btn sm primary" id="btRun">运行一次离线回测</button></div>' +
+      '<div id="rwMsg" class="muted" style="margin-top:8px">离线回测：把您的收藏当标准答案，按当前权重统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
+      '<div class="field" style="margin-top:6px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
+      '<p class="muted" style="margin:4px 0 0">上次回测：' + btLast + '</p></div>';
+  }
+
+  /* 二级手风琴分组头 */
+  function grp(title, open, inner) {
+    return '<div class="b-grp"><h4 class="bg-head' + (open ? "" : " collapsed") + '">' + H.esc(title) + "</h4>" +
+      '<div class="bg-body"' + (open ? "" : " hidden") + ">" + inner + "</div></div>";
+  }
+
+  /* 资料刷新（唯一自动取数通道，默认开） */
+  function refreshSectionHtml(s) {
+    var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes.join(", ") : "09:00, 12:00, 18:00";
+    return '<div class="card"><h3>资料刷新（自动抓取）</h3>' +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="rfOn"' + (s.autoRefresh ? " checked" : "") + "> 每日定时自动刷新官方信源镜像</label>" +
+      '<div class="field"><label>每日刷新时间点（24 小时制 HH:MM，英文逗号分隔）</label>' +
+      '<input id="rfTimes" value="' + H.esc(rt) + '" placeholder="09:00, 12:00, 18:00"></div>' +
+      '<p class="muted">只在设定时间点各静默拉取一次；失败不弹窗打扰，留待下一时段重试。这是本应用唯一的自动取数通道。</p>' +
+      '<div class="art-actions"><button class="btn primary" id="rfSave">保存刷新设置</button></div></div>';
+  }
+
+  /* 自动化与行为：全部默认关闭，按分类手风琴展开；保存按钮统一在此 */
   function behaviorSectionHtml(s) {
-    return '<div class="card"><h3>行为默认值</h3>' +
-      '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label>' +
-      '<input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>' +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTranslate ? " checked" : "") + "> 拉取后/进入资料库时自动翻译新标题（摘要另行手动或由收藏触发）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavTr"' + (s.favAutoTr ? " checked" : "") + "> 收藏文章时自动：生成中文标题 + 中/英摘要</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavFull"' + (s.favAutoFull ? " checked" : "") + "> 收藏文章时自动：全文翻译（可与上一项自由组合）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfCmpAuto"' + (s.compareAutoFull ? " checked" : "") + "> 阅读页点「中英对照」时若缺译文则自动翻译全文（消耗 token，默认关）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoPull"' + (s.autoPull ? " checked" : "") + "> 打开页面时自动拉取镜像（30 分钟内有数据则不重复拉）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期文章（保留期内不删；收藏/已出刊永不自动删）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动检查新版本（约 6 小时一次；不消耗模型额度）</label>" +
-      '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfBrief"' + (s.weeklyBrief ? " checked" : "") + "> 周末简报自动投递：周六/周日首次打开时汇总本周文章到收件箱（纯本地，不消耗模型额度）</label>" +
-      '<div class="modal-actions" style="margin-top:8px"><button class="btn primary" id="bfSave">保存</button><button class="btn" id="bfBriefNow" style="margin-left:8px">立即生成本周简报</button></div></div>';
+    var sel = cleanSectionHtml(s);
+    return '<div class="card"><h3>自动化与行为</h3>' +
+      '<p class="muted" style="margin:2px 0 10px">除「资料刷新」外，其余自动化默认全部关闭（点组标题展开）。涉及 AI 的功能会消耗模型额度，请按需开启。</p>' +
+      grp("翻译与摘要自动化", true,
+        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTranslate ? " checked" : "") + "> 进资料库时自动翻译新标题</label>" +
+        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavTr"' + (s.favAutoTr ? " checked" : "") + "> 收藏时自动：生成中文标题 + 中/英摘要</label>" +
+        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavFull"' + (s.favAutoFull ? " checked" : "") + "> 收藏时自动：全文翻译（可与上项组合）</label>" +
+        '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfCmpAuto"' + (s.compareAutoFull ? " checked" : "") + "> 阅读页「中英对照」缺译文时自动翻译全文</label>") +
+      grp("周末简报", false,
+        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfBrief"' + (s.weeklyBrief ? " checked" : "") + "> 周末简报自动投递（周六/周日首次打开）</label>" +
+        '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfBriefAi"' + (s.briefAi ? " checked" : "") + "> 简报 AI 增强：全期综述 + 逐条点评（需配置模型）</label>" +
+        '<div class="art-actions" style="margin-top:8px"><button class="btn" id="bfBriefNow">立即生成本周简报</button></div>') +
+      grp("资料清理", false,
+        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期资料（收藏/已选/已出刊永不自动删）</label>" +
+        '<div class="filters" style="margin-top:8px;margin-bottom:0"><span class="muted">保留期</span><select id="clDays">' + sel + "</select></div>" +
+        '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button><button class="btn" id="clRun">立即清理过期文章</button></div>' +
+        '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div>') +
+      grp("系统与更新", false,
+        '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动检查新版本与公告（约 6 小时一次，仅读通知不耗模型）</label>") +
+      grp("供稿署名", false,
+        '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label><input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>') +
+      '<div class="modal-actions" style="margin-top:12px"><button class="btn primary" id="bfSave">保存自动化与行为设置</button></div></div>';
   }
 
   function mirrorSectionHtml(s) {
@@ -155,18 +204,21 @@
       var arts = await Store.getAllArticles();
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">设置</h1>' +
-        '<p class="view-sub">点标题展开/收起设置项；模型、数据、关于默认展开</p></div></div>' +
+        '<p class="view-sub">设置项均占满整行，点标题展开/收起；默认展开：模型、资料刷新、自动化与行为、数据、关于</p></div></div>' +
         modelSectionHtml(s) +
-        '<div class="set-grid">' + displaySectionHtml(s) + cleanSectionHtml(s) + "</div>" +
-        '<div class="set-grid">' + behaviorSectionHtml(s) + dataSectionHtml() + "</div>" +
+        refreshSectionHtml(s) +
+        behaviorSectionHtml(s) +
+        rankSectionHtml(s) +
+        displaySectionHtml(s) +
         mirrorSectionHtml(s) +
+        dataSectionHtml() +
         '<div class="card"><h3>关于</h3>' +
         '<div class="muted">英语情报 · 信息搜集与情报工作台 v' + H.esc(s.appVersion || "1.2.0") +
         "（build " + (s.versionCode || 2) + "）<br>形态：纯静态网页应用（参照个人工作台模式），双击 index.html 即可用；" +
         "部署成网址后电脑/平板/手机打开即用，各设备数据独立。<br>采集：9 个官方直连源（含国防部/陆战队/空军等）由 GitHub Actions 每天 09:00 抓取镜像，每源每轮 ≤20 条；" +
         "docx 版式严格遵循范文《以色列研发智能反无人机系统Iron Drone Raider.docx》。</div></div>";
 
-      collapseCards(el, ["模型（", "数据与本机占用", "关于"]);
+      collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "数据与本机占用", "关于"]);
       bindModel(el, s);
       bindOther(el, s, usage, arts);
 
@@ -249,6 +301,64 @@
           App.applyFont();
           App.toast("字号已调整为 " + s.fontSizePx + " px", "ok");
         });
+        // 排序与喜好学习：滑条实时显示 + 松手保存（权重/探索率）；回测与自动回测
+        function bindRw(root, s) {
+          var map = [["rwRel", "rel"], ["rwFresh", "fresh"], ["rwSource", "source"], ["rwHeat", "heat"]];
+          map.forEach(function (pair) {
+            var r = root.querySelector("#" + pair[0]);
+            if (!r) return;
+            r.addEventListener("input", function () {
+              var v = root.querySelector("#" + pair[0] + "V");
+              if (v) v.textContent = r.value + "%";
+            });
+            r.addEventListener("change", function () {
+              s.rankWeights = s.rankWeights || {};
+              s.rankWeights[pair[1]] = parseInt(r.value, 10);
+              Store.saveSettings();
+            });
+          });
+          var ex = root.querySelector("#rwEx");
+          if (ex) {
+            ex.addEventListener("input", function () {
+              var v = root.querySelector("#rwExV");
+              if (v) v.textContent = ex.value + "%";
+            });
+            ex.addEventListener("change", function () {
+              s.exploreRate = parseFloat(ex.value) / 100;
+              Store.saveSettings();
+            });
+          }
+          var rs = root.querySelector("#rwReset");
+          if (rs) rs.addEventListener("click", function () {
+            s.rankWeights = { rel: 40, fresh: 25, source: 20, heat: 15 };
+            s.exploreRate = 0.1;
+            [[ "rwRel", 40], ["rwFresh", 25], ["rwSource", 20], ["rwHeat", 15], ["rwEx", 10]].forEach(function (p) {
+              var r = root.querySelector("#" + p[0]);
+              if (r) { r.value = p[1]; root.querySelector("#" + p[0] + "V").textContent = p[1] + "%"; }
+            });
+            Store.saveSettings();
+            App.toast("已恢复默认配比", "ok");
+          });
+          var bt = root.querySelector("#btRun");
+          if (bt) bt.addEventListener("click", function () {
+            var box = root.querySelector("#rwMsg");
+            box.innerHTML = "回测中…<span class='spin dark'></span>";
+            H.backtestResult().then(function (r) {
+              s.btLastAt = Date.now();
+              Store.saveSettings();
+              box.innerHTML = r.html || '<div class="note">' + H.esc(r.text) + "</div>";
+            }).catch(function (e) {
+              box.innerHTML = '<div class="note">回测失败：' + H.esc((e && e.message) || e) + "</div>";
+            });
+          });
+          var ba = root.querySelector("#btAuto");
+          if (ba) ba.addEventListener("change", function () {
+            s.btAuto = ba.checked;
+            Store.saveSettings();
+            App.toast(s.btAuto ? "已开启：打开页面时自动回测（每日最多一次）" : "已关闭自动回测", "ok");
+          });
+        }
+        bindRw(root, s);
         // 清理
         root.querySelector("#clSave").addEventListener("click", function () {
           s.retentionDays = parseInt(root.querySelector("#clDays").value, 10) || 90;
@@ -262,18 +372,43 @@
             App.refresh();
           });
         });
+        // 二级手风琴分组
+        root.querySelectorAll(".bg-head").forEach(function (h) {
+          h.addEventListener("click", function () {
+            var body = h.nextElementSibling;
+            var show = body.hidden;
+            body.hidden = !show;
+            h.classList.toggle("collapsed", !show);
+          });
+        });
+        // 资料刷新（定时自动取数）
+        var rfOn = root.querySelector("#rfOn");
+        root.querySelector("#rfSave").addEventListener("click", function () {
+          var v = root.querySelector("#rfTimes").value;
+          var seen = {}, times = [];
+          String(v || "").split(/[,，\s]+/).forEach(function (t) {
+            t = (t || "").trim();
+            if (/^\d{1,2}:\d{2}$/.test(t) && !seen[t]) { seen[t] = 1; times.push(t); }
+          });
+          if (!times.length) { times = ["09:00", "12:00", "18:00"]; root.querySelector("#rfTimes").value = times.join(", "); }
+          s.autoRefresh = rfOn.checked;
+          s.refreshTimes = times;
+          Store.saveSettings();
+          App.toast("刷新设置已保存，下次拉取按新时间点执行", "ok");
+          App.refresh();
+        });
         // —— 兴趣相关（关键词/喜好学习）已移至左侧「兴趣中心」页 ——
-        // 行为
+        // 自动化与行为
         root.querySelector("#bfSave").addEventListener("click", function () {
           s.signatureText = root.querySelector("#bfSign").value.trim();
           s.autoTranslate = root.querySelector("#bfAutoTr").checked;
           s.favAutoTr = root.querySelector("#bfFavTr").checked;
           s.favAutoFull = root.querySelector("#bfFavFull").checked;
           s.compareAutoFull = root.querySelector("#bfCmpAuto").checked;
-          s.autoPull = root.querySelector("#bfAutoPull").checked;
           s.autoClean = root.querySelector("#bfAutoClean").checked;
           s.autoCheck = root.querySelector("#bfAutoChk").checked;
           s.weeklyBrief = root.querySelector("#bfBrief").checked;
+          s.briefAi = root.querySelector("#bfBriefAi").checked;
           Store.saveSettings();
           App.toast("已保存", "ok");
         });

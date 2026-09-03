@@ -76,7 +76,7 @@
         });
       }
       function listHtml(list, kws) {
-        if (!list.length) return '<div class="empty"><b>没有匹配的文章</b>试试放宽筛选，或先在总览「立即更新资料」。</div>';
+        if (!list.length) return '<div class="empty"><b>没有匹配的文章</b>试试放宽筛选，或等每日定时刷新后重看。</div>';
         var per = 20, pages = Math.max(1, Math.ceil(list.length / per));
         if (state.page > pages) state.page = pages;
         if (state.page < 1) state.page = 1;

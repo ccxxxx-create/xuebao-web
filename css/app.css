@@ -242,6 +242,15 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .card h3.set-head.collapsed::after{content:"▼"}
 .set-body{margin-top:10px}
 
+/* 设置页二级手风琴（自动化与行为 分类） */
+.b-grp{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden;background:#fff}
+.b-grp:last-child{margin-bottom:0}
+.bg-head{margin:0;padding:9px 12px;font-size:.95rem;font-weight:600;color:#1c4a7e;background:#f2f6fb;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;transition:background .15s}
+.bg-head:hover{background:#e7eef8}
+.bg-head::after{content:"▲";font-size:.68em;color:var(--text3);transition:transform .15s}
+.bg-head.collapsed::after{transform:rotate(180deg)}
+.bg-body{padding:12px}
+
 /* 收件箱正文（简报等） */
 .inbox-body{white-space:pre-wrap;word-break:break-word;margin:7px 0 0;font-size:.86rem;color:var(--text2);line-height:1.7;max-height:176px;overflow:hidden}
 .inbox-body .art-open{display:inline-block;margin:2px 0;padding:2px 10px;color:#0b6bcb;background:#eaf3fc;border-radius:6px;font-size:.82rem;cursor:pointer;text-decoration:none}
@@ -260,3 +269,38 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .kw-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent-weak);border:1px solid #bcd8f0;color:#0b4f8f;border-radius:18px;padding:3px 6px 3px 11px;font-size:.85rem}
 .kw-tag button{border:0;background:transparent;color:#7f97b1;font-size:1rem;line-height:1;cursor:pointer;padding:0 2px}
 .kw-tag button:hover{color:var(--bad)}
+
+/* —— v1.5 增补：导航图形图标 / 分段按钮 / 统计卡动效 / 滑条 / 来源底注 —— */
+/* 导航与收件箱图标（SVG 描边） */
+.nav .ico svg{width:13px;height:13px;display:block;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mail-ico{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.mail-ico svg{width:17px;height:17px;display:block;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav .ico{font-size:0}
+
+/* 分段控件（排行榜 tab 等“分类”切换按钮） */
+.seg{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:3px;box-shadow:var(--shadow)}
+.seg button{border:0;background:transparent;padding:6px 18px;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button:hover{background:#eef3f8;color:var(--text)}
+.seg button.active{background:var(--primary);color:#fff;font-weight:600;box-shadow:0 1px 5px rgba(11,58,110,.28)}
+.detail-tabs button{transition:.15s}
+.detail-tabs button:hover{border-color:#9cc0e0;color:var(--primary)}
+.detail-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+
+/* 统计卡片（总览分类跳转入口）动效 */
+.grid a.stat{text-decoration:none;color:inherit;position:relative;transition:transform .16s,box-shadow .16s,border-color .16s}
+.grid a.stat:hover{transform:translateY(-2px);border-color:#b9d3ec;box-shadow:0 8px 18px rgba(31,92,153,.13)}
+.grid a.stat::after{content:"→";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text3);opacity:0;transition:.15s;font-size:14px}
+.grid a.stat:hover::after{opacity:1;right:11px;color:var(--primary)}
+.grid a.stat .num{transition:color .15s}
+.grid a.stat:hover .num{color:var(--accent)}
+
+/* 排序与喜好学习：权重滑条 */
+.rw-field{margin:8px 0 12px}
+.rw-field .wlab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:13px;color:var(--text2)}
+.rw-field .wlab b{color:var(--primary);font-weight:700;font-size:13px;min-width:38px;text-align:right}
+.rw-field input[type=range],.fz-preview + input[type=range],input[type=range]{accent-color:var(--primary);height:22px;cursor:pointer;width:100%}
+
+/* 阅读页来源底注（置于正文之后） */
+.art-src{margin-top:16px;padding-top:10px;border-top:1px dashed var(--line);color:var(--text3);font-size:12.5px}
+.art-src a{color:var(--primary);text-decoration:none}
+.art-src a:hover{text-decoration:underline}

@@ -23,8 +23,10 @@
       var nowH = H.fmtDateTime ? H.fmtDateTime(Date.now()) : "";
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">信源与镜像</h1>' +
-        '<p class="view-sub">9 个官方直连源 · 每天 09:00 自动抓取 · 本页可对本设备启用/停用单个信源（停用后不再收录该源新内容，历史数据保留）</p></div>' +
-        '<div class="head-actions"><button class="btn primary" id="sPull">' + (MIRROR.isBusy() ? "更新中…" : "立即拉取镜像") + "</button></div></div>" +
+        '<p class="view-sub">9 个官方直连源 · 每天 09:00 云端抓取 · 每日定时自动拉取到本机 · 本页可对本设备启用/停用单个信源（停用后不再收录该源新内容，历史数据保留）</p></div>' +
+        '<div class="head-actions" style="flex-direction:column;align-items:flex-end">' +
+        '<button class="btn sm primary" id="srcPull">↻ 立即更新</button>' +
+        '<div class="muted" style="text-align:right">定时拉取：' + H.esc(((s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"]).join("、")) + "<br>上次拉取：" + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") + "</div></div></div>" +
 
         '<div class="card"><h3>镜像概览</h3>' +
         '<p class="muted">上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) + "（" + H.ago(s.lastPullAt) + "）" : "从未") +
@@ -50,18 +52,21 @@
         '<p class="muted">说明：停用仅作用于<b>本设备</b>（不再入库该源新条目），不改变云端公共镜像，也不删除已收录历史。</p>' +
         "</div>";
 
-      var b = el.querySelector("#sPull");
+      var b = null;
       if (b) b.addEventListener("click", function () { App.pullNow({ silent: false }); });
       if (!el.__src) {
         el.__src = true;
         el.addEventListener("click", function (e) {
           var btn = e.target.closest("[data-ch]");
-          if (!btn) return;
-          var id = btn.dataset.ch;
-          var on = !Store.channelOn(id);
-          Store.setChannelOn(id, on);
-          App.toast(on ? "已启用该信源（下次拉取恢复收录）" : "已停用该信源（历史数据保留，不再收录）", "ok");
-          App.refresh();
+          if (btn) {
+            var id = btn.dataset.ch;
+            var on = !Store.channelOn(id);
+            Store.setChannelOn(id, on);
+            App.toast(on ? "已启用该信源（下次拉取恢复收录）" : "已停用该信源（历史数据保留，不再收录）", "ok");
+            App.refresh();
+            return;
+          }
+          if (e.target.closest("#srcPull")) { App.manualPull(); }
         });
       }
     }

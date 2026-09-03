@@ -12,15 +12,20 @@
       var pending = MIRROR.pendingTitles(arts).length;
       var favN = arts.filter(function (a) { return a.fav; }).length;
       var selected = arts.filter(function (a) { return a.selected; }).length;
+      var s = Store.settings;
+      var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
 
       el.innerHTML =
         '<div class="view-head"><div>' +
         '<h1 class="view-title">总览</h1>' +
         '<p class="view-sub">英语情报 · 信息搜集为主、学报输出为辅（纯本地网页版，各设备数据独立）</p>' +
         "</div>" +
-        '<div class="head-actions">' +
-        '<button class="btn primary" id="dPull">' + (MIRROR.isBusy() ? '<span class="spin"></span> 更新中' : "立即更新资料") + "</button>" +
-        "</div></div>" +
+        '<div class="head-actions" style="flex-direction:column;align-items:flex-end">' +
+        '<button class="btn sm primary" id="dfPull">↻ 立即更新</button>' +
+        '<div class="muted" style="text-align:right">定时刷新：每日 ' + H.esc(rt.join("、")) + '<br>' +
+        '上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") +
+        (App.manualPullLeftMin && App.manualPullLeftMin() > 0 ? '<br>手动更新冷却中：' + App.manualPullLeftMin() + " 分钟" : "") +
+        "</div></div></div>" +
 
         '<div class="grid g2" style="margin-bottom:14px">' +
         stat("资料库总数", arts.length, "", "#/library") +
@@ -30,30 +35,33 @@
         "</div>" +
 
         '<div class="card"><div class="art-head" style="margin-bottom:4px"><h3 style="margin:0">最近入库</h3>' +
-        '<span class="muted">共 ' + journals.length + " 份学报 · 全文/译文见资料库</span></div>" +
+        '<span class="muted">共 ' + journals.length + " 份学报 · 点击标题进入阅读页</span></div>" +
         recentHtml(arts) + "</div>";
 
-      var b = el.querySelector("#dPull");
-      if (b) b.addEventListener("click", function () {
-        if (MIRROR.isBusy()) return;
-        App.pullNow({ silent: false });
-      });
+      if (!el.__ds) {
+        el.__ds = true;
+        el.addEventListener("click", function (e) {
+          var title = e.target.closest(".art-title[data-url]");
+          if (title) { UI.openArticle(title.dataset.url, "dashboard"); return; }
+          var pull = e.target.closest("#dfPull");
+          if (pull) { App.manualPull(); return; }
+        });
+      }
 
       function stat(lab, n, cls, href) {
         return '<a class="stat" href="' + href + '" title="点击前往' + lab + '页面"><div class="num" style="color:' + (cls === "bad" ? "var(--bad)" : "") + '">' + n + '</div><div class="lab">' + lab + "</div></a>";
       }
       function recentHtml(list) {
-        if (!list.length) return '<div class="empty"><b>资料库为空</b>点击「立即更新资料」从官方信源镜像拉取。</div>';
+        if (!list.length) return '<div class="empty"><b>资料库为空</b>待每日定时刷新（' + H.esc(rt.join("、")) + "）自动抓取官方信源镜像。</div>";
         var top = list.slice().sort(function (a, b) { return String(b.pubDate).localeCompare(String(a.pubDate)); }).slice(0, 6);
         return '<div>' + top.map(function (a) {
           return '<div class="art" style="margin-bottom:8px"><div class="art-head">' +
-            '<div style="flex:1;min-width:0"><div class="art-title" style="font-size:15.5px">' + (a.titleZh ? H.esc(a.titleZh) : H.esc(a.title)) +
+            '<div style="flex:1;min-width:0"><div class="art-title" data-url="' + H.esc(a.url) + '" title="点击进入阅读页" style="font-size:15.5px;user-select:none">' + (a.titleZh ? H.esc(a.titleZh) : H.esc(a.title)) +
             (a.titleZh ? ' <span class="badge ghost" style="font-weight:400">' + H.esc(a.title) + "</span>" : "") + "</div>" +
             '<div class="art-meta"><span class="badge A">A 官网直采</span><span>' + H.esc(a.channelName || a.channel) + "</span><span>" +
             H.fmtDay(a.pubDate) + "</span>" +
             (a.fav ? '<span class="badge" style="background:#fdeee0;color:#b06a1b">收藏</span>' : "") +
             "</div></div>" +
-            '<a class="btn sm" href="#/library?q=' + encodeURIComponent(a.title.slice(0, 40)) + '">查看</a>' +
             "</div></div>";
         }).join("") + "</div>";
       }

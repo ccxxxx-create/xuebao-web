@@ -15,29 +15,39 @@
     baseUrl: "",
     model: "",
     apiKey: "",
-    // 行为
-    autoTranslate: true,       // 拉取后自动翻译新标题与摘要
-    favAutoTr: true,           // 收藏时自动：生成中文标题+摘要
-    favAutoFull: false,        // 收藏时自动：全文翻译
-    autoClean: true,           // 自动清理过期资料（收藏/已选/已出刊保护）
+    // 资料刷新（唯一拉取通道：每日固定时间自动刷新）
+    autoRefresh: true,         // 定时自动刷新总开关（用户明确要求仅保留此机制，故默认开）
+    refreshTimes: ["09:00", "12:00", "18:00"],  // 每天固定刷新时间点
+    refreshSlots: {},          // 已完成刷新记录：{YYYYMMDD:[日内分钟数]}
     retentionDays: 90,         // 保留期：7~365 天
+    // 自动化（除定时刷新外一律默认关闭，用户手动开启）
+    autoTranslate: false,      // 拉取后/进资料库时自动翻译新标题
+    favAutoTr: false,          // 收藏时自动：生成中文标题+摘要
+    favAutoFull: false,        // 收藏时自动：全文翻译
+    compareAutoFull: false,    // 中英对照时缺译文自动翻译全文
+    autoClean: false,          // 自动清理过期资料
+    weeklyBrief: false,        // 周末简报自动投递
+    briefAi: false,            // 简报 AI 增强：全期综述 + 逐条点评
+    lastBriefWeek: "",         // 最近已自动投递简报的“周一日期”，防同周重复
+    // 旧版字段（不再触发生成，仅兼容已有设置）
+    autoPull: false,           // 已停用“打开即自动拉取”，不再使用
+    autoCheck: true,           // 自动检查更新（每约 6 小时一次，仅读公告不耗模型，默认开以保障新版本/公告及时送达）
     fontZoom: "M",             // 旧版字号档位（迁移到 fontSizePx）
     fontSizePx: null,          // 字号基准 px（默认 16，迁移函数兜底）
     allowLearn: true,          // 允许本机记录喜好（收藏/取消/出刊信号），仅存本设备
     interestKeywords: "",      // 兴趣关键词（模糊匹配，用于“按相关度”排序）
-    compareAutoFull: false,    // 双语对照时如缺译文是否自动翻译全文
     exploreRate: 0.1,          // 榜单探索率（防茧房）：给非关键词内容保留的比例
-    autoCheck: true,           // 自动检查更新（每约 6 小时一次，仅读公告不耗模型）
-    weeklyBrief: true,         // 周末简报自动投递：周六/周日首次打开时汇总本周文章到收件箱（纯本地，不耗模型）
-    lastBriefWeek: "",         // 最近已自动投递简报的“周一日期”，防同周重复
+    rankWeights: { rel: 40, fresh: 25, source: 20, heat: 15 },  // 排序权重（兴趣相关/新鲜度/来源权威/热度，百分整数）
+    btAuto: false,             // 打开页面自动离线回测（每日最多一次，结果进收件箱）
+    btLastAt: 0,               // 上次自动回测时间戳
+    manualPullCdMin: 10,       // 手动“立即更新”的冷却分钟数（防频繁拉取被源站限流）
     channelOns: {},            // 信源开关：{channelId:0}=本设备停用（保留历史数据，不再收录）
     signatureText: "（XX大学XX学院XXX  XX  供稿）",   // 供稿署名默认（范文同款占位，Word 里可改）
-    autoPull: true,
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.3.4",
-    versionCode: 19,
+    appVersion: "1.5.0",
+    versionCode: 21,
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
     seenNotices: {}
@@ -45,13 +55,31 @@
 
   function loadSettings() {
     var s = DEFAULTS;
+    var oldVer = 0;
     try {
       var raw = localStorage.getItem(SETTINGS_KEY);
-      if (raw) s = Object.assign({}, DEFAULTS, JSON.parse(raw));
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        oldVer = parseInt(parsed.versionCode, 10) || 0;
+        s = Object.assign({}, DEFAULTS, parsed);
+      }
     } catch (e) { /* ignore */ }
     // 字号迁移：旧版 fontZoom(M/L/XL) → fontSizePx
     if (s.fontSizePx == null) {
       s.fontSizePx = { M: 16, L: 18, XL: 21 }[s.fontZoom || "M"] || 16;
+    }
+    // v1.4.0 迁移：所有自动化功能强制默认关闭（仅保留定时自动刷新），让用户按需在设置里手动开启
+    if (oldVer > 0 && oldVer < DEFAULTS.versionCode) {
+      s.autoTranslate = false;
+      s.favAutoTr = false;
+      s.favAutoFull = false;
+      s.compareAutoFull = false;
+      s.autoClean = false;
+      s.weeklyBrief = false;
+      s.briefAi = false;
+      s.autoRefresh = true;                       // 用户明确要求保留定时刷新机制
+      s.refreshTimes = DEFAULTS.refreshTimes;
+      s.refreshSlots = s.refreshSlots || {};
     }
     // 版本号以“当前运行的代码”为准：避免老用户因本地旧版本号被反复提示更新
     s.appVersion = DEFAULTS.appVersion;

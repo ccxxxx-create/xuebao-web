@@ -77,25 +77,29 @@
       }
       var kws = H.splitKeywords(Store.settings.interestKeywords || "");
       var kwr = kws.length ? H.kwScore(kws, a) : null;
+      var fullLabel = a.zhState === "ok" ? "重译全文" : ((a.zhFull && a.zhState === "failed") ? "续译全文" : "翻译全文");
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">' + esc(a.titleZh || a.title) + "</h1>" +
         (a.titleZh && a.titleZh !== a.title ? '<p class="view-sub" style="margin-top:6px">' + esc(a.title) + "</p>" : "") +
         '<div class="art-meta" style="margin-top:8px">' + cmpMeta(a) +
         (a.fav ? '<span class="badge" style="background:#fdeee0;color:#b06a1b">收藏</span>' : "") +
-        (kwr && kwr.score ? H.kwBadge(kwr) : "") + "</div></div>" +
+        (kwr && kwr.score ? H.kwBadge(kwr) : "") +
+        "</div></div>" +
         '<div class="head-actions">' +
         '<button class="btn sm" id="rdBack">← 返回</button>' +
         '<button class="btn sm" id="rdFav">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
         '<button class="btn sm primary" id="rdSum">摘要（中/英）</button>' +
+        '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + ">" + fullLabel + "</button>" +
         "</div></div>" +
 
         '<div class="detail-tabs" style="margin-bottom:12px">' +
         '<button class="' + (state.tab === "pair" ? "active" : "") + '" data-tab="pair">中英对照</button>' +
         '<button class="' + (state.tab === "en" ? "active" : "") + '" data-tab="en">English 原文</button>' +
-        '<button class="' + (state.tab === "zh" ? "active" : "") + '" data-tab="zh"' + (a.zhState === "ok" ? "" : "") + ">中文全文</button>" +
+        '<button class="' + (state.tab === "zh" ? "active" : "") + '" data-tab="zh">中文全文</button>' +
         "</div>" +
-        '<div id="rdBody">' + bodyHtml(a) + "</div>" +
-        '<div class="art-actions" style="margin-top:16px"><a class="btn sm" href="' + esc(a.url) + '" target="_blank" rel="noopener">查看原文（打开原网站）→</a></div>';
+        '<div id="rdBody">' + bodyHtml(a) +
+        '<div class="art-src">来源：' + esc(a.channelName || a.channel || "") + ' · <a class="muted" href="' + esc(a.url) + '" target="_blank" rel="noopener" title="在浏览器打开原网页">打开原网页 ↗</a></div>' +
+        "</div>";
 
       bind(el, a);
 
@@ -107,7 +111,7 @@
         }
         if (state.tab === "zh") {
           if (a.zhState === "ok") return '<div class="prose" style="max-height:none">' + esc(a.zhFull || "") + "</div>";
-          return '<div class="note">尚未翻译全文。</div><div class="art-actions"><button class="btn accent" data-full>' + (a.zhFull ? "续译全文" : "翻译全文") + "</button></div>";
+          return '<div class="note">尚未翻译全文，点上方「' + fullLabel + '」生成中文全文。</div>';
         }
         // 中英对照
         if (a.zhState === "ok") {
@@ -120,10 +124,9 @@
             '<table class="pair-tbl"><thead><tr><th>English</th><th>中文（AI 翻译）</th></tr></thead><tbody>' + rows + "</tbody></table>";
         }
         var auto = Store.settings.compareAutoFull && LLM.configured();
-        return '<div class="note">对照需要中文译文（尚未翻译）。' + (auto ? "" : " 如需可点「翻译全文」或到 设置 → 行为默认值 打开“对照自动翻译”。") + "</div>" +
+        return '<div class="note">对照需要中文译文（尚未翻译）。' + (auto ? "" : " 点上方「" + fullLabel + "」翻译全文。") + "</div>" +
           '<table class="pair-tbl"><thead><tr><th>English</th><th>中文</th></tr></thead><tbody>' +
-          enP.map(function (p) { return "<tr><td>" + esc(p) + "</td><td></td></tr>"; }).join("") + "</tbody></table>" +
-          '<div class="art-actions"><button class="btn accent" data-full>' + (a.zhFull ? "续译全文" : "翻译全文") + "</button></div>";
+          enP.map(function (p) { return "<tr><td>" + esc(p) + "</td><td></td></tr>"; }).join("") + "</tbody></table>";
       }
       function bind(root, a) {
         root.querySelector("#rdBack").addEventListener("click", function () { location.hash = "#/" + state.from; });
@@ -138,17 +141,20 @@
           });
         });
         root.querySelector("#rdSum").addEventListener("click", function () { summaryModal(a.url); });
+        root.querySelector("#rdFull").addEventListener("click", function () { doFull(a); });
         root.querySelectorAll("[data-tab]").forEach(function (b) {
           b.addEventListener("click", function () {
             state.tab = b.dataset.tab;
             App.refresh();
           });
         });
-        root.querySelector("[data-full]").addEventListener("click", function () { doFull(a); });
-        if (state.tab === "pair" && a.zhState !== "ok" && Store.settings.compareAutoFull && LLM.configured() && !state.busyFull) {
-          state.busyFull = true;
-          doFull(a, true);
-        }
+        // 「中英对照」缺译文且开启自动翻译时后台触发全文翻译；容错不打断渲染
+        try {
+          if (state.tab === "pair" && a.zhState !== "ok" && Store.settings.compareAutoFull && LLM.configured() && !state.busyFull) {
+            state.busyFull = true;
+            doFull(a, true);
+          }
+        } catch (e) { state.busyFull = false; }
       }
       function doFull(a, silent) {
         if (!LLM.configured()) { App.toast("请先在 设置 → 模型 配置模型"); return; }

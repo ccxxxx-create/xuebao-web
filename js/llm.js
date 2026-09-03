@@ -150,6 +150,16 @@
     ], { maxTokens: 10, timeoutMs: 30000 });
   }
 
+  /* 简报 AI 增强：输入精选条目（每行【N】），输出全期综述 + 逐条点评 */
+  function briefCommentary(lines, glossary) {
+    var sys = "你是军事/防务情报编辑，为一条周末简报写内容。输入是本轮精选文章，每行以【N】开头（编号|中文标题|英文标题|信源|日期|一句话摘要）。\n" +
+      "请输出两部分：\n" +
+      "第一段：全期综述，2~3 句话概括本周防务/军事重点与趋势，不编号、不评价好坏。\n" +
+      "然后逐条点评：每条一行，格式严格为「【N】一句点评」，点评要具体、有信息量，结合该条内容，不说空话。\n" +
+      "除上述内容外不要输出任何其它说明。" + (glossary ? "\n术语词表：" + glossary : "");
+    return chatText([{ role: "system", content: sys }, { role: "user", content: lines.join("\n") }], { maxTokens: 1000, timeoutMs: 120000 });
+  }
+
   window.LLM = {
     PRESETS: PRESETS,
     CHANNEL_ZH: CHANNEL_ZH,
@@ -162,6 +172,7 @@
     translateTitleSummary: translateTitleSummary,
     translateChunk: translateChunk,
     compileJournal: compileJournal,
-    testConnection: testConnection
+    testConnection: testConnection,
+    briefCommentary: briefCommentary
   };
 })();

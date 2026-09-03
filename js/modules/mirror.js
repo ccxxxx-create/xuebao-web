@@ -266,9 +266,10 @@
       var glossary = LLM.glossaryLines(terms);
       var chunks = chunkBody(art.body);
       art.zhChunks = chunks.length;
-      return Store.putArticle(art).then(function () { return chunks; });
-    }).then(function (chunks) {
+      return Store.putArticle(art).then(function () { return { chunks: chunks, glossary: glossary }; });
+    }).then(function (p) {
       return Store.getArticle(art.url).then(function (cur) {
+        var chunks = p.chunks, glossary = p.glossary;
         var resume = cur && (cur.zhState === "running" || cur.zhState === "failed") && cur.zhDone > 0;
         var from = resume ? (cur.zhDone || 0) : 0;
         var acc = resume ? (cur.zhFull || "") : "";
