@@ -117,29 +117,47 @@
     return sel;
   }
 
-  /* 排序与喜好学习：权重滑条 + 探索率 + 离线回测（榜单/简报共用，纯本地零成本） */
+  /* 排序与喜好学习：低/中/高 模糊档位（v1.7.2；存储仍为数值，排序/自动微调逻辑零改动）
+     档位数值：低20 / 中50 / 高90；探索率档位：低5% / 中10% / 高20% */
+  var RW_LABEL = {
+    rel: ["兴趣相关", "关键词命中"],
+    fresh: ["新鲜度", "越新分越高"],
+    source: ["来源权威", "官方直连加权"],
+    heat: ["热度", "收藏 / 出刊 / 同主题"],
+    ex: ["探索率", "给非关键词内容留的比例"]
+  };
+  function rwLevel(v) { v = parseInt(v, 10); return isNaN(v) ? "mid" : (v >= 70 ? "high" : (v >= 35 ? "mid" : "low")); }
+  function rwValue(lv) { return lv === "high" ? 90 : (lv === "low" ? 20 : 50); }
+  function exLevel(x) { x = (x == null ? 0.1 : parseFloat(x)); if (isNaN(x)) return "mid"; return x >= 0.16 ? "high" : (x > 0.07 ? "mid" : "low"); }
+  function exValue(lv) { return lv === "high" ? 0.2 : (lv === "low" ? 0.05 : 0.1); }
+  function segRow(key, lv) {
+    var lab = RW_LABEL[key] || [key, ""];
+    var html = '<div class="rw-row"><div class="rw-info"><b>' + lab[0] + "</b>" +
+      (lab[1] ? '<span class="muted">' + lab[1] + "</span>" : "") + "</div>" +
+      '<div class="rw-seg" data-k="' + key + '">' +
+      '<button type="button" class="seg' + (lv === "low" ? " on" : "") + '" data-l="low">低</button>' +
+      '<button type="button" class="seg' + (lv === "mid" ? " on" : "") + '" data-l="mid">中</button>' +
+      '<button type="button" class="seg' + (lv === "high" ? " on" : "") + '" data-l="high">高</button>' +
+      "</div></div>";
+    return html;
+  }
   function rankSectionHtml(s) {
     var w = s.rankWeights || {};
-    var rw = function (k) { var v = parseInt(w[k], 10); return isNaN(v) || v < 0 ? 0 : v; };
-    var ex = Math.round(((s.exploreRate == null ? 0.1 : s.exploreRate)) * 100);
     var btLast = s.btLastAt ? H.fmtDateTime(s.btLastAt) + "（" + H.ago(s.btLastAt) + "）" : "从未";
-    function slider(id, label, v, max) {
-      max = max || 100;
-      return '<div class="field rw-field"><label class="wlab"><span>' + label + '</span><b id="' + id + 'V">' + v + "%</b></label>" +
-        '<input type="range" id="' + id + '" min="0" max="' + max + '" step="5" value="' + Math.min(max, v) + '"></div>';
-    }
     return '<div class="card"><h3>排序与喜好学习</h3>' +
-      '<p class="muted">四项权重作用于「兴趣榜」与「周末简报」的排序（自动按总和归一）；松手即保存，纯本地生效。</p>' +
-      slider("rwRel", "兴趣相关（关键词命中）", rw("rel")) +
-      slider("rwFresh", "新鲜度（越新分越高）", rw("fresh")) +
-      slider("rwSource", "来源权威（官方直连加权）", rw("source")) +
-      slider("rwHeat", "热度（收藏 / 出刊 / 同主题）", rw("heat")) +
-      slider("rwEx", "探索率（给非关键词内容留的比例）", ex, 30) +
-      '<div class="art-actions" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px">' +
-      '<button class="btn sm" id="rwReset">恢复默认</button>' +
-      '<button class="btn sm primary" id="btRun">运行一次离线回测</button></div>' +
-      '<div id="rwMsg" class="muted" style="margin-top:10px;font-size:.86rem;line-height:1.6">离线回测：把您的收藏当标准答案，按当前权重统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
-      '<div class="field" style="margin-top:12px;margin-bottom:6px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
+      '<p class="muted">以「低 / 中 / 高」粗调各维度偏好即可（系统自动换算并归一），作用于「兴趣榜」与「周末简报」的排序；点选即保存，纯本地生效。</p>' +
+      '<div class="rw-segs" id="rwSegs" style="margin-top:6px">' +
+      segRow("rel", rwLevel(w.rel)) +
+      segRow("fresh", rwLevel(w.fresh)) +
+      segRow("source", rwLevel(w.source)) +
+      segRow("heat", rwLevel(w.heat)) +
+      segRow("ex", exLevel(s.exploreRate)) +
+      "</div>" +
+      '<div class="art-actions" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;justify-content:flex-end">' +
+      '<button class="btn sm primary" id="btRun">运行一次离线回测</button>' +
+      '<button class="btn sm" id="rwReset">恢复默认</button></div>' +
+      '<div id="rwMsg" class="muted" style="margin-top:12px;font-size:.86rem;line-height:1.6">离线回测：把您的收藏当标准答案，按当前档位统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
+      '<div class="field" style="margin-top:14px;margin-bottom:6px;padding-top:12px;border-top:1px dashed var(--line)"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
       '<div class="field" style="margin:0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoTune"' + (s.autoTune ? " checked" : "") + "> 自动微调排序权重（每日最多一次；您 24 小时内手动调过则跳过，尊重手动）</label></div>" +
       '<p class="muted" style="margin:10px 0 0">上次回测：' + btLast + '</p></div>';
   }
@@ -354,43 +372,42 @@
             App.toast("已切换主题", "ok");
           });
         }
-        // 排序与喜好学习：滑条实时显示 + 松手保存（权重/探索率）；回测与自动回测
+        // 排序与喜好学习：低/中/高 档位点选即保存（回测与自动开关沿用）
         function bindRw(root, s) {
-          var map = [["rwRel", "rel"], ["rwFresh", "fresh"], ["rwSource", "source"], ["rwHeat", "heat"]];
-          map.forEach(function (pair) {
-            var r = root.querySelector("#" + pair[0]);
-            if (!r) return;
-            r.addEventListener("input", function () {
-              var v = root.querySelector("#" + pair[0] + "V");
-              if (v) v.textContent = r.value + "%";
-            });
-            r.addEventListener("change", function () {
-              s.rankWeights = s.rankWeights || {};
-              s.rankWeights[pair[1]] = parseInt(r.value, 10);
-              Store.saveSettings();
-            });
-          });
-          var ex = root.querySelector("#rwEx");
-          if (ex) {
-            ex.addEventListener("input", function () {
-              var v = root.querySelector("#rwExV");
-              if (v) v.textContent = ex.value + "%";
-            });
-            ex.addEventListener("change", function () {
-              s.exploreRate = parseFloat(ex.value) / 100;
-              Store.saveSettings();
-            });
+          function paint(k, lv) {
+            var row = root.querySelector('.rw-seg[data-k="' + k + '"]');
+            if (!row) return;
+            row.querySelectorAll(".seg").forEach(function (b) { b.classList.toggle("on", b.dataset.l === lv); });
           }
+          function paintAll() {
+            var w = s.rankWeights || {};
+            paint("rel", rwLevel(w.rel)); paint("fresh", rwLevel(w.fresh));
+            paint("source", rwLevel(w.source)); paint("heat", rwLevel(w.heat));
+            paint("ex", exLevel(s.exploreRate));
+          }
+          var segs = root.querySelector("#rwSegs");
+          if (segs) segs.addEventListener("click", function (e) {
+            var b = e.target.closest(".seg");
+            if (!b) return;
+            var row = b.closest(".rw-seg");
+            if (!row) return;
+            var k = row.dataset.k;
+            var lv = b.dataset.l;
+            s.rankWeights = s.rankWeights || {};
+            s.lastManualRankAt = Date.now();           // 24h 内手动调过则自动微调跳过，尊重手动
+            if (k === "ex") s.exploreRate = exValue(lv);
+            else s.rankWeights[k] = rwValue(lv);
+            Store.saveSettings();
+            paintAll();
+          });
           var rs = root.querySelector("#rwReset");
           if (rs) rs.addEventListener("click", function () {
-            s.rankWeights = { rel: 40, fresh: 25, source: 20, heat: 15 };
-            s.exploreRate = 0.1;
-            [[ "rwRel", 40], ["rwFresh", 25], ["rwSource", 20], ["rwHeat", 15], ["rwEx", 10]].forEach(function (p) {
-              var r = root.querySelector("#" + p[0]);
-              if (r) { r.value = p[1]; root.querySelector("#" + p[0] + "V").textContent = p[1] + "%"; }
-            });
+            s.rankWeights = { rel: rwValue("high"), fresh: rwValue("mid"), source: rwValue("mid"), heat: rwValue("low") };
+            s.exploreRate = exValue("mid");
+            s.lastManualRankAt = Date.now();
             Store.saveSettings();
-            App.toast("已恢复默认配比", "ok");
+            paintAll();
+            App.toast("已恢复默认配比：兴趣高 / 新鲜中 / 来源中 / 热度低 / 探索中", "ok");
           });
           var bt = root.querySelector("#btRun");
           if (bt) bt.addEventListener("click", function () {
@@ -485,23 +502,19 @@
             App.refresh();
           }).catch(function () { briefBtn.disabled = false; });
         });
-        // 镜像与更新（仓库只读，仅支持检查更新）
+        // 镜像与更新（仓库只读，仅支持检查更新；结果统一走 App.checkUpdate 的弹窗反馈）
         root.querySelector("#bfChkUpdate").addEventListener("click", function () {
-          var repo = s.updateRepo;
-          if (!repo) { App.toast("未配置更新仓库（后期发布后填入即可启用更新通知）"); return; }
-          var urls = [
-            "https://cdn.jsdelivr.net/gh/" + repo + "@main/update.json",
-            "https://raw.githubusercontent.com/" + repo + "/main/update.json"
-          ];
-          var lastErr = null;
-          var chain = Promise.reject();
-          urls.forEach(function (u) { chain = chain.catch(function () { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }); }); });
-          chain.then(function (j) {
-            var remote = parseInt(j.versionCode, 10);
-            var local = parseInt(s.versionCode, 10) || 0;
-            var msg = "远端版本 " + j.versionName + "（build " + remote + "）" + (remote > local ? "，可更新：" + (j.notes || "") : "，本机已是最新。");
-            root.querySelector("#bfRepoMsg").innerHTML = '<div class="ok-line">' + H.esc(msg) + "</div>";
-          }).catch(function () { root.querySelector("#bfRepoMsg").innerHTML = '<div class="note">检查失败（网络或仓库未配置 update.json）</div>'; });
+          var msgBox = root.querySelector("#bfRepoMsg");
+          msgBox.innerHTML = '<div class="muted">正在检查更新…</div>';
+          App.checkUpdate(true).then(function (r) {
+            if (!r) return;
+            if (r.state === "err") { msgBox.innerHTML = '<div class="note">检查失败（网络或仓库不可达）</div>'; return; }
+            if (r.state === "update") {
+              msgBox.innerHTML = '<div class="ok-line">发现新版本 v' + H.esc(r.name || "?") + "（build " + r.code + "），详见弹窗。</div>";
+            } else {
+              msgBox.innerHTML = '<div class="ok-line">已是最新：v' + H.esc(s.appVersion || "?") + "（build " + (s.versionCode || 0) + "）。</div>";
+            }
+          });
         });
         // 数据
         root.querySelector("#dbExport").addEventListener("click", exportData);

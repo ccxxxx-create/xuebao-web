@@ -108,16 +108,16 @@
     return chatText([{ role: "system", content: sys }, { role: "user", content: title }], { maxTokens: 120, timeoutMs: 90000 });
   }
 
-  /* 摘要生成（中+英可选）：输出至多三行：第1行中文标题，第2行中文摘要，第3行英文摘要（未启用英文时为两行） */
+  /* 摘要生成（中+英可选）：严格三段输出，段首带【T】【Z】【E】前缀便于稳定解析与质量校验 */
   function translateTitleSummary(title, excerpt, glossary) {
-    var sys = "你是军事/防务新闻编译助手。根据英文标题与正文节选输出三行内容：\n" +
-      "第一行：中文标题（准确、地道的军事新闻标题，术语用词表译法，专有名词首次出现保留原文或括注）。\n" +
-      "第二行：中文摘要，2~3 句话（120 字以内），概括国家/机构/主体、核心事件与关键信息，不评论不推测。\n" +
-      "第三行：English Summary, 2-3 sentences (within 90 words), factual, no comments.\n" +
-      "除这三行外不要输出任何其他内容；摘要只写原文事实。" +
-      (glossary ? "\n词表：" + glossary : "");
-    var userText = "英文标题：" + title + "\n\n正文节选：\n" + String(excerpt || "").slice(0, 1200);
-    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 500, timeoutMs: 120000 });
+    var sys = "你是军事/防务新闻编译助手。根据英文标题与正文节选，严格输出三段，每段必须以前缀开头、段间换行：\n" +
+      "【T】中文标题：准确、地道的军事新闻标题（术语按词表译法；专有名词与机构缩写首次出现可保留原文或括注）。\n" +
+      "【Z】中文摘要：2~3 句、60~120 字，新闻式陈述。必须写清：国家/机构/主体、核心事件、关键信息（装备型号、数量、时间地点等）；只陈述原文出现的事实，禁止评价、禁止推测、禁止编造任何数据与型号。\n" +
+      "【E】English Summary: 2-3 sentences, within 90 words, factual only, restating the same facts as the Chinese summary.\n" +
+      "除以上三段外不要输出任何其它内容（不要标题名、不要解释、不要客套）。若节选信息不足，就基于已有事实如实概括，绝不臆造。" +
+      (glossary ? "\n术语词表：" + glossary : "");
+    var userText = "英文标题：" + title + "\n\n正文节选：\n" + String(excerpt || "").slice(0, 2000);
+    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 600, timeoutMs: 120000 });
   }
 
   /* 全文翻译（分块调用方负责拆分，本函数翻一段） */

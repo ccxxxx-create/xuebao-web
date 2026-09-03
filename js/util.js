@@ -118,7 +118,7 @@
     },
     /* 权重归一：settings.rankWeights 为百分整数 {rel,fresh,source,heat}，返回总和=1 的小数 */
     normW: function (w) {
-      var o = { rel: 40, fresh: 25, source: 20, heat: 15 };
+      var o = { rel: 90, fresh: 50, source: 50, heat: 20 };
       if (w) {
         ["rel", "fresh", "source", "heat"].forEach(function (k) {
           var v = parseInt(w[k], 10);
@@ -126,7 +126,7 @@
         });
       }
       var sum = o.rel + o.fresh + o.source + o.heat;
-      if (sum <= 0) { o = { rel: 40, fresh: 25, source: 20, heat: 15 }; sum = 100; }
+      if (sum <= 0) { o = { rel: 90, fresh: 50, source: 50, heat: 20 }; sum = 210; }
       ["rel", "fresh", "source", "heat"].forEach(function (k) { o[k] = o[k] / sum; });
       return o;
     },
@@ -199,8 +199,8 @@
       if (s.lastManualRankAt && now - s.lastManualRankAt < DAY) return Promise.resolve({ done: false, msg: "24 小时内手动调过权重，先尊重手动选择" });
       return H.backtestResult().then(function (r) {
         if (!r.ok) return { done: false, msg: "收藏样本不足，暂不自动调整" };
-        var clamp = function (v) { return Math.max(0, Math.min(70, Math.round(v))); };
-        var w = Object.assign({ rel: 40, fresh: 25, source: 20, heat: 15 }, s.rankWeights || {});
+        var clamp = function (v) { return Math.max(5, Math.min(95, Math.round(v))); };
+        var w = Object.assign({ rel: 90, fresh: 50, source: 50, heat: 20 }, s.rankWeights || {});
         var msg = null;
         if (r.pct < 40) { w.rel = clamp(w.rel + 10); w.heat = clamp(w.heat + 5); msg = "偏低，已小幅上提「兴趣相关 / 热度」"; }
         else if (r.pct >= 60 && r.pct - 60 >= 10) { w.rel = clamp(w.rel - 5); msg = "偏高，已小幅回调「兴趣相关」"; }

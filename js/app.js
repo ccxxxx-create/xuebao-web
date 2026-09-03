@@ -187,13 +187,17 @@
     },
     checkUpdate: function (force) {
       var s = Store.settings;
-      if (!s.autoCheck && !force) return;
+      var none = { state: "none" };
+      if (!s.autoCheck && !force) return Promise.resolve(none);
       var repo = (s.updateRepo || "").trim();
-      if (!repo || navigator.onLine === false) return;
-      // 节流 3 分钟：打开即查一次；切换回标签页也立查（新版本/公告更快送达）
+      if (!repo || navigator.onLine === false) {
+        if (force) App.modalInfo("无法检查更新", "未配置更新仓库，或当前处于离线状态，请联网后重试。");
+        return Promise.resolve({ state: "err" });
+      }
+      // 节流 3 分钟：打开即查一次；切换回标签页也立查（新版本/公告更快送达）；手动点击不受限
       if (!force) {
         var gap = Date.now() - (s.lastUpdateCheck || 0);
-        if (s.lastUpdateCheck && gap < 3 * 60 * 1000) return;
+        if (s.lastUpdateCheck && gap < 3 * 60 * 1000) return Promise.resolve(none);
       }
       s.lastUpdateCheck = Date.now();
       Store.saveSettings();
@@ -214,28 +218,37 @@
           });
         });
       });
-      chain.then(function (j) {
+      return chain.then(function (j) {
         var v = parseInt(j.versionCode, 10) || 0;
         var curV = parseInt(s.versionCode, 10) || 0;             // 当前运行代码版本
-        var toldV = parseInt(s.lastNotifiedVersion, 10) || 0;     // 本设备已告知的最高版本
         var seen = s.seenNotices || {};
-        var newV = v > curV || v > toldV;                         // 有新版本可告知
+        var n = j.notice;
+        var hasNotice = !!(n && n.id && n.body);
+        var newV = v > curV;                                     // 远端版本比本机运行版新 → 可更新
+        // 版本升级与公告合并为“一条”投递：有升级用「up+版本」键（正文优先公告全文），
+        // 仅同版本下出现的新公告才用「nt+公告id」键 → 不再出现两条内容相似的 1.7.1 通知
+        var title = hasNotice ? (n.title || ("新版本 " + (j.versionName || v)))
+                              : ("新版本 " + (j.versionName || v));
+        var body = hasNotice ? n.body : (j.notes || "功能与内容已更新。");
+        var key = newV ? ("up" + v) : (hasNotice ? ("nt" + n.id) : "");
+        var firstTime = !!key && !seen[key];
+        if (firstTime) {
+          seen[key] = 1;
+          s.seenNotices = seen;
+          if (newV) s.lastNotifiedVersion = v;
+          Store.saveSettings();
+          Store.inboxAdd("update", title, body);
+          App.refreshMail();
+        }
         if (newV) {
-          // 版本通知：合并成“一条”（版本 + 公告合一），按版本去重
-          var upk = "up" + v;
-          if (!seen[upk]) {
-            seen[upk] = 1;
-            s.seenNotices = seen;
-            s.lastNotifiedVersion = v;
-            Store.saveSettings();
-            var notes = j.notes || (j.notice && j.notice.title ? (j.notice.title + "\n\n" + (j.notice.body || "")) : "");
-            Store.inboxAdd("update", "新版本 " + (j.versionName || v), notes || "功能与内容已更新。");
-            App.refreshMail();
+          // 更新弹窗：自动检查只在首次提醒；手动点击每次都明确反馈结果
+          if (firstTime || force) {
             App.openModal(
-              '<div class="modal-head"><h3>已更新至 ' + H.esc(j.versionName || v) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +
-              '<div class="modal-body"><p>' + H.esc(notes || "功能与内容已更新。") + "</p>" +
-              '<p class="muted">点「立即更新」会自动刷新到最新版本，本地资料不受影响。</p>' +
-              '<div class="modal-actions"><button class="btn" data-close>稍后</button>' +
+              '<div class="modal-head"><h3>发现新版本 ' + H.esc(j.versionName || v) + '</h3><button class="btn sm" data-close>×</button></div>' +
+              '<div class="modal-body"><p>当前 build ' + curV + '，远端已发布 build ' + v + '。</p>' +
+              '<div class="prose" style="max-height:44vh;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:8px 0">' + H.esc(body) + '</div>' +
+              '<p class="muted">点「立即更新本页」会自动刷新到最新版本，本地资料不受影响。</p>' +
+              '<div class="modal-actions"><button class="btn" data-close>稍后再说</button>' +
               '<button class="btn primary" id="upNow">立即更新本页</button></div></div>'
             );
             var up = document.getElementById("upNow");
@@ -246,22 +259,22 @@
               location.replace(base + sep + "upd=" + v + (location.hash || "#/dashboard"));
             });
           }
+          return { state: "update", name: j.versionName || "", code: v, notes: body };
         }
-        // 独立公告（与版本号解耦，按 id 去重）：即使版本未变、或上次仅随版本投递过，
-        // 采用“新公告 id”也能重新送达，修复“更新了却没收到公告”。同正文由 inboxAdd 自动去重。
-        var n = j.notice;
-        if (n && n.id && n.body && !seen["nt" + n.id]) {
-          seen["nt" + n.id] = 1;
-          s.seenNotices = seen;
-          Store.saveSettings();
-          Store.inboxAdd("update", n.title || "新公告", n.body);
-          App.refreshMail();
-          if (!newV) {
-            App.toast("收到新公告 ✉，详见收件箱", "ok");
-            if (current === "inbox") App.refresh();
-          }
+        // 同版本下收到新公告：投递收件箱并轻提示（不弹升级窗）
+        if (firstTime && hasNotice) {
+          App.toast("收到新公告 ✉，详见收件箱", "ok");
+          if (current === "inbox") App.refresh();
         }
-      }).catch(function () { /* 网络失败静默，下次再查 */ });
+        // 手动检查且确实没有更新 → 明确弹窗反馈“已是最新”
+        if (force) {
+          App.modalInfo("检查更新", "当前已是最新版本：v" + H.esc(s.appVersion || "?") + "（build " + curV + "）。新版本与公告会自动检查并提醒，无需手动操作。");
+        }
+        return { state: "none", code: v };
+      }).catch(function () {
+        if (force) App.modalInfo("检查更新失败", "网络或服务器暂时不可达，请稍后重试；应用会在后台自动复查。");
+        return { state: "err" };
+      });
     },
     openModal: function (html, opts) {
       var mask = document.getElementById("modalMask");
@@ -278,6 +291,14 @@
       document.getElementById("modalMask").hidden = true;
       document.getElementById("modalBox").innerHTML = "";
       document.body.style.overflow = "";
+    },
+    /* 简单信息弹窗：标题 + 正文 + 单个「知道了」按钮（供检查更新等结果反馈） */
+    modalInfo: function (title, msg) {
+      App.openModal(
+        '<div class="modal-head"><h3>' + H.esc(title) + '</h3><button class="btn sm" data-close>×</button></div>' +
+        '<div class="modal-body"><p style="white-space:pre-wrap;word-break:break-word;margin:0">' + H.esc(msg) + "</p>" +
+        '<div class="modal-actions"><button class="btn primary" data-close>知道了</button></div></div>'
+      );
     },
     confirm: function (msg) {
       return new Promise(function (resolve) {

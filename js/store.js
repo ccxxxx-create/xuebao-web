@@ -41,8 +41,8 @@
     lastManualRankAt: 0,       // 上次手动调权时间戳（供自动微调短时回避）
     allowLearn: true,          // 允许本机记录喜好（收藏/取消/出刊信号），仅存本设备
     interestKeywords: "",      // 兴趣关键词（模糊匹配，用于“按相关度”排序）
-    exploreRate: 0.1,          // 榜单探索率（防茧房）：给非关键词内容保留的比例
-    rankWeights: { rel: 40, fresh: 25, source: 20, heat: 15 },  // 排序权重（兴趣相关/新鲜度/来源权威/热度，百分整数）
+    exploreRate: 0.1,          // 榜单探索率（防茧房）：给非关键词内容保留的比例（档位 低5/中10/高20%）
+    rankWeights: { rel: 90, fresh: 50, source: 50, heat: 20 },  // 排序权重档位值（高90/中50/低20：兴趣高/新鲜中/来源中/热度低）
     btAuto: false,             // 打开页面自动离线回测（每日最多一次，结果进收件箱）
     btLastAt: 0,               // 上次自动回测时间戳
     manualPullCdMin: 10,       // 手动“立即更新”的冷却分钟数（防频繁拉取被源站限流）
@@ -51,8 +51,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.7.1",
-    versionCode: 29,
+    appVersion: "1.7.2",
+    versionCode: 30,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,

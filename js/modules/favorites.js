@@ -32,7 +32,7 @@
           (a.summaryEn ? '<div class="art-sum"><b>【AI 摘要 · English】</b> ' + H.esc(a.summaryEn) + "</div>" : "") +
           '<div class="art-actions">' +
           '<button class="btn sm" data-act="unfav" data-url="' + H.esc(a.url) + '">取消收藏</button>' +
-          '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '">' + ((a.summaryZh || a.summaryEn) ? "摘要（中/英）" : "生成摘要（中/英）") + "</button>" +
+          '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '" title="查看/自动生成摘要">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
           (a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '">生成学报 docx</button>' : "") +

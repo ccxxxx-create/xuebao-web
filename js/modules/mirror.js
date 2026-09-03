@@ -246,10 +246,10 @@
         if (art.titleZhLocked) return one(i + 1);
         return LLM.translateTitleSummary(art.title, art.summary || art.body, glossary).then(function (out) {
           var p = parseTriple(out);
-          art.titleZh = p.zh || "";
-          art.summaryZh = p.sumZh || "";
-          art.summaryEn = p.sumEn || "";
-          art.titleTrans = art.titleZh ? "ok" : "failed";
+          if (p.zh) { art.titleZh = p.zh; art.titleTrans = "ok"; }
+          if (p.sumZh) art.summaryZh = p.sumZh;
+          if (p.sumEn) art.summaryEn = p.sumEn;
+          if (!(p.zh || p.sumZh || p.sumEn)) art.titleTrans = "failed";
           return Store.putArticle(art);
         }).catch(function () {
           art.titleTrans = "failed";
@@ -283,9 +283,33 @@
     return s;
   }
 
+  /* 标题+中英摘要 结果解析：优先按【T】【Z】【E】前缀取段（v1.7.2 起模型按此前缀输出），
+     旧格式退化为按行序（第1行标题 / 第2行中文摘要 / 第3行英文摘要）。
+     质量门：纯数字/日期碎片标题、过短摘要一律判为无效，避免“看似生成实则空白 / 只出 2026”。 */
   function parseTriple(out) {
-    var ls = String(out || "").split(/\n/).map(cleanSeg).filter(Boolean);
-    return { zh: ls[0] || "", sumZh: ls[1] || "", sumEn: ls[2] || "" };
+    var s = String(out || "").trim();
+    function okTitle(t) {
+      t = cleanSeg(t);
+      if (!t) return "";
+      if (/^\d{1,8}([.,、]\d+)*$/.test(t)) return "";          // 纯数字碎片（如 2026）
+      if (/^\d{2,4}\s*[-/年]\s*\d{1,2}/.test(t)) return "";    // 日期碎片（如 2026-09-04）
+      return t;
+    }
+    function okSum(t, min) {
+      t = cleanSeg(t);
+      if (!t || t.length < min) return "";
+      return t;
+    }
+    var seg = {};
+    s.split(/\n/).forEach(function (line) {
+      var m = /^\s*【\s*([TZEtze])\s*[】:：]?\s*/.exec(line);
+      if (m) seg[m[1].toLowerCase()] = line.slice(m[0].length).trim();
+    });
+    if (seg.t != null || seg.z != null || seg.e != null) {
+      return { zh: okTitle(seg.t || ""), sumZh: okSum(seg.z || "", 10), sumEn: okSum(seg.e || "", 10) };
+    }
+    var ls = s.split(/\n/).map(cleanSeg).filter(Boolean);
+    return { zh: okTitle(ls[0] || ""), sumZh: okSum(ls[1] || "", 10), sumEn: okSum(ls[2] || "", 10) };
   }
 
   /* 清洗单个中文标题（供标题专用翻译/手动译标题使用） */
@@ -320,22 +344,28 @@
     });
   }
 
-  /* 摘要生成（中文+英文），保留已有中文标题不动 */
+  /* 摘要生成（中文+英文）：保留已有中文标题不动；失败/无产出时记 summaryFail，不覆盖已有摘要 */
   function summarizeList(list, onProgress) {
     if (!list || !list.length) return Promise.resolve(0);
     return Store.getAllTerms().then(function (terms) {
       var glossary = LLM.glossaryLines(terms);
-      var done = 0;
+      var done = 0, ok = 0;
       function one(i) {
-        if (i >= list.length) return Promise.resolve(done);
+        if (i >= list.length) return Promise.resolve(ok);
         var art = list[i];
         return LLM.translateTitleSummary(art.title, art.summary || art.body, glossary).then(function (out) {
           var p = parseTriple(out);
           if (!art.titleZh && p.zh) { art.titleZh = p.zh; art.titleTrans = "ok"; }
-          art.summaryZh = p.sumZh;
-          art.summaryEn = p.sumEn;
+          if (p.sumZh) art.summaryZh = p.sumZh;
+          if (p.sumEn) art.summaryEn = p.sumEn;
+          var got = !!(p.zh || p.sumZh || p.sumEn);
+          art.summaryFail = got ? 0 : 1;
+          if (got) ok++;
           return Store.putArticle(art);
-        }).catch(function () { return Store.putArticle(art); }).then(function () {
+        }).catch(function () {
+          art.summaryFail = 1;
+          return Store.putArticle(art);
+        }).then(function () {
           done++;
           if (onProgress) onProgress(i + 1, list.length, art);
           return one(i + 1);

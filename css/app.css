@@ -100,6 +100,7 @@ table.data th{background:#f4f7fa;color:#42536a;font-weight:600;white-space:nowra
 .field{margin-bottom:12px}
 .field label{display:block;font-size:12.6px;color:var(--text2);margin-bottom:4px}
 .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--radius-s);padding:8px 10px;outline:none}
+.field input[type="checkbox"]{width:auto;flex:none;margin:0}
 .field textarea{min-height:64px;resize:vertical}
 /* toast */
 .toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
@@ -315,6 +316,21 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 .rw-field .wlab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px;font-size:13px;color:var(--text2)}
 .rw-field .wlab b{color:var(--primary);font-weight:700;font-size:13px;min-width:38px;text-align:right}
 .rw-field input[type=range],.fz-preview + input[type=range],input[type=range]{accent-color:var(--primary);height:22px;cursor:pointer;width:100%}
+
+/* 排序与喜好学习：低/中/高 档位分段按钮（v1.7.2 替换精细滑条；flex 布局自适应平板窄屏） */
+.rw-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.rw-row:last-child{border-bottom:0}
+.rw-info{display:flex;flex-direction:column;gap:1px;min-width:140px;line-height:1.35}
+.rw-info b{font-size:14px;font-weight:600;color:var(--text)}
+.rw-info span{font-size:11.5px;color:var(--text3)}
+.rw-seg{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card)}
+.rw-seg .seg{border:0;background:transparent;color:var(--text2);font-size:13px;padding:6px 16px;cursor:pointer;transition:.15s;line-height:1}
+.rw-seg .seg + .seg{border-left:1px solid var(--line)}
+.rw-seg .seg:hover{color:var(--primary)}
+.rw-seg .seg.on{background:var(--primary);color:#fff;font-weight:600}
+
+/* 资料库：页级批量操作条（v1.7.2「译标题」由卡片级收拢为每页一个） */
+.lib-bar{display:flex;justify-content:flex-end;margin:2px 0 10px;gap:8px;flex-wrap:wrap}
 
 /* 阅读页来源底注（置于正文之后） */
 .art-src{margin-top:16px;padding-top:10px;border-top:1px dashed var(--line);color:var(--text3);font-size:12.5px;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;word-break:break-all}

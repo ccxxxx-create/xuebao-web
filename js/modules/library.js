@@ -78,7 +78,12 @@
         if (state.page > pages) state.page = pages;
         if (state.page < 1) state.page = 1;
         var slice = list.slice((state.page - 1) * per, state.page * per);
-        var html = slice.map(function (a) { return cardHtml(a, kws); }).join("");
+        // 页级「译本页标题」：本页还有几条缺中文标题就显示计数；全译完则置灰
+        var pend = slice.filter(function (a) { return !a.titleZh; }).length;
+        var html = '<div class="lib-bar"><button class="btn sm" data-act="titles"' + (pend ? "" : " disabled") +
+          ' title="按顺序翻译本页全部英文标题（标题翻译费用很低，可放心整页批量）">' +
+          (pend ? "译本页标题（" + pend + "）" : "本页标题均已翻译") + "</button></div>";
+        html += slice.map(function (a) { return cardHtml(a, kws); }).join("");
         if (pages > 1) html += pager(pages, list.length);
         return html;
       }
@@ -106,7 +111,6 @@
           '<div class="art-actions">' +
           '<button class="btn sm" data-act="fav" data-url="' + H.esc(a.url) + '">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
           '<button class="btn sm' + (a.selected ? " primary" : "") + '" data-act="sel" data-url="' + H.esc(a.url) + '" title="加入学报出刊队列">' + (a.selected ? "✓ 已选入学报" : "选入学报") + "</button>" +
-          '<button class="btn sm" data-act="title" data-url="' + H.esc(a.url) + '" title="单独翻译这一篇的中文标题">译标题</button>' +
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
@@ -132,7 +136,7 @@
             if (act === "pg") { var p = parseInt(btn.dataset.pg, 10); if (p >= 1) { state.page = p; App.refresh(); } }
             else if (act === "fav") doFav(url);
             else if (act === "sel") doSel(url);
-            else if (act === "title") doTitle(url);
+            else if (act === "titles") doTitles();
             else if (act === "sum") window.UI.summaryModal(url);
             else if (act === "full") doFull(url);
             else if (act === "journal") {
@@ -172,7 +176,7 @@
                 return Store.putArticle(a);
               });
             }).then(function () {
-              if (!a.titleZh) { App.toast("标题自动翻译失败，请重试或稍后手动「译标题」", "err"); App.refresh(); return; }
+              if (!a.titleZh) { App.toast("标题自动翻译失败，请重试或稍后点列表上方「译本页标题」批量翻译", "err"); App.refresh(); return; }
               a.selected = 1;
               return Store.putArticle(a).then(function () { App.toast("已自动翻译标题并选入学报", "ok"); App.refresh(); });
             }).catch(function (e) { App.toast(((e && e.message) || "操作失败"), "err"); App.refresh(); });
@@ -187,21 +191,23 @@
           }
         });
       }
-      /* 单独翻译这一篇中文标题 */
-      function doTitle(url) {
+      /* 批量翻译本页全部缺中文标题的文章（顺次执行；失败不中断，翻页不影响后台继续） */
+      function doTitles() {
         if (!LLM.configured()) { App.toast("请先在 设置 → 模型 配置模型"); return; }
-        Store.getArticle(url).then(function (a) {
-          if (!a) return;
-          return LLM.translateTitle(a.title, null).then(function (zh) {
-            a.titleZh = MIRROR.cleanTitle(zh);
-            a.titleTrans = a.titleZh ? "ok" : "failed";
-            return Store.putArticle(a);
-          });
-        }).then(function () {
-          App.toast("中文标题已翻译", "ok");
+        var per = 20;
+        var slice = arts.slice((state.page - 1) * per, state.page * per);
+        var todo = slice.filter(function (a) { return !a.titleZh; });
+        if (!todo.length) { App.toast("本页标题均已翻译", "ok"); return; }
+        var btn = root.querySelector('[data-act="titles"]');
+        var n = todo.length;
+        if (btn) { btn.disabled = true; btn.textContent = "正在翻译标题…"; }
+        MIRROR.translateTitlesOnly(todo, function (i) {
+          if (btn) btn.textContent = "正在翻译标题 " + Math.min(i, n) + "/" + n + "…";
+        }).then(function (cnt) {
+          App.toast(cnt > 0 ? "本页 " + cnt + " 条标题已翻译" : "未新增翻译，可能已全部完成", cnt > 0 ? "ok" : "");
           App.refresh();
         }).catch(function (err) {
-          App.toast((err && err.message) || "标题翻译失败，请重试", "err");
+          App.toast((err && err.message) || "批量标题翻译中断，请重试", "err");
           App.refresh();
         });
       }

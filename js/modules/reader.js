@@ -13,52 +13,65 @@
       (a.author ? "<span>" + esc(a.author) + "</span>" : "");
   }
 
-  /* 摘要弹窗：查看/生成 中文+英文 摘要（保留已有中文标题，可顺手修正标题） */
+  /* 摘要弹窗：打开即自动生成（无需再点「生成摘要」按钮）；可手动微调后保存，
+     生成无有效产出时给出明确失败提示并可重试，不再“看似运行实则空白”。 */
   function summaryModal(url) {
     Store.getArticle(url).then(function (a) {
       if (!a) return;
+      var empty = !(a.summaryZh || a.summaryEn);
       App.openModal(
         '<div class="modal-head"><h3>摘要（中文 · English）</h3><button class="btn sm" data-close>×</button></div>' +
         '<div class="modal-body">' +
         '<div class="field"><label>中文标题（自动翻译，可微调）</label><input id="smTitle" value="' + esc(a.titleZh || "") + '"></div>' +
-        '<div class="field"><label>中文摘要 【AI 生成】</label><textarea id="smZh">' + esc(a.summaryZh || "") + "</textarea></div>" +
-        '<div class="field"><label>English Summary 【AI 生成】</label><textarea id="smEn">' + esc(a.summaryEn || "") + "</textarea></div>" +
+        '<div class="field"><label>中文摘要' + (empty ? "（打开后自动生成）" : "") + '</label><textarea id="smZh" placeholder="' + (empty ? "正在自动生成…" : "") + '">' + esc(a.summaryZh || "") + "</textarea></div>" +
+        '<div class="field"><label>English Summary' + (empty ? " (auto-generating)" : "") + '</label><textarea id="smEn" placeholder="' + (empty ? "Generating…" : "") + '">' + esc(a.summaryEn || "") + "</textarea></div>" +
         '<div class="art-actions">' +
-        '<button class="btn primary" id="smGen"' + (LLM.configured() ? "" : " disabled") + ">" + (a.summaryZh || a.summaryEn ? "重新生成摘要（中/英）" : "生成摘要（中/英）") + "</button>" +
-        '<button class="btn" id="smSave">保存</button></div>' +
-        '<div id="smMsg" class="muted" style="margin-top:6px">' + (LLM.configured() ? "" : "未配置模型：请先在 设置 → 模型 配置。") + "</div>" +
+        '<button class="btn primary" id="smSave">保存</button>' +
+        '<button class="btn" id="smRegen"' + (LLM.configured() ? "" : " disabled") + ' title="调用模型重新生成中/英摘要">重新生成</button></div>' +
+        '<div id="smMsg" class="muted" style="margin-top:6px">' + (LLM.configured() ? "" : "未配置模型：请先在 设置 → 模型 配置，或直接手动填写后保存。") + "</div>" +
         "</div>"
       );
       var box = document.getElementById("modalBox");
       var msg = box.querySelector("#smMsg");
-      var genBtn = box.querySelector("#smGen");
+      var saveBtn = box.querySelector("#smSave");
+      var regenBtn = box.querySelector("#smRegen");
+      function fill(cur) {
+        box.querySelector("#smZh").value = cur.summaryZh || "";
+        box.querySelector("#smEn").value = cur.summaryEn || "";
+        if (!box.querySelector("#smTitle").value) box.querySelector("#smTitle").value = cur.titleZh || "";
+      }
       function runGen() {
-        genBtn.disabled = true;
-        msg.innerHTML = "生成中…<span class='spin dark'></span>";
+        regenBtn.disabled = true; saveBtn.disabled = true;
+        msg.innerHTML = "正在生成摘要…<span class='spin dark'></span>";
         MIRROR.summarizeList([a]).then(function () {
           return Store.getArticle(a.url);
         }).then(function (cur) {
+          regenBtn.disabled = false; saveBtn.disabled = false;
           if (cur) {
-            box.querySelector("#smZh").value = cur.summaryZh || "";
-            box.querySelector("#smEn").value = cur.summaryEn || "";
-            if (!box.querySelector("#smTitle").value) box.querySelector("#smTitle").value = cur.titleZh || "";
             a = cur;
+            fill(cur);
+            if (cur.summaryZh || cur.summaryEn) {
+              msg.innerHTML = '<span style="color:var(--ok,#0b5f55)">摘要已生成。可微调后点「保存」；想再生成可点「重新生成」。</span>';
+            } else {
+              msg.innerHTML = '<span style="color:var(--bad,#c0392b)">本次生成没有有效产出（模型可能未按要求返回内容）。可点「重新生成」再试，或直接手动填写后保存。</span>';
+            }
+          } else {
+            msg.innerHTML = '<span style="color:var(--bad,#c0392b)">未取到文章，生成失败。</span>';
           }
-          genBtn.disabled = false;
-          msg.innerHTML = '<span style="color:var(--ok)">摘要已生成，请检查后点「保存」。</span>';
         }).catch(function (err) {
-          genBtn.disabled = false;
-          msg.textContent = (err && err.message) || "生成失败，请重试";
+          regenBtn.disabled = false; saveBtn.disabled = false;
+          msg.innerHTML = '<span style="color:var(--bad,#c0392b)">生成失败：' + esc((err && err.message) || "请重试") + "。可点「重新生成」再试，或手动填写后保存。</span>";
         });
       }
-      genBtn.addEventListener("click", runGen);
-      // 无摘要时直接自动生成，避免“又要点一次生成”造成空白
-      if (LLM.configured() && !(a.summaryZh || a.summaryEn)) runGen();
-      box.querySelector("#smSave").addEventListener("click", function () {
+      // 摘要缺失 → 打开弹窗即自动生成（无产出也会明确提示，不再留空白）
+      if (LLM.configured() && empty) runGen();
+      regenBtn.addEventListener("click", runGen);
+      saveBtn.addEventListener("click", function () {
         a.titleZh = box.querySelector("#smTitle").value.trim();
         a.summaryZh = box.querySelector("#smZh").value.trim();
         a.summaryEn = box.querySelector("#smEn").value.trim();
         if (a.titleZh) a.titleTrans = "ok";
+        a.summaryFail = 0;
         Store.putArticle(a).then(function () {
           App.closeModal();
           App.toast("摘要已保存", "ok");
