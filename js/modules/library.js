@@ -198,7 +198,8 @@
         var slice = arts.slice((state.page - 1) * per, state.page * per);
         var todo = slice.filter(function (a) { return !a.titleZh; });
         if (!todo.length) { App.toast("本页标题均已翻译", "ok"); return; }
-        var btn = root.querySelector('[data-act="titles"]');
+        // 用 document 查询（doTitles 在 bind 之外，访问不到传入的 root；资料库每页仅一个 .lib-bar，无歧义）
+        var btn = document.querySelector(".lib-bar [data-act=\"titles\"]");
         var n = todo.length;
         if (btn) { btn.disabled = true; btn.textContent = "正在翻译标题…"; }
         MIRROR.translateTitlesOnly(todo, function (i) {
