@@ -48,6 +48,11 @@
         '<button class="btn sm danger" id="ibClear">清空</button></div></div>' +
         (items.length
           ? items.map(function (x) {
+              var isBrief = x.kind === "brief";
+              // 简报卡片只放“摘要/概述”，长文在独立「周末简报」页里看；提供「阅读完整简报」跳转
+              var openBrief = isBrief && x.briefId
+                ? '<a class="btn sm primary inbox-open" data-brief-open="' + H.esc(x.briefId) + '">阅读完整简报 ↗</a>'
+                : "";
               return '<div class="art inbox-card' + (x.read ? "" : " unread") + '" data-id="' + H.esc(x.id) + '" title="点击查看详情">' +
                 '<div class="art-head"><div style="flex:1;min-width:0">' +
                 '<div class="art-title" style="font-weight:600">' +
@@ -55,7 +60,7 @@
                 H.esc(KIND[x.kind] || x.kind) + " · " + H.esc(x.title) + "</div>" +
                 '<div class="art-meta"><span>' + H.fmtDateTime(new Date(x.at)) + "</span></div>" +
                 "</div></div>" +
-                '<div class="inbox-body">' + makeBody(x.body || "", false) + "</div>" +
+                '<div class="inbox-body">' + makeBody(x.body || "", false) + openBrief + "</div>" +
                 "</div>";
             }).join("")
           : '<div class="empty"><b>收件箱是空的</b>以后的新版本公告、周末简报等会出现在这里。</div>');
@@ -78,15 +83,26 @@
                 item = Store.loadInbox().filter(function (x) { return x.id === id; })[0];
               }
             }
+            // 简报卡片：「阅读完整简报」按钮 → 跳转到独立「周末简报」页（用按钮携带的 briefId）
+            var ob = e.target.closest("[data-brief-open]");
+            if (ob && ob.dataset.briefOpen) {
+              App.route("#/brief/" + ob.dataset.briefOpen);
+              return;
+            }
             var op = e.target.closest("[data-art-url]");
             if (op && op.dataset.artUrl) {
-              // 收件箱「打开这篇原文↗」：必须是新开标签打开原文网页，禁止覆盖当前系统页面
+              // 收件箱「打开这篇原文↗」（更新公告/系统消息里的 ◇ 行）：新标签打开原文，禁止覆盖当前系统页面
               window.open(op.dataset.artUrl, "_blank", "noopener");
               return;
             }
-            // 点击整张卡片（含标题与预览正文）都能展开详情
+            // 点击整张卡片（含标题与预览正文）：
             if (card) {
               if (item) {
+                // 简报卡片点开即进独立完整页（收件箱弹窗太小，不适合看长文）
+                if (item.kind === "brief" && item.briefId) {
+                  App.route("#/brief/" + item.briefId);
+                  return;
+                }
                 App.openModal(
                   '<div class="modal-head"><h3>' + H.esc(KIND[item.kind] || item.kind) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +
                   '<div class="modal-body"><p class="muted">' + H.esc(item.title) + " · " + H.fmtDateTime(new Date(item.at)) + "</p>" +

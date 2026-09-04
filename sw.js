@@ -1,11 +1,11 @@
-﻿/* 英语情报 · Service Worker v22 —— 导航与 update.json 均网络优先，避免更新公告被旧缓存延迟 */
+﻿/* 英语情报 · Service Worker v23 —— 导航与 update.json 均网络优先，避免更新公告被旧缓存延迟 */
 self.addEventListener("install", function () {
   self.skipWaiting();
 });
 self.addEventListener("activate", function (e) {
   e.waitUntil(Promise.all([
     self.clients.claim(),
-    caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf("xuebao-shell-v") === 0 && k !== "xuebao-shell-v30"; }).map(function (k) { return caches.delete(k); })); })
+    caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf("xuebao-shell-v") === 0 && k !== "xuebao-shell-v31"; }).map(function (k) { return caches.delete(k); })); })
   ]));
 });
 self.addEventListener("fetch", function (e) {
@@ -19,7 +19,7 @@ self.addEventListener("fetch", function (e) {
       fetch(req, { cache: "no-store" }).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v30").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v31").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () {
@@ -34,7 +34,7 @@ self.addEventListener("fetch", function (e) {
       fetch(req).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v30").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v31").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () {
@@ -49,7 +49,7 @@ self.addEventListener("fetch", function (e) {
       var net = fetch(req).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v30").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v31").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () { return hit; });

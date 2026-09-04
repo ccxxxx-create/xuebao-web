@@ -51,8 +51,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.10.4",
-    versionCode: 49,
+    appVersion: "1.11.0",
+    versionCode: 50,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -183,10 +183,12 @@
     saveInbox: function (arr) {
       try { localStorage.setItem(this.INBOX_KEY, JSON.stringify(arr)); } catch (e) { /* ignore */ }
     },
-    inboxAdd: function (kind, title, body) {
+    inboxAdd: function (kind, title, body, extra) {
       // 去重：同 kind 且同正文（作者发重复公告/版本提示）不再新增一条，避免收两条
       var arr = this.loadInbox().filter(function (x) { return !(x.kind === kind && x.body && x.body === body); });
-      arr.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kind: kind, title: title || "", body: body || "", at: Date.now(), read: 0 });
+      var item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kind: kind, title: title || "", body: body || "", at: Date.now(), read: 0 };
+      if (extra) { for (var k in extra) if (extra.hasOwnProperty(k)) item[k] = extra[k]; }
+      arr.unshift(item);
       if (arr.length > 60) arr = arr.slice(0, 60);
       this.saveInbox(arr);
       return arr;
@@ -221,6 +223,29 @@
     },
     inboxClear: function () {
       try { localStorage.removeItem(this.INBOX_KEY); } catch (e) { /* ignore */ }
+    },
+
+    /* 周末简报全文（本机：简报为结构化小文章，可单独开页阅读，不塞进收件箱弹窗） */
+    BRIEFS_KEY: "xuebao-briefs-v1",
+    loadBriefs: function () {
+      try {
+        var raw = localStorage.getItem(this.BRIEFS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
+    },
+    saveBriefs: function (arr) {
+      try { localStorage.setItem(this.BRIEFS_KEY, JSON.stringify(arr)); } catch (e) { /* ignore */ }
+    },
+    addBrief: function (rec) {
+      var arr = this.loadBriefs();
+      arr.unshift(rec);
+      if (arr.length > 40) arr = arr.slice(0, 40);
+      this.saveBriefs(arr);
+      return rec;
+    },
+    getBrief: function (id) {
+      if (!id) return null;
+      return this.loadBriefs().filter(function (b) { return b.id === id; })[0] || null;
     },
 
     /* 信源开关（本设备级） */

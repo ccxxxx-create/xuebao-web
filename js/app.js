@@ -138,13 +138,21 @@
       }
     },
     route: function (hash) {
-      var parts = String(hash || "").replace(/^#\/?/, "").split("?");
-      var key = parts[0] || "dashboard";
+      var raw = String(hash || "").replace(/^#\/?/, "");
+      var parts = raw.split("?");
+      var path = parts[0] || "dashboard";
+      var pathParts = path.split("/");
+      var key = pathParts[0] || "dashboard";
+      var arg = pathParts[1] ? decodeURIComponent(pathParts[1]) : "";
       var q = parts[1] ? decodeURIComponent(parts[1].replace(/^q=/, "")) : "";
       if (!mod(key)) key = "dashboard";
       current = key;
       if (q && window.WB.modules.library && window.WB.modules.library.state) {
         window.WB.modules.library.state.q = q;
+      }
+      // 独立「周末简报」阅读页：把 #/brief/<id> 中的 id 传给模块渲染
+      if (key === "brief" && window.WB.modules.brief) {
+        window.WB.modules.brief.curId = arg;
       }
       if (location.hash !== hash) location.hash = hash;
       App.refresh();
