@@ -3,8 +3,6 @@
 (function () {
   "use strict";
 
-  var EX_KEY = "xuebao-term-extracted";   // 已批量提炼过的文章 url（防重复烧模型）
-
   /* ── 预置军事术语种子词库（概念化：规范译名 + 多英文变体）──
      依据美军官方术语标准 JP 1-02《Department of Defense Dictionary of Military
      and Associated Terms》及军事新闻通行译法整理。冷启动种子：首次打开术语库且库为空
@@ -139,46 +137,6 @@
     return out;
   }
 
-  function mapSeries(items, fn) {
-    var i = 0;
-    function next() {
-      if (i >= items.length) return Promise.resolve();
-      var cur = items[i++];
-      return Promise.resolve().then(function () { return fn(cur); }).then(next);
-    }
-    return next();
-  }
-
-  function batchExtract() {
-    if (!LLM.configured()) { App.toast("请先在「设置 → 模型」配置模型", "err"); return Promise.resolve(false); }
-    return App.confirm("对已入库的旧文章批量提炼术语？\n（只提取还没提炼过的、有正文的文章，每篇 8~15 个，结果进「待确认」，不会自动覆盖现有术语库）").then(function (ok) {
-      if (!ok) return false;
-      App.closeModal();
-      return Store.getAllArticles().then(function (all) {
-        var done = []; try { done = JSON.parse(localStorage.getItem(EX_KEY)) || []; } catch (e) {}
-        var todo = all.filter(function (a) { return a.body && a.body.length > 200 && done.indexOf(a.url) < 0; });
-        var LIMIT = 6;
-        var batch = todo.slice(0, LIMIT);
-        if (!batch.length) { App.toast("没有可提炼的新文章（都已提炼过）"); return false; }
-        App.toast("正在提炼 " + batch.length + " 篇术语…");
-        return mapSeries(batch, function (a) {
-          return LLM.extractTerms(a.title || "", a.body || "").then(function (text) {
-            var list = parseExtract(text);
-            (list || []).forEach(function (x) { x.source = (a.title || "").slice(0, 40); });
-            return Store.candAdd(list);
-          }).catch(function () { return 0; }).then(function () {
-            done.push(a.url);
-            try { localStorage.setItem(EX_KEY, JSON.stringify(done)); } catch (e) {}
-          });
-        }).then(function () {
-          App.toast("提炼完成，新增候选见「待确认」区（可采纳并入词库）", "ok");
-          App.refresh();
-          return true;
-        });
-      });
-    });
-  }
-
   var M = {
     key: "terms",
     label: "术语",
@@ -207,7 +165,6 @@
         '<div class="view-head"><div><h1 class="view-title">术语库</h1>' +
         '<p class="view-sub">启用 ' + on + " / 共 " + terms.length + " 条概念 · 每条含规范译名与多个英文变体，译到任一变体都按规范译名；命中词条注入翻译/学报编译提示词</p></div>" +
         '<div class="head-actions">' +
-        '<button class="btn" id="tBatch" title="对存量已译文章批量提取术语候选">批量提炼旧文</button>' +
         '<button class="btn ghost" id="tMerge" title="自动把同译法多条并成一条概念">归并去重</button>' +
         '<button class="btn primary" id="tAdd">+ 新增概念</button></div></div>' +
         candHtml +
@@ -232,7 +189,6 @@
       el.querySelector("#tMerge").addEventListener("click", function () {
         Store.mergeTermsByZh().then(function (n) { App.toast(n > 0 ? "已归并 " + n + " 条重复译法" : "无重复需要归并", "ok"); App.refresh(); });
       });
-      el.querySelector("#tBatch").addEventListener("click", batchExtract);
       el.querySelectorAll("[data-adopt]").forEach(function (b) {
         b.addEventListener("click", function () {
           Store.adoptCand(b.dataset.adopt).then(function (ok) {
