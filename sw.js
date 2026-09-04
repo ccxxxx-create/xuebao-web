@@ -5,7 +5,7 @@ self.addEventListener("install", function () {
 self.addEventListener("activate", function (e) {
   e.waitUntil(Promise.all([
     self.clients.claim(),
-    caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf("xuebao-shell-v") === 0 && k !== "xuebao-shell-v27"; }).map(function (k) { return caches.delete(k); })); })
+    caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf("xuebao-shell-v") === 0 && k !== "xuebao-shell-v28"; }).map(function (k) { return caches.delete(k); })); })
   ]));
 });
 self.addEventListener("fetch", function (e) {
@@ -19,7 +19,7 @@ self.addEventListener("fetch", function (e) {
       fetch(req, { cache: "no-store" }).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v27").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v28").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () {
@@ -34,7 +34,7 @@ self.addEventListener("fetch", function (e) {
       fetch(req).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v27").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v28").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () {
@@ -49,7 +49,7 @@ self.addEventListener("fetch", function (e) {
       var net = fetch(req).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
-          caches.open("xuebao-shell-v27").then(function (c) { c.put(req, copy); });
+          caches.open("xuebao-shell-v28").then(function (c) { c.put(req, copy); });
         }
         return r;
       }).catch(function () { return hit; });

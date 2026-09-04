@@ -76,7 +76,7 @@
             }
             var op = e.target.closest("[data-art-url]");
             if (op && op.dataset.artUrl) {
-              if (window.UI && UI.openArticle) { UI.openArticle(op.dataset.artUrl, "inbox"); return; }
+              // 收件箱「打开这篇原文↗」：必须是新开标签打开原文网页，禁止覆盖当前系统页面
               window.open(op.dataset.artUrl, "_blank", "noopener");
               return;
             }
