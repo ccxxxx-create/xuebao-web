@@ -86,7 +86,9 @@
       var active = ts.filter(function (t) { return t.state === "queued" || t.state === "running"; });
       var fab = document.getElementById("taskFab");
       var badge = document.getElementById("taskBadge");
-      if (fab) fab.hidden = ts.length === 0;
+      // 宠物启用时（桌面/平板有侧栏窝）隐藏右下角任务球，由宠物窝承担入口；手机无侧栏仍保留任务球
+      var petOn = !!(Store.settings.pet || "");
+      if (fab) fab.hidden = (petOn && !isMobile()) ? true : (ts.length === 0);
       if (badge) badge.textContent = active.length;
       // 有全文翻译完成时给一次轻提示（避免闭门等待）
       ts.forEach(function (t) {
@@ -132,13 +134,105 @@
     }
   };
 
+  /* —— 阅读宠物「小翼」：后台任务驱动状态机（工作/等待/完成/出错/待机），点击展开任务面板 —— */
+  var PET = {
+    el: null,
+    state: "idle",          // idle / waiting / working / done / error
+    timer: 0,
+    _prevActive: 0,
+    /* 状态 → [图片尾部, 动效 class]。等待复用「疑惑」神态；完成用欢呼；出错用皱眉。 */
+    _MAP: { idle: ["idle", "breathe"], waiting: ["puzzled", "breathe"], working: ["working", "working"], done: ["cheer", "cheer"], error: ["error", "error"] },
+    init: function () {
+      var nest = document.getElementById("petNest");
+      if (!nest) return;
+      this.el = nest;
+      nest.addEventListener("click", function () {
+        var panel = document.getElementById("taskPanel");
+        if (panel) { TASK_UI.panelOpen = true; panel.hidden = false; TASK_UI.renderPanel(); }
+      });
+      if (window.MIRROR && MIRROR.onTasks) MIRROR.onTasks(function () { PET.refresh(); });
+      this.apply();
+    },
+    set: function (st) {
+      if (this.timer) clearTimeout(this.timer);
+      this.state = st;
+      if (st === "done") this.timer = setTimeout(function () { PET.set("idle"); }, 1500);
+      this.apply();
+    },
+    refresh: function () {
+      if (!window.MIRROR) return;
+      var ts = MIRROR.tasks();
+      var running = 0, queued = 0, failed = 0;
+      ts.forEach(function (t) {
+        if (t.state === "running") running++;
+        else if (t.state === "queued") queued++;
+        else if (t.state === "failed" && !t.cancel) failed++;
+      });
+      var activeCount = running + queued;
+      var justDone = this._prevActive > 0 && activeCount === 0;   // 上轮在忙、这轮全清空 → 欢呼
+      this._prevActive = activeCount;
+      var st;
+      if (failed) st = "error";
+      else if (running) st = "working";
+      else if (queued) st = "waiting";
+      else if (justDone) st = "done";
+      else st = "idle";
+      this.set(st);
+      this.updateBadge(ts, activeCount, failed);
+    },
+    updateBadge: function (ts, activeCount, failed) {
+      var b = this.el ? this.el.querySelector(".pet-badge") : null;
+      if (!b) return;
+      if (failed) { b.hidden = false; b.textContent = "!"; b.className = "pet-badge err"; }
+      else if (activeCount) { b.hidden = false; b.textContent = activeCount > 9 ? "9+" : activeCount; b.className = "pet-badge"; }
+      else { b.hidden = true; }
+    },
+    apply: function () {
+      if (!this.el) return;
+      var sp = Store.settings.pet || "";
+      if (!sp) { this.el.hidden = true; return; }
+      this.el.hidden = false;
+      var m = this._MAP[this.state] || this._MAP.idle;
+      var img = "assets/pet/xiaoyi/pet_xiaoyi_front_" + m[0] + "@64@2x.png";
+      this.el.innerHTML =
+        '<img class="pet-img ' + m[1] + '" src="' + img + '" alt="小翼">' +
+        '<span class="pet-name">小翼</span>' +
+        '<span class="pet-badge" hidden></span>';
+      if (window.MIRROR) {
+        var run = 0, que = 0, fail = 0;
+        MIRROR.tasks().forEach(function (t) {
+          if (t.state === "running") run++;
+          else if (t.state === "queued") que++;
+          else if (t.state === "failed" && !t.cancel) fail++;
+        });
+        this.updateBadge(MIRROR.tasks(), run + que, fail);
+      }
+    }
+  };
+
+  /* 主题 sprite 图标：ORDER 键 → symbol 名（dashboard→overview；prefs→interests 等） */
+  var ICON_KEY = { dashboard: "overview", library: "library", favorites: "favorites", rankings: "ranking", journal: "journal", sources: "sources", terms: "terms", prefs: "interests", settings: "settings" };
+  /* 当前主题 sprite 前缀：深空夜航 → ic，纸面/羊皮 → pc；其余主题（蓝天/极简灰）沿用线性图标 */
+  function spritePrefix() {
+    var t = (Store.settings.theme || "").trim();
+    if (t === "night") return "ic";
+    if (t === "paper") return "pc";
+    return "";
+  }
+
   function renderNav() {
     var nav = document.getElementById("nav");
+    var prefix = spritePrefix();
     nav.innerHTML = ORDER.map(function (k) {
       var m = mod(k);
+      var icon;
+      if (prefix && ICON_KEY[k]) {
+        icon = '<span class="ico theme"><svg class="ico-use"><use href="#' + prefix + "-" + ICON_KEY[k] + '"/></svg></span>';
+      } else {
+        icon = '<span class="ico" style="background:' + COLORS[k] + '">' + ICO[k] + "</span>";
+      }
       return '<button data-view="' + k + '" class="' + (current === k ? "active" : "") + '" title="' + m.label + '">' +
-        '<span class="ico" style="background:' + COLORS[k] + '">' + ICO[k] + "</span>" +
-        "<span>" + m.label + "</span></button>";
+        icon + "<span>" + m.label + "</span></button>";
     }).join("");
     nav.querySelectorAll("button").forEach(function (b) {
       b.addEventListener("click", function () { App.route("#/" + b.dataset.view); });
@@ -308,7 +402,10 @@
       if (t) el.setAttribute("data-theme", t); else el.removeAttribute("data-theme");
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", THEME_META[t] || "#0b3a6e");
+      renderNav();   // 侧栏图标随主题即时切换（sprite use / 线性两套）
     },
+    /* 宠物切换（设置页）：重绘侧栏窝位 */
+    updatePet: function () { PET.apply(); },
     maybeAutoClean: function (silent) {
       // 录入即判断：打开页面/拉取后自动去重；过期清理遵循设置里的自动清理开关
       var jobs = [];
@@ -604,6 +701,8 @@
       } else if (mq && mq.addListener) { mq.addListener(function () { App.refresh(); }); }
       // 后台翻译任务栏（浮动小浮标 + 可取消面板）
       if (window.MIRROR && MIRROR.onTasks) TASK_UI.init();
+      // 阅读宠物「小翼」：随后台任务驱动状态机（侧栏窝；点击展开任务面板）
+      if (window.MIRROR && MIRROR.onTasks) PET.init();
       var initial = location.hash;
       if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0])) initial = "#/dashboard";
       App.route(initial);

@@ -109,6 +109,24 @@
       }).join("") + "</div></div>";
   }
 
+  /* 阅读宠物（试点）：空白=关闭；xiaoyi=小翼（卡通战机） */
+  var PETS = [["", "关闭"], ["xiaoyi", "小翼 · 卡通战机"]];
+  function petSectionHtml(s) {
+    return '<div class="card"><h3>阅读宠物</h3>' +
+      '<p class="muted" style="margin:2px 0 10px">宠物会作为后台翻译/摘要/简报任务的「看得见的陪伴」，随任务状态切换表情、统计进行中数量；点击窝位可展开任务面板。</p>' +
+      '<div class="pet-set" id="petSet">' +
+      PETS.map(function (p) {
+        var on = (s.pet || "") === p[0];
+        var prev = p[0]
+          ? '<img class="pet-prev" src="assets/pet/xiaoyi/pet_xiaoyi_front_idle@64@1x.png" alt="">'
+          : '<span class="pet-prev none">—</span>';
+        return '<button type="button" class="pet-pick' + (on ? " on" : "") + '" data-pet="' + p[0] + '" title="' + H.esc(p[1]) + '">' +
+          prev + '<span class="pet-pn">' + H.esc(p[1]) + "</span>" +
+          (on ? '<span class="th-check">✓ 使用中</span>' : "") +
+          "</button>";
+      }).join("") + "</div></div>";
+  }
+
   function cleanSectionHtml(s) {
     var opts = [[7, "1 周"], [30, "1 个月"], [90, "3 个月"], [180, "6 个月"], [365, "1 年"]];
     var sel = opts.map(function (o) {
@@ -253,6 +271,7 @@
         rankSectionHtml(s) +
         displaySectionHtml(s) +
         themeSectionHtml(s) +
+        petSectionHtml(s) +
         mirrorSectionHtml(s) +
         dataSectionHtml() +
         '<div class="card"><h3>关于</h3>' +
@@ -260,7 +279,7 @@
         "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作的外军防务资讯台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
         "数据与设置只保存在本机浏览器中，导出备份即可迁移到其它设备。</div></div>";
 
-      collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "显示与字号", "主题外观", "数据与本机占用", "关于"]);
+      collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "显示与字号", "主题外观", "阅读宠物", "数据与本机占用", "关于"]);
       bindModel(el, s);
       bindOther(el, s, usage, arts);
 
@@ -390,6 +409,28 @@
             App.applyTheme();
             refreshTh();
             App.toast("已切换主题", "ok");
+          });
+        }
+        // 阅读宠物切换：即时生效并回写设置
+        var petSet = root.querySelector("#petSet");
+        if (petSet) {
+          function refreshPet() {
+            petSet.querySelectorAll(".pet-pick").forEach(function (x) {
+              var on = (x.dataset.pet || "") === (s.pet || "");
+              x.classList.toggle("on", on);
+              var c = x.querySelector(".th-check");
+              if (on && !c) { var sp = document.createElement("span"); sp.className = "th-check"; sp.textContent = "✓ 使用中"; x.appendChild(sp); }
+              if (!on && c) c.remove();
+            });
+          }
+          petSet.addEventListener("click", function (e) {
+            var b = e.target.closest(".pet-pick");
+            if (!b) return;
+            s.pet = b.dataset.pet || "";
+            Store.saveSettings();
+            refreshPet();
+            App.toast(s.pet ? "已启用宠物：小翼" : "已关闭阅读宠物", "ok");
+            if (App.updatePet) App.updatePet();
           });
         }
         // 排序与喜好学习：低/中/高 档位点选即保存（回测与自动开关沿用）

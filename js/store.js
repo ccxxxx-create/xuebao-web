@@ -36,6 +36,7 @@
     fontZoom: "M",             // 旧版字号档位（迁移到 fontSizePx）
     fontSizePx: null,          // 字号基准 px（默认 16，迁移函数兜底）
     theme: "",                 // 界面主题：""=蓝天 / night=深空夜航 / paper=纸面学报 / gray=极简灰
+    pet: "xiaoyi",             // 阅读宠物（试点）：""=关闭 / xiaoyi=小翼；由后台任务驱动状态机
     autoTune: false,           // 自动微调排序权重（可关；每日最多一次；尊重手动）
     lastAutoTuneAt: 0,         // 上次自动微调时间戳
     lastManualRankAt: 0,       // 上次手动调权时间戳（供自动微调短时回避）
@@ -51,8 +52,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.16.0",
-    versionCode: 57,
+    appVersion: "1.17.0",
+    versionCode: 58,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -463,9 +464,12 @@
     /* 存储占用（浏览器配额） */
     usage: function () {
       if (!navigator.storage || !navigator.storage.estimate) return Promise.resolve(null);
-      return navigator.storage.estimate().then(function (e) {
+      var p = navigator.storage.estimate().then(function (e) {
         return { usage: e.usage || 0, quota: e.quota || 0 };
       }).catch(function () { return null; });
+      // 兜底：受限/内置浏览器里 estimate() 可能永不 resolve，超时返回 null，避免卡死设置页等 UI
+      var timeout = new Promise(function (res) { setTimeout(function () { res(null); }, 2000); });
+      return Promise.race([p, timeout]);
     }
   };
 

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="64" viewBox="0 0 576 64">
+  <!-- 深空夜航 · 宇航卡通风侧栏图标组（9 枚 · 64×64 格线 · 主体 currentColor 可随主题换色 · .ac 为主题点缀色） -->
+  <defs>
+    <style>
+      .ac { fill: #33e0e0; }
+      .dk { fill: #000; opacity: .18; }
+      .wh { fill: #fff; opacity: .9; }
+    </style>
+    <symbol id="ic-overview" viewBox="0 0 64 64">
+      <circle cx="32" cy="34" r="23" fill="currentColor"/>
+      <circle cx="32" cy="34" r="14" class="dk"/>
+      <rect x="30" y="14" width="4" height="10" rx="2" class="wh"/>
+      <rect x="30" y="44" width="4" height="10" rx="2" class="wh"/>
+      <rect x="12" y="32" width="10" height="4" rx="2" class="wh"/>
+      <rect x="42" y="32" width="10" height="4" rx="2" class="wh"/>
+      <circle cx="32" cy="34" r="4" class="wh"/>
+      <path d="M52 4 L54.2 8.8 L59 11 L54.2 13.2 L52 18 L49.8 13.2 L45 11 L49.8 8.8 Z" class="ac"/>
+    </symbol>
+    <symbol id="ic-library" viewBox="0 0 64 64">
+      <circle cx="29" cy="34" r="15" fill="currentColor"/>
+      <circle cx="23" cy="30" r="3.5" class="dk"/>
+      <circle cx="35" cy="28" r="2.5" class="dk"/>
+      <circle cx="32" cy="40" r="3" class="dk"/>
+      <ellipse cx="31" cy="38" rx="27" ry="8.5" fill="none" stroke="#33e0e0" stroke-width="4" transform="rotate(-16 31 38)"/>
+      <path d="M10 10 L12.2 14.8 L17 17 L12.2 19.2 L10 24 L7.8 19.2 L3 17 L7.8 14.8 Z" class="wh" opacity=".7"/>
+      <path d="M54 50 L55.8 53.8 L59.6 55.6 L55.8 57.4 L54 61.2 L52.2 57.4 L48.4 55.6 L52.2 53.8 Z" class="ac"/>
+    </symbol>
+    <symbol id="ic-favorites" viewBox="0 0 64 64">
+      <path d="M20 14 L44 14 L40 26 L24 26 Z" class="ac"/>
+      <rect x="16" y="24" width="32" height="30" rx="9" fill="currentColor"/>
+      <rect x="14" y="20" width="36" height="8" rx="4" fill="currentColor"/>
+      <rect x="14" y="20" width="36" height="8" rx="4" class="dk"/>
+      <path d="M32 32 L34.2 36.8 L39 39 L34.2 41.2 L32 46 L29.8 41.2 L25 39 L29.8 36.8 Z" class="wh"/>
+      <path d="M47 8 L48.8 11.8 L52.6 13.6 L48.8 15.4 L47 19.2 L45.2 15.4 L41.4 13.6 L45.2 11.8 Z" class="ac"/>
+    </symbol>
+    <symbol id="ic-ranking" viewBox="0 0 64 64">
+      <path d="M22 6 L42 6 L37 24 L27 24 Z" class="ac"/>
+      <circle cx="32" cy="38" r="16" fill="currentColor"/>
+      <circle cx="32" cy="38" r="16" fill="none" stroke="#000" stroke-opacity=".15" stroke-width="3"/>
+      <path d="M32 29 L34.5 34 L40 35 L36 39 L37 44.5 L32 42 L27 44.5 L28 39 L24 35 L29.5 34 Z" class="wh"/>
+    </symbol>
+    <symbol id="ic-journal" viewBox="0 0 64 64">
+      <path d="M32 5 C41 13 45 24 45 35 L45 46 L19 46 L19 35 C19 24 23 13 32 5 Z" fill="currentColor"/>
+      <circle cx="32" cy="25" r="6.5" class="dk"/>
+      <circle cx="32" cy="25" r="3.5" class="wh"/>
+      <path d="M19 34 L8 47 L19 45 Z" class="ac"/>
+      <path d="M45 34 L56 47 L45 45 Z" class="ac"/>
+      <rect x="19" y="44" width="26" height="4" class="dk"/>
+      <path d="M26 50 L38 50 L32 60 Z" class="ac"/>
+    </symbol>
+    <symbol id="ic-sources" viewBox="0 0 64 64">
+      <circle cx="32" cy="35" r="17" fill="currentColor"/>
+      <circle cx="32" cy="35" r="11" class="dk"/>
+      <path d="M32 35 L32 19 A16 16 0 0 1 45 26 Z" class="wh" opacity=".4"/>
+      <rect x="31" y="18" width="2" height="34" class="wh" opacity=".8"/>
+      <rect x="15" y="34" width="34" height="2" class="wh" opacity=".8"/>
+      <circle cx="42" cy="28" r="3" class="ac"/>
+      <rect x="27" y="52" width="10" height="5" rx="2.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-terms" viewBox="0 0 64 64">
+      <rect x="15" y="11" width="34" height="43" rx="6" fill="currentColor"/>
+      <rect x="15" y="11" width="9" height="43" rx="4" class="dk"/>
+      <path d="M37 11 L46 11 L46 25 L41.5 20.5 L37 25 Z" class="ac"/>
+      <g class="wh" opacity=".92">
+        <rect x="27.5" y="24" width="3" height="13" rx="1.5"/>
+        <rect x="27.5" y="24" width="3" height="13" rx="1.5" transform="rotate(60 29 30.5)"/>
+        <rect x="27.5" y="24" width="3" height="13" rx="1.5" transform="rotate(120 29 30.5)"/>
+      </g>
+      <rect x="22" y="44" width="20" height="3.5" rx="1.75" class="wh" opacity=".55"/>
+    </symbol>
+    <symbol id="ic-interests" viewBox="0 0 64 64">
+      <circle cx="32" cy="33" r="21" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="6 6" opacity=".55"/>
+      <circle cx="32" cy="33" r="12.5" fill="currentColor"/>
+      <circle cx="27.5" cy="30" r="3" class="dk"/>
+      <circle cx="36" cy="37" r="2.2" class="dk"/>
+      <circle cx="32" cy="33" r="3.5" class="ac"/>
+      <path d="M52 8 L54.2 12.8 L59 15 L54.2 17.2 L52 22 L49.8 17.2 L45 15 L49.8 12.8 Z" class="ac"/>
+      <path d="M11 46 L12.8 49.8 L16.6 51.6 L12.8 53.4 L11 57.2 L9.2 53.4 L5.4 51.6 L9.2 49.8 Z" class="wh" opacity=".7"/>
+    </symbol>
+    <symbol id="ic-settings" viewBox="0 0 64 64">
+      <g fill="currentColor">
+        <rect x="29" y="12" width="6" height="9" rx="2.5"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(45 32 33)"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(90 32 33)"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(135 32 33)"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(180 32 33)"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(225 32 33)"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(270 32 33)"/>
+        <rect x="29" y="12" width="6" height="9" rx="2.5" transform="rotate(315 32 33)"/>
+        <circle cx="32" cy="33" r="14"/>
+      </g>
+      <circle cx="32" cy="33" r="5.5" class="dk"/>
+      <circle cx="47" cy="16" r="5" class="ac"/>
+      <ellipse cx="47" cy="16" rx="9" ry="2.6" fill="none" stroke="#33e0e0" stroke-width="2" transform="rotate(-18 47 16)"/>
+    </symbol>
+  </defs>
+
+  <use href="#ic-overview"  x="0"   width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-library"   x="64"  width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-favorites" x="128" width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-ranking"   x="192" width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-journal"   x="256" width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-sources"   x="320" width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-terms"     x="384" width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-interests" x="448" width="64" height="64" color="#dfeaf2"/>
+  <use href="#ic-settings"  x="512" width="64" height="64" color="#dfeaf2"/>
+</svg>
