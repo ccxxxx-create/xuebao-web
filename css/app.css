@@ -2,6 +2,8 @@
 /* 焦点框：仅键盘导航(:focus-visible)显示，鼠标点击不出现蓝色焦点框，避免点击后残留 */
 :focus{outline:none}
 :focus-visible{outline:2px solid rgba(47,127,209,.6);outline-offset:1px}
+/* 触屏点击高亮：禁用平台默认的蓝色/半透明点击背景块（平板点卡片时残留的蓝色背景） */
+*{-webkit-tap-highlight-color:transparent;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 :root{
   --bg:#f2f4f7; --card:#ffffff; --line:#e2e6ec; --text:#1b2532; --text2:#5c6775; --text3:#9aa5b1;
   --primary:#1f5c99; --accent:#2f7fd1; --accent-weak:#e8f1fa;
