@@ -159,6 +159,8 @@
 
   /* 合并镜像条目进本设备资料库（按 url + 规范化标题双重去重，防跨源同题重复）。
      新增：本机无此文章时入库；回填：本机已有但正文为空、镜像有正文时补全（修复“有链接可见原文但系统内暂无正文”）。 */
+  /* 正文里的"页面皮肤"垃圾特征（DVIDS 导航/嵌入代码说明/照片说明、gov.uk cookie 等）：命中即判定为未筛选正文，需用镜像干净正文刷新 */
+  var BODY_JUNK_RE = /(add the following css|hometown news|content images video|combatant commands|view image page|webcasts|\bread more\b|\bsee less\b|advanced-embed-options)/i;
   function merge(json) {
     return Store.getAllArticles().then(function (existing) {
       var byUrl = {};
@@ -174,8 +176,8 @@
         if (!it || !it.url) return;
         var loc = byUrl[it.url];
         if (loc) {
-          // 已存在：本机缺正文而镜像有 → 回填正文/摘要
-          if (!loc.body && it.body) {
+          // 已存在：本机缺正文 或 本机正文含页面皮肤垃圾（导航/嵌入说明/read more）而镜像有干净正文 → 回填/刷新
+          if (it.body && (!loc.body || BODY_JUNK_RE.test(loc.body))) {
             loc.body = it.body;
             if (!loc.summary && it.summary) loc.summary = it.summary;
             backfill.push(loc);
