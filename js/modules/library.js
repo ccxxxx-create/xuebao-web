@@ -1,7 +1,7 @@
 /* modules/library.js —— 资料库 v3：点击标题进阅读页；摘要独立；标题自动翻译 */
 (function () {
   "use strict";
-  var state = { q: "", channel: "", trans: "", from: "", to: "", sort: "time", page: 1, doneAuto: false };
+  var state = { q: "", channel: "", trans: "", from: "", to: "", sort: "time", page: 1, doneAuto: false, seenMirrorAt: 0 };
   var running = {};
 
   function artBadges(a) {
@@ -22,6 +22,13 @@
       var favN = all.filter(function (a) { return a.fav; }).length;
       var selN = all.filter(function (a) { return a.selected; }).length;
       if (!arts.length) state.page = 1;
+      // 数据更新感知：上次拉取镜像后新增了文章（updatedAt 变新），自动回到第 1 页（最新一排），
+      // 避免停留在旧的已译页，误以为“本页标题均已翻译”而新文章在其它页。仅重置分页，不动筛选。
+      var mirrorAt = Store.settings.lastMirrorUpdatedAt ? new Date(Store.settings.lastMirrorUpdatedAt).getTime() : 0;
+      if (mirrorAt > state.seenMirrorAt) {
+        state.seenMirrorAt = mirrorAt;
+        if (state.page > 1) state.page = 1;
+      }
       // 打开资料库时自动翻译待译标题（已配置模型且开启自动翻译）
       if (!state.doneAuto) {
         state.doneAuto = true;

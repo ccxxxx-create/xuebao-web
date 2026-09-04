@@ -51,8 +51,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.8.0",
-    versionCode: 43,
+    appVersion: "1.9.0",
+    versionCode: 44,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -75,8 +75,9 @@
     if (s.fontSizePx == null) {
       s.fontSizePx = { M: 16, L: 18, XL: 21 }[s.fontZoom || "M"] || 16;
     }
-    // v1.4.0 迁移：所有自动化功能强制默认关闭（仅保留定时自动刷新），让用户按需在设置里手动开启
-    if (oldVer > 0 && oldVer < DEFAULTS.versionCode) {
+    // v1.4.0 迁移：从旧版升上来时，把自动化功能一次性强制改为默认关闭（仅保留定时自动刷新）。
+    // ★仅迁移一次：用 _autoMig 标记，之后任何版本升级都不再触碰用户手动开启的开关（修复“设置每次更新被重置”）。
+    if (oldVer > 0 && !s._autoMig) {
       s.autoTranslate = false;
       s.favAutoTr = false;
       s.favAutoFull = false;
@@ -88,6 +89,7 @@
       s.autoRefresh = true;                       // 用户明确要求保留定时刷新机制
       s.refreshTimes = DEFAULTS.refreshTimes;
       s.refreshSlots = s.refreshSlots || {};
+      s._autoMig = true;
     }
     // 版本号以“当前运行的代码”为准：避免老用户因本地旧版本号被反复提示更新
     s.appVersion = DEFAULTS.appVersion;
@@ -322,6 +324,11 @@
     putTerm: function (t) {
       return this.db().then(function (db) {
         return tx(db, "terms", "readwrite", function (s) { return s.put(t); });
+      });
+    },
+    bulkPutTerms: function (list) {
+      return this.db().then(function (db) {
+        return tx(db, "terms", "readwrite", function (s) { list.forEach(function (t) { s.put(t); }); });
       });
     },
     deleteTerm: function (key) {
