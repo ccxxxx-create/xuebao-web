@@ -51,8 +51,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.7.14",
-    versionCode: 42,
+    appVersion: "1.8.0",
+    versionCode: 43,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -327,6 +327,104 @@
     deleteTerm: function (key) {
       return this.db().then(function (db) {
         return tx(db, "terms", "readwrite", function (s) { return s.delete(key); });
+      });
+    },
+
+    /* —— 术语概念化：候选（待确认） + 同译法自动归并 —— */
+    CAND_KEY: "xuebao-termcands-v1",
+    loadCands: function () {
+      try { return JSON.parse(localStorage.getItem(this.CAND_KEY)) || []; } catch (e) { return []; }
+    },
+    saveCands: function (arr) {
+      try { localStorage.setItem(this.CAND_KEY, JSON.stringify(arr)); } catch (e) { /* ignore */ }
+    },
+    /* 批量加入候选（按英文去重；返回新增条数）。cand: {en,zh,scope?,source?} */
+    candAdd: function (list) {
+      var arr = this.loadCands();
+      var seen = arr.map(function (c) { return (c.en || "").toLowerCase(); });
+      var add = [];
+      (list || []).forEach(function (c) {
+        if (!c || !(c.en || "").trim() || !(c.zh || "").trim()) return;
+        var k = c.en.trim().toLowerCase();
+        if (seen.indexOf(k) >= 0) return;
+        seen.push(k);
+        add.push({ id: "cnd" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6), en: c.en.trim(), zh: c.zh.trim(), scope: c.scope || "all", source: c.source || "", at: Date.now(), state: "pending" });
+      });
+      if (!add.length) return 0;
+      arr = add.concat(arr);
+      if (arr.length > 300) arr = arr.slice(0, 300);
+      this.saveCands(arr);
+      return add.length;
+    },
+    candRemove: function (id) {
+      this.saveCands(this.loadCands().filter(function (c) { return c.id !== id; }));
+    },
+    /* 采纳候选 → 并入概念库（同译法直接并进变体；否则新建概念），返回是否成功 */
+    adoptCand: function (id) {
+      var cand = this.loadCands().find(function (c) { return c.id === id; });
+      if (!cand) return Promise.resolve(false);
+      var self = this;
+      return this.getAllTerms().then(function (terms) {
+        var en = cand.en.trim(), zh = cand.zh.trim(), scope = cand.scope || "all";
+        var exact = terms.find(function (t) { return t.term_en === en; });
+        if (exact) {
+          exact.enabled = 1;
+          if (!(exact.en_variants || []).length) exact.en_variants = [];
+          return self.putTerm(exact);
+        }
+        var same = terms.find(function (t) { return (t.term_zh || "").trim() === zh && (t.scope || "all") === scope; });
+        if (same) {
+          var vs = (same.en_variants || []).slice();
+          if (same.term_en !== en && vs.indexOf(en) < 0) vs.push(en);
+          same.en_variants = vs;
+          same.enabled = 1;
+          if (cand.source && !same.source) same.source = cand.source;
+          return self.putTerm(same);
+        }
+        return self.putTerm({ term_en: en, term_zh: zh, en_variants: [], scope: scope, source: cand.source || "", enabled: 1 });
+      }).then(function () { self.candRemove(id); return true; });
+    },
+    /* 概念变体列表（含主形式，去重） */
+    termVariants: function (t) {
+      var v = [t.term_en];
+      (t.en_variants || []).forEach(function (x) { if (x && v.indexOf(x) < 0) v.push(x); });
+      return v;
+    },
+    /* 自动归并：同译法+同作用范围的多条并成一条概念（变体集合），其余删除；返回归并掉的数量 */
+    mergeTermsByZh: function () {
+      var self = this;
+      return this.getAllTerms().then(function (terms) {
+        var groups = {};
+        terms.forEach(function (t) {
+          var zh = (t.term_zh || "").trim(), scope = (t.scope || "all");
+          var k = zh + "|" + scope;
+          if (!zh || k === "|all") return;
+          (groups[k] = groups[k] || []).push(t);
+        });
+        var keep = [], del = [], merged = 0;
+        Object.keys(groups).forEach(function (k) {
+          var arr = groups[k];
+          if (arr.length < 2) return;
+          arr.sort(function (a, b) {
+            var ae = a.enabled !== 0 ? 1 : 0, be = b.enabled !== 0 ? 1 : 0;
+            return (be - ae) || ((a.term_en || "").length - (b.term_en || "").length);
+          });
+          var m = arr[0];
+          var variants = (m.en_variants || []).slice();
+          arr.slice(1).forEach(function (x) {
+            if (x.term_en !== m.term_en && variants.indexOf(x.term_en) < 0) variants.push(x.term_en);
+            (x.en_variants || []).forEach(function (v) { if (v && v !== m.term_en && variants.indexOf(v) < 0) variants.push(v); });
+            del.push(x.term_en);
+          });
+          m.en_variants = variants;
+          if (!m.source) m.source = "auto-merge";
+          keep.push(m);
+          merged += arr.length - 1;
+        });
+        if (!del.length) return 0;
+        return del.reduce(function (p, k) { return p.then(function () { return self.deleteTerm(k); }); }, Promise.resolve())
+          .then(function () { return keep.reduce(function (p, t) { return p.then(function () { return self.putTerm(t); }); }, Promise.resolve()); })
+          .then(function () { return merged; });
       });
     },
 

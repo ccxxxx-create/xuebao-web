@@ -6,6 +6,29 @@
 
   function esc(s) { return H.esc(s); }
   function paras(s) { return String(s || "").split(/\n{2,}/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  /* 「提取本篇术语」：以文章为单位，让模型抽出整篇核心军语/科技术语，写入候选（待确认） */
+  function parseExtract(text) {
+    var out = [];
+    String(text || "").split(/\r?\n/).forEach(function (line) {
+      var m = line.match(/^\s*(.+?)\s*(?:→|->|:[:：]?|：)\s*(.+?)\s*$/);
+      if (!m) return;
+      var en = m[1].trim(), zh = m[2].trim();
+      if (en && zh && /[a-zA-Z]/.test(en) && !/^\d/.test(zh)) out.push({ en: en, zh: zh });
+    });
+    return out;
+  }
+  function collectTerms(a) {
+    if (!LLM.configured()) { App.toast("请先在「设置 → 模型」配置模型", "err"); return; }
+    if (!a || !a.body) { App.toast("本篇无正文，无法提取术语", "err"); return; }
+    App.toast("正在提取本篇术语…");
+    LLM.extractTerms(a.title || "", a.body || "").then(function (text) {
+      var list = parseExtract(text);
+      (list || []).forEach(function (x) { x.source = (a.title || "").slice(0, 40); });
+      var n = Store.candAdd(list);
+      if (n > 0) { App.toast("已提取 " + n + " 条术语候选，可到「术语库」待确认区采纳", "ok"); }
+      else { App.toast("未提取到新术语（与已收录或候选重复）"); }
+    }).catch(function (err) { App.toast((err && err.message) || "提取失败", "err"); });
+  }
   function cmpMeta(a) {
     return '<span class="badge A">A 官网直采</span>' +
       '<span>' + esc(a.channelName || a.channel) + "</span>" +
@@ -333,6 +356,7 @@
         '<button class="btn sm" id="rdLike" title="喜欢这篇文章（正向反馈）">' + (a.like ? "♥ 已喜欢" : "♡ 喜欢") + "</button>" +
         '<button class="btn sm" id="rdFav">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
         '<button class="btn sm primary" id="rdSum">摘要（中/英）</button>' +
+        '<button class="btn sm" id="rdTerms" title="提取本篇核心军语/科技术语进候选（以整篇文章为单位）">提取术语</button>' +
         '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + ">" + fullLabel + "</button>" +
         "</div></div>" +
 
@@ -416,6 +440,7 @@
           });
         });
         root.querySelector("#rdSum").addEventListener("click", function () { summaryModal(a.url); });
+        root.querySelector("#rdTerms").addEventListener("click", function () { collectTerms(a); });
         root.querySelector("#rdFull").addEventListener("click", function () { doFull(a); });
         // 旧译文提示条中的「重新翻译全文」按钮（文内元素在 bodyHtml 里渲染）
         var reTr = root.querySelector("#rgReTr");

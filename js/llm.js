@@ -100,11 +100,28 @@
     });
   }
 
-  /* 术语表（enabled=1）注入文案 */
+  /* 术语表（enabled=1）注入文案：概念化后按「每个英文变体 → 规范译名」展开，命中任一写法都按规范译名 */
   function glossaryLines(terms) {
     var on = (terms || []).filter(function (t) { return t.enabled !== 0; });
     if (!on.length) return "";
-    return on.map(function (t) { return t.term_en + " → " + t.term_zh; }).join("；");
+    var lines = [];
+    on.forEach(function (c) {
+      var vs = Store.termVariants(c);
+      vs.forEach(function (en) { lines.push(en + " → " + c.term_zh); });
+    });
+    return lines.join("；");
+  }
+
+  /* 整篇术语提取：从一篇文章里抽出核心军语/科技术语「英文 → 规范中文」，
+     供「以文章为单位」的候选采集（用户按需触发，不烧存量）。 */
+  function extractTerms(title, body) {
+    var sys = "你是军事/防务术语提取器。" +
+      "从输入的英文标题与正文中，提取最核心的 8~15 个军事/防务/科技领域术语。" +
+      "每个术语单独一行，格式严格为：英文术语 → 规范中文译名\n" +
+      "英文术语用最常见规范写法（全称或常用缩写均可），中文译名用军事新闻通行的规范译法。" +
+      "只输出术语行，不要编号、不要解释、不要其它任何内容。";
+    var text = "英文标题：" + (title || "") + "\n\n英文正文：\n" + String(body || "").slice(0, 9000);
+    return chatText([{ role: "system", content: sys }, { role: "user", content: text }], { maxTokens: 1200, timeoutMs: 120000 });
   }
 
   /* 标题翻译 */
@@ -176,6 +193,7 @@
     configured: configured,
     chatText: chatText,
     glossaryLines: glossaryLines,
+    extractTerms: extractTerms,
     translateTitle: translateTitle,
     translateTitleSummary: translateTitleSummary,
     translateChunk: translateChunk,
