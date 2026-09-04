@@ -1,4 +1,4 @@
-/* 英语学报工作台 · 样式（浅色、卡片、中文友好，响应式适配 电脑/平板/手机） */
+/* SENTRA 述势工作台 · 样式（浅色、卡片、中文友好，响应式适配 电脑/平板/手机） */
 /* 焦点框：仅键盘导航(:focus-visible)显示，鼠标点击不出现蓝色焦点框，避免点击后残留 */
 :focus{outline:none}
 :focus-visible{outline:2px solid rgba(47,127,209,.6);outline-offset:1px}

@@ -115,7 +115,7 @@
       b.addEventListener("click", function () { App.route("#/" + b.dataset.view); });
     });
     var foot = document.getElementById("sideFoot");
-    if (foot) foot.textContent = "英语情报 · v" + (Store.settings.appVersion || "1.0.0");
+    if (foot) foot.textContent = "SENTRA 述势 · v" + (Store.settings.appVersion || "1.0.0");
   }
 
   var App = {

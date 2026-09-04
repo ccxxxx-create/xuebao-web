@@ -87,7 +87,7 @@
       '<span class="badge" id="dsVal" style="background:#e4f1fd;color:#0b4f8f;font-size:.9rem;min-width:52px;text-align:center">' + px + " px</span>" +
       "</div>" +
       '<div class="field" style="margin:4px 0 0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dsDualTitle"' + (s.libDualTitle !== false ? " checked" : "") + "> 资料库标题：中英双语显示（关闭后仅显示英文标题）</label></div>" +
-      '<div class="fz-preview" id="fzSample">预览：英语情报 · 今日新增 29 篇 · “相关角标与摘要随字号实时缩放”</div>' +
+      '<div class="fz-preview" id="fzSample">预览：述势 · 今日新增 29 篇 · “相关角标与摘要随字号实时缩放”</div>' +
       "</div>";
   }
 
@@ -256,8 +256,8 @@
         mirrorSectionHtml(s) +
         dataSectionHtml() +
         '<div class="card"><h3>关于</h3>' +
-        '<div class="muted">英语情报 v' + H.esc(s.appVersion || "1.0.0") +
-        "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作者的外军防务资讯情报台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
+        '<div class="muted">SENTRA 述势 v' + H.esc(s.appVersion || "1.0.0") +
+        "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作的外军防务资讯台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
         "数据与设置只保存在本机浏览器中，导出备份即可迁移到其它设备。</div></div>";
 
       collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "显示与字号", "主题外观", "数据与本机占用", "关于"]);

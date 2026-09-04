@@ -251,7 +251,7 @@
     g.addColorStop(0, "#0b3a6e"); g.addColorStop(1, "#2f7fd1");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, 72);
     ctx.fillStyle = "#fff"; ctx.font = '700 24px -apple-system,"Microsoft YaHei",sans-serif';
-    ctx.fillText("英语情报 · English Insights", ML, 32);
+    ctx.fillText("SENTRA 述势 · English Insights", ML, 32);
     ctx.font = '16px -apple-system,"Microsoft YaHei",sans-serif';
     ctx.fillStyle = "rgba(255,255,255,.85)";
     var modeLabel = { en: "English 原文", zh: "中文全文", pair: "中英对照" }[tab] || "";

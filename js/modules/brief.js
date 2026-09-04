@@ -204,7 +204,7 @@
       });
       var overview = (r.ai && r.ai.overview) || "";
       var briefId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      var title = "英语情报 · 周末简报（覆盖本周 " + rangeTxt + "）";
+      var title = "SENTRA 述势 · 周末简报（覆盖本周 " + rangeTxt + "）";
       var sub = "覆盖本周 " + rangeTxt + " · 本周入库 " + r.weekN + " 篇，按「兴趣相关/新鲜度/来源权威/热度」精选 " + r.show.length + " 条（权重可在 设置 → 排序与喜好学习 调节）";
       var foot = "本期精选均为「本周一至今」入库文章，点各条「打开这篇原文」可在新标签打开原文网页阅读。设置 → 自动化与行为 可关闭本简报或 AI 点评。";
       // 保存结构化全文，供独立「周末简报」阅读页使用（长文不再塞进收件箱小弹窗）
