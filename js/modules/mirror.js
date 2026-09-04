@@ -138,19 +138,22 @@
   function pull() {
     var urls = mirrorUrls(Store.settings.mirrorRepo);
     var lastKnown = Store.settings.lastMirrorUpdatedAt ? new Date(Store.settings.lastMirrorUpdatedAt).getTime() : 0;
-    // 多通道并行竞速：同时请求所有镜像通道，任意一个成功即返回（不再逐通道串行等待）
-    var attempts = urls.map(function (u) {
+    // 多通道并行：同时请求所有镜像通道，从成功结果里选 updatedAt 最新的一份。
+    // 规避单一 CDN（如 jsdelivr）缓存滞后一整天导致的“永远拉不到最新”；返回结构始终携带 items 供 merge 入库。
+    return Promise.all(urls.map(function (u) {
       return fetchJson(u).then(function (json) {
-        var t = json && json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
-        if (lastKnown && t && t <= lastKnown) {
-          // 通道可达且镜像无新增（数据时间未比上次新）：不算网络失败，标记“无新内容”
-          return { __fresh__: false, json: json };
-        }
-        return json;
+        return { src: u, json: json };
+      }).catch(function () { return null; });
+    })).then(function (results) {
+      var best = null;
+      results.forEach(function (r) {
+        if (!r || !r.json || !Array.isArray(r.json.items)) return;
+        var t = r.json.updatedAt ? new Date(r.json.updatedAt).getTime() : 0;
+        if (!best || t > best._t) { best = r.json; best._t = t; best._src = r.src; }
       });
-    });
-    return Promise.any(attempts).catch(function (e) {
-      throw new Error("镜像拉取失败（各通道均不可用）：" + (e && e.message));
+      if (!best) throw new Error("镜像拉取失败（各通道均不可用）");
+      best.__fresh__ = !(lastKnown && best._t && best._t <= lastKnown);
+      return best; // { updatedAt, meta, items, __fresh__ } → merge 读 items 入库
     });
   }
 
