@@ -432,6 +432,18 @@
     start: function () {
       App.applyFont();
       App.applyTheme();
+      // 全局外链守护：任何指向外部绝对 http(s) 地址的 <a>（含动态渲染、正文内链、target 未写），
+      // 一律阻止默认跳转并新开标签打开，绝不覆盖系统页面（修复“点新闻下链接被覆盖”）。
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+        if (!a) return;
+        var href = a.getAttribute("href") || "";
+        if (!/^https?:\/\//i.test(href)) return;                 // 仅拦截绝对外链；#/ 路由等放行
+        var origin = location.origin && location.origin.replace(/\/+$/, "");
+        if (origin && href.replace(/\/+$/, "").indexOf(origin) === 0) return; // 同源资源放行
+        e.preventDefault();
+        window.open(href, "_blank", "noopener");
+      }, true);
       // 注册 Service Worker：网络优先校验最新版本，解决旧缓存卡死（仅 http/https 环境）
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("sw.js?v=" + (Store.settings.versionCode || 1)).catch(function () {});
