@@ -66,12 +66,16 @@
           root.addEventListener("click", function (e) {
             // 任何与本卡片相关的交互（点原文链接 / 点卡片看详情）都视为“阅读过”，自动标记已读
             var card = e.target.closest(".inbox-card");
+            var item = null;
             if (card) {
               var id = card.dataset.id;
-              var item = Store.loadInbox().filter(function (x) { return x.id === id; })[0];
+              item = Store.loadInbox().filter(function (x) { return x.id === id; })[0];
               if (item && !item.read) {
+                // 先标记已读并刷新列表视图（去掉「新」徽标、侧栏红点更新）
                 Store.inboxMarkRead(id);
-                App.refreshMail();
+                App.refresh();
+                // 刷新后重新取该条（此时已读），继续弹详情
+                item = Store.loadInbox().filter(function (x) { return x.id === id; })[0];
               }
             }
             var op = e.target.closest("[data-art-url]");
