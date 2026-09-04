@@ -18,9 +18,39 @@
   };
   var MAIL_ICO = '<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
 
+  /* —— 移动端（安卓手机）底部导航：5 项最高频顶级入口 ——
+     其余入口（榜单/学报/信源 → 总览页频道tab；术语库/喜好/设置 → 「我的」页）均保留，只是位置不同 */
+  var M_ORDER = ["dashboard", "library", "favorites", "inbox", "me"];
+  var M_COLORS = { dashboard: "#2f7fd1", library: "#0f766e", favorites: "#b06a1b", inbox: "#e5484d", me: "#4a5568" };
+  var M_ICO = {
+    dashboard: ICO.dashboard,
+    library: ICO.library,
+    favorites: ICO.favorites,
+    inbox: MAIL_ICO,
+    me: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+  };
+  /* 「我的」页内入口（术语库/喜好/设置 + 榜单/学报/信源），层级聚合 */
+  var ME_ENTRIES = [
+    { key: "rankings", label: "排行榜", icon: ICO.rankings, desc: "按价值与喜好综合排序" },
+    { key: "journal", label: "学报出刊", icon: ICO.journal, desc: "选文一键生成 docx" },
+    { key: "sources", label: "信源与镜像", icon: ICO.sources, desc: "9 个官方信源状态与启停" },
+    { key: "terms", label: "术语库", icon: ICO.terms, desc: "军语/术语命中与候选" },
+    { key: "prefs", label: "兴趣与喜好", icon: ICO.prefs, desc: "关键词、喜好学习、偏好档案" },
+    { key: "settings", label: "设置", icon: ICO.settings, desc: "模型、字体、主题、数据与更新" }
+  ];
+  var CHANNEL_TABS = [
+    { key: "dashboard", label: "总览" },
+    { key: "rankings", label: "排行榜" },
+    { key: "journal", label: "学报" },
+    { key: "sources", label: "信源" }
+  ];
+
   var current = "dashboard";
   var pulling = false;
   var pullDoneOnce = false;
+  /* 移动端顶栏返回目标：记录当前从哪个主入口进入（rankings/journal/sources→总览；terms/prefs/settings→我的） */
+  var lastRoot = "dashboard";
+  var keyDownFrom = { rankings: "dashboard", journal: "dashboard", sources: "dashboard", terms: "me", prefs: "me", settings: "me" };
   /* 主题的浏览器地址栏色：与各主题主色呼应 */
   var THEME_META = { "": "#0b3a6e", night: "#0e1622", paper: "#6d5230", gray: "#4a5868" };
 
@@ -118,18 +148,105 @@
     if (foot) foot.textContent = "SENTRA 述势 · v" + (Store.settings.appVersion || "1.0.0");
   }
 
+  /* —— 移动端（安卓手机）外壳：顶栏(标题/返回/收件箱) + 底部导航 ——
+     仅当前处于窄视口时更新；桌面/平板仍走侧栏，不启用底部导航逻辑 */
+  function isMobile() { return window.matchMedia && window.matchMedia("(max-width:760px)").matches; }
+
+  function renderMobile() {
+    renderChannels();
+    var t = document.getElementById("mobileTopbar"), n = document.getElementById("bottomNav");
+    if (!isMobile()) {
+      // 桌面/平板：隐藏移动外壳
+      if (t) t.hidden = true; if (n) n.hidden = true;
+      return;
+    }
+    if (t) t.hidden = false; if (n) n.hidden = false;
+    renderBottomNav();
+    renderTopBar();
+  }
+
+  /* 频道 tab：仅在「总览/排行榜/学报/信源」这组内容页出现（手机端），其余隐藏 */
+  function renderChannels() {
+    var wrap = document.getElementById("mobChannels");
+    if (!wrap) return;
+    var inGroup = ["dashboard", "rankings", "journal", "sources"].indexOf(current) >= 0;
+    if (!isMobile() || !inGroup) { wrap.innerHTML = ""; wrap.hidden = true; return; }
+    wrap.hidden = false;
+    wrap.innerHTML = CHANNEL_TABS.map(function (t) {
+      return '<button class="' + (current === t.key ? "active" : "") + '" data-v="' + t.key + '">' + t.label + "</button>";
+    }).join("");
+    wrap.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () { App.route("#/" + b.dataset.v); });
+    });
+  }
+
+  function renderBottomNav() {
+    var nav = document.getElementById("bottomNav");
+    if (!nav) return;
+    var inboxUn = Store.inboxUnread();
+      // 所属底部导航项：子页高亮其父入口。
+      // rankings/journal/sources 由总览频道tab进入→高亮总览；terms/prefs/settings 由「我的」进入→高亮我的；
+      // brief/inbox 系→高亮收件箱；reader→按来源。
+      var groupOf = {
+        inbox: "inbox", brief: "inbox",
+        rankings: "dashboard", journal: "dashboard", sources: "dashboard",
+        terms: "me", prefs: "me", settings: "me",
+        reader: (keyDownFrom[current] || lastRoot)
+      };
+      var activeRoot = groupOf[current] || current;
+      nav.innerHTML = M_ORDER.map(function (k) {
+        var m = mod(k);
+        var l = m ? m.label : k;
+        var badge = "";
+        if (k === "inbox" && inboxUn) badge = '<i class="bn-badge">' + (inboxUn > 99 ? "99+" : inboxUn) + "</i>";
+        var active = activeRoot === k;
+        return '<button class="bn-item' + (active ? " active" : "") + '" data-view="' + k + '" title="' + l + '">' +
+          M_ICO[k] + badge +
+          '<span class="bn-label">' + l + "</span></button>";
+      }).join("");
+    nav.querySelectorAll(".bn-item").forEach(function (b) {
+      b.addEventListener("click", function () { App.route("#/" + b.dataset.view); });
+    });
+  }
+
+  function renderTopBar() {
+    var bar = document.getElementById("mobileTopbar");
+    if (!bar) return;
+    var m = mod(current);
+    var title = document.getElementById("mobTitle");
+    if (title) title.textContent = m ? m.label : "总览";
+    // 底部导航页（总览/资料库/收藏夹/收件箱/我的）无返回；其它二级页显示返回
+    var isRoot = M_ORDER.indexOf(current) >= 0;
+    bar.classList.toggle("has-back", !isRoot);
+    var back = document.getElementById("mobBack");
+    if (back) {
+      var target = (current === "brief" || current === "reader") ? lastRoot : (keyDownFrom[current] || lastRoot);
+      back.dataset.to = target;
+    }
+  }
+
   var App = {
     refreshMail: function () {
       var b = document.getElementById("mailEntry");
-      if (!b) return;
-      var un = Store.inboxUnread();
-      b.innerHTML = '<span class="mail-ico">' + MAIL_ICO + "</span><span>收件箱</span>" + (un ? '<span class="mail-badge">' + un + "</span>" : "");
-      b.title = "收件箱（" + un + " 条未读）";
+      if (b) {
+        var un = Store.inboxUnread();
+        b.innerHTML = '<span class="mail-ico">' + MAIL_ICO + "</span><span>收件箱</span>" + (un ? '<span class="mail-badge">' + un + "</span>" : "");
+        b.title = "收件箱（" + un + " 条未读）";
+      }
+      // 移动顶栏收件箱徽标
+      var mb = document.getElementById("mobMailBadge");
+      if (mb) {
+        var un2 = Store.inboxUnread();
+        mb.textContent = un2 > 99 ? "99+" : un2;
+        mb.hidden = un2 === 0;
+      }
     },
     refresh: function () {
       var el = document.getElementById("content");
       var m = mod(current);
+      el.classList.remove("reader-mode"); // 离开阅读页时清理标记（阅读页渲染时会重新加上）
       renderNav();
+      renderMobile();
       App.refreshMail();
       if (m && typeof m.render === "function") {
         m.render(el).catch(function (err) {
@@ -147,6 +264,11 @@
       var q = parts[1] ? decodeURIComponent(parts[1].replace(/^q=/, "")) : "";
       if (!mod(key)) key = "dashboard";
       current = key;
+      // 记录「上一级」（供移动端顶栏返回按钮使用）：底部导航页无返回；其下页面返回对应主入口
+      if (M_ORDER.indexOf(key) >= 0) lastRoot = key; else {
+        lastRoot = (key === "brief" || key === "reader") ? lastRoot
+                  : (M_ORDER.indexOf(key) < 0 ? (keyDownFrom[key] || "dashboard") : lastRoot);
+      }
       if (q && window.WB.modules.library && window.WB.modules.library.state) {
         window.WB.modules.library.state.q = q;
       }
@@ -460,6 +582,19 @@
       var me = document.getElementById("mailEntry");
       if (me) me.addEventListener("click", function () { App.route("#/inbox"); });
       window.addEventListener("hashchange", function () { App.route(location.hash); });
+      // 移动端顶栏：返回 + 收件箱；底部导航入口（数据已在 renderBottomNav 绑定）
+      var mobBack = document.getElementById("mobBack");
+      if (mobBack) mobBack.addEventListener("click", function () {
+        var to = mobBack.dataset.to || "dashboard";
+        App.route("#/" + to);
+      });
+      var mobMail = document.getElementById("mobMail");
+      if (mobMail) mobMail.addEventListener("click", function () { App.route("#/inbox"); });
+      // 视口跨断点切换时重算手机/桌面外壳（平板/手机互通或窗口缩放）
+      var mq = window.matchMedia ? window.matchMedia("(max-width:760px)") : null;
+      if (mq && mq.addEventListener) {
+        mq.addEventListener("change", function () { App.refresh(); });
+      } else if (mq && mq.addListener) { mq.addListener(function () { App.refresh(); }); }
       // 后台翻译任务栏（浮动小浮标 + 可取消面板）
       if (window.MIRROR && MIRROR.onTasks) TASK_UI.init();
       var initial = location.hash;

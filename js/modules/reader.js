@@ -335,6 +335,7 @@
     label: "阅读",
     async render(el) {
       if (!state.url) { App.route("#/library"); return; }
+      el.classList.add("reader-mode"); // 供 CSS 区分阅读页（移动端隐藏顶部按钮、显示底部操作栏）
       var a = await Store.getArticle(state.url);
       if (!a) {
         el.innerHTML = '<div class="empty"><b>文章不存在或已清理</b><br><a class="btn sm" href="#/' + state.from + '">返回' + (state.from === "favorites" ? "收藏夹" : "资料库") + "</a></div>";
@@ -367,7 +368,31 @@
         "</div>" +
         '<div id="rdBody">' + bodyHtml(a) +
         '<div class="art-src">原文链接：<a class="src-link" href="' + esc(a.url) + '" target="_blank" rel="noopener" title="点击在浏览器打开原文">' + esc(a.url) + "</a></div>" +
+        "</div>" +
+        '<div class="rd-mobilebar">' +
+        '<button class="btn sm" id="rdBack" title="返回">' + backIcon() + "</button>" +
+        '<button class="btn sm" id="rdShare" title="分享这篇文章">' + icon("share") + "</button>" +
+        '<button class="btn sm" id="rdLike" title="喜欢这篇文章（正向反馈）">' + icon("like", a.like) + "</button>" +
+        '<button class="btn sm" id="rdFav" title="' + (a.fav ? "取消收藏" : "收藏") + '">' + icon("fav", a.fav) + "</button>" +
+        '<button class="btn sm primary" id="rdSum" title="摘要（中/英）">' + icon("sum") + "</button>" +
+        '<button class="btn sm" id="rdTerms" title="提取本篇核心军语/科技术语进候选（以整篇文章为单位）">' + icon("terms") + "</button>" +
+        '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + " title=\"" + H.esc(fullLabel || "翻译全文") + '">' + icon("full") + "</button>" +
         "</div>";
+
+      function backIcon() { return '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>'; }
+      function icon(k, on) {
+        var s = {
+          share: '<svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>',
+          like: on ? '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+                   : '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+          fav: on ? '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
+                 : '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
+          sum: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+          terms: '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+          full: '<svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>'
+        };
+        return s[k] || "";
+      }
 
       bind(el, a);
 
@@ -403,45 +428,49 @@
           paras(a.body).map(function (p) { return "<tr><td>" + esc(p) + "</td><td></td></tr>"; }).join("") + "</tbody></table>";
       }
       function bind(root, a) {
-        root.querySelector("#rdBack").addEventListener("click", function () { location.hash = "#/" + state.from; });
-        root.querySelector("#rdShare").addEventListener("click", function () { exportModal(a); });
-        root.querySelector("#rdLike").addEventListener("click", function () {
-          Store.getArticle(a.url).then(function (x) {
-            x.like = x.like ? 0 : 1;
-            var nowOn = !!x.like;
-            return Store.putArticle(x).then(function () {
-              if (nowOn) {
-                a.like = 1;
-                Store.logPreference("like", x.url, x.titleZh || x.title); // 正向学习信号（静默记录，不打扰）
-              } else {
-                a.like = 0;
-              }
-              App.refresh();
-            });
-          });
-        });
-        root.querySelector("#rdFav").addEventListener("click", function () {
-          Store.getArticle(a.url).then(function (x) {
-            x.fav = x.fav ? 0 : 1;
-            var nowOn = !!x.fav;
-            return Store.putArticle(x).then(function () {
-              if (nowOn) {
-                Store.logPreference("fav", x.url, x.titleZh || x.title);
-                App.toast("已收藏", "ok");
-                window.UI.afterFav(x);
-              } else {
-                App.toast("已取消收藏");
+        function on(sel, fn) { root.querySelectorAll(sel).forEach(fn); }
+        on("#rdBack", function (b) { b.addEventListener("click", function () { location.hash = "#/" + state.from; }); });
+        on("#rdShare", function (b) { b.addEventListener("click", function () { exportModal(a); }); });
+        on("#rdLike", function (b) {
+          b.addEventListener("click", function () {
+            Store.getArticle(a.url).then(function (x) {
+              x.like = x.like ? 0 : 1;
+              var nowOn = !!x.like;
+              return Store.putArticle(x).then(function () {
+                if (nowOn) {
+                  a.like = 1;
+                  Store.logPreference("like", x.url, x.titleZh || x.title); // 正向学习信号（静默记录，不打扰）
+                } else {
+                  a.like = 0;
+                }
                 App.refresh();
-              }
+              });
             });
           });
         });
-        root.querySelector("#rdSum").addEventListener("click", function () { summaryModal(a.url); });
-        root.querySelector("#rdTerms").addEventListener("click", function () { collectTerms(a); });
-        root.querySelector("#rdFull").addEventListener("click", function () { doFull(a); });
+        on("#rdFav", function (b) {
+          b.addEventListener("click", function () {
+            Store.getArticle(a.url).then(function (x) {
+              x.fav = x.fav ? 0 : 1;
+              var nowOn = !!x.fav;
+              return Store.putArticle(x).then(function () {
+                if (nowOn) {
+                  Store.logPreference("fav", x.url, x.titleZh || x.title);
+                  App.toast("已收藏", "ok");
+                  window.UI.afterFav(x);
+                } else {
+                  App.toast("已取消收藏");
+                  App.refresh();
+                }
+              });
+            });
+          });
+        });
+        on("#rdSum", function (b) { b.addEventListener("click", function () { summaryModal(a.url); }); });
+        on("#rdTerms", function (b) { b.addEventListener("click", function () { collectTerms(a); }); });
+        on("#rdFull", function (b) { b.addEventListener("click", function () { doFull(a); }); });
         // 旧译文提示条中的「重新翻译全文」按钮（文内元素在 bodyHtml 里渲染）
-        var reTr = root.querySelector("#rgReTr");
-        if (reTr) reTr.addEventListener("click", function () { doFull(a); });
+        on("#rgReTr", function (b) { b.addEventListener("click", function () { doFull(a); }); });
         root.querySelectorAll("[data-tab]").forEach(function (b) {
           b.addEventListener("click", function () {
             state.tab = b.dataset.tab;
