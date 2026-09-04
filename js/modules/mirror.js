@@ -138,10 +138,9 @@
   function pull() {
     var urls = mirrorUrls(Store.settings.mirrorRepo);
     var lastKnown = Store.settings.lastMirrorUpdatedAt ? new Date(Store.settings.lastMirrorUpdatedAt).getTime() : 0;
-    var lastErr = null;
-    var seq = Promise.reject();
-    urls.forEach(function (u) {
-      seq = seq.catch(function () { return fetchJson(u); }).then(function (json) {
+    // 多通道并行竞速：同时请求所有镜像通道，任意一个成功即返回（不再逐通道串行等待）
+    var attempts = urls.map(function (u) {
+      return fetchJson(u).then(function (json) {
         var t = json && json.updatedAt ? new Date(json.updatedAt).getTime() : 0;
         if (lastKnown && t && t <= lastKnown) {
           // 通道可达且镜像无新增（数据时间未比上次新）：不算网络失败，标记“无新内容”
@@ -150,8 +149,7 @@
         return json;
       });
     });
-    return seq.catch(function (e) {
-      lastErr = e;
+    return Promise.any(attempts).catch(function (e) {
       throw new Error("镜像拉取失败（各通道均不可用）：" + (e && e.message));
     });
   }
