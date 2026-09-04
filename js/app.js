@@ -29,28 +29,27 @@
     inbox: MAIL_ICO,
     me: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
   };
-  /* 「我的」页内入口（术语库/喜好/设置 + 榜单/学报/信源），层级聚合 */
+  /* 「我的」页内入口（术语库/喜好/设置 + 榜单/信源），层级聚合。出刊(journal)已从手机端移除，仅桌面/平板保留。 */
   var ME_ENTRIES = [
     { key: "rankings", label: "排行榜", icon: ICO.rankings, desc: "按价值与喜好综合排序" },
-    { key: "journal", label: "学报出刊", icon: ICO.journal, desc: "选文一键生成 docx" },
     { key: "sources", label: "信源与镜像", icon: ICO.sources, desc: "9 个官方信源状态与启停" },
     { key: "terms", label: "术语库", icon: ICO.terms, desc: "军语/术语命中与候选" },
     { key: "prefs", label: "兴趣与喜好", icon: ICO.prefs, desc: "关键词、喜好学习、偏好档案" },
     { key: "settings", label: "设置", icon: ICO.settings, desc: "模型、字体、主题、数据与更新" }
   ];
+  /* 总览页频道 tab（手机端）：出刊(journal)已移除，仅 总览/排行榜/信源 */
   var CHANNEL_TABS = [
     { key: "dashboard", label: "总览" },
     { key: "rankings", label: "排行榜" },
-    { key: "journal", label: "学报" },
     { key: "sources", label: "信源" }
   ];
 
   var current = "dashboard";
   var pulling = false;
   var pullDoneOnce = false;
-  /* 移动端顶栏返回目标：记录当前从哪个主入口进入（rankings/journal/sources→总览；terms/prefs/settings→我的） */
+  /* 移动端顶栏返回目标：记录当前从哪个主入口进入（rankings/sources→总览；terms/prefs/settings→我的） */
   var lastRoot = "dashboard";
-  var keyDownFrom = { rankings: "dashboard", journal: "dashboard", sources: "dashboard", terms: "me", prefs: "me", settings: "me" };
+  var keyDownFrom = { rankings: "dashboard", sources: "dashboard", terms: "me", prefs: "me", settings: "me" };
   /* 主题的浏览器地址栏色：与各主题主色呼应 */
   var THEME_META = { "": "#0b3a6e", night: "#0e1622", paper: "#6d5230", gray: "#4a5868" };
 
@@ -165,11 +164,11 @@
     renderTopBar();
   }
 
-  /* 频道 tab：仅在「总览/排行榜/学报/信源」这组内容页出现（手机端），其余隐藏 */
+  /* 频道 tab：仅在「总览/排行榜/信源」这组内容页出现（手机端），其余隐藏 */
   function renderChannels() {
     var wrap = document.getElementById("mobChannels");
     if (!wrap) return;
-    var inGroup = ["dashboard", "rankings", "journal", "sources"].indexOf(current) >= 0;
+    var inGroup = ["dashboard", "rankings", "sources"].indexOf(current) >= 0;
     if (!isMobile() || !inGroup) { wrap.innerHTML = ""; wrap.hidden = true; return; }
     wrap.hidden = false;
     wrap.innerHTML = CHANNEL_TABS.map(function (t) {
@@ -185,11 +184,11 @@
     if (!nav) return;
     var inboxUn = Store.inboxUnread();
       // 所属底部导航项：子页高亮其父入口。
-      // rankings/journal/sources 由总览频道tab进入→高亮总览；terms/prefs/settings 由「我的」进入→高亮我的；
-      // brief/inbox 系→高亮收件箱；reader→按来源。
+      // rankings/sources 由总览频道tab进入→高亮总览；terms/prefs/settings 由「我的」进入→高亮我的；
+      // brief/inbox 系→高亮收件箱；reader→按来源。出刊(journal)已从手机端移除。
       var groupOf = {
         inbox: "inbox", brief: "inbox",
-        rankings: "dashboard", journal: "dashboard", sources: "dashboard",
+        rankings: "dashboard", sources: "dashboard",
         terms: "me", prefs: "me", settings: "me",
         reader: (keyDownFrom[current] || lastRoot)
       };
@@ -263,7 +262,15 @@
       var arg = pathParts[1] ? decodeURIComponent(pathParts[1]) : "";
       var q = parts[1] ? decodeURIComponent(parts[1].replace(/^q=/, "")) : "";
       if (!mod(key)) key = "dashboard";
+      // 手机端已移除出刊功能：未配置入口或直接访问 #/journal 一律回「总览」；平板/电脑不受影响
+      var blocked = false;
+      if (key === "journal" && H.isMobile()) { key = "dashboard"; blocked = true; }
       current = key;
+      // 拦截后同步纠正路由 hash（避免地址栏停留在被移除的出刊页）
+      if (blocked && location.hash !== "#/dashboard") {
+        hash = "#/dashboard";
+        if (location.hash !== hash) location.hash = hash;
+      }
       // 记录「上一级」（供移动端顶栏返回按钮使用）：底部导航页无返回；其下页面返回对应主入口
       if (M_ORDER.indexOf(key) >= 0) lastRoot = key; else {
         lastRoot = (key === "brief" || key === "reader") ? lastRoot

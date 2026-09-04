@@ -10,6 +10,7 @@
       var all = await Store.getAllArticles();
       var list = all.filter(function (a) { return a.fav; }).sort(function (x, y) { return String(y.pubDate).localeCompare(String(x.pubDate)); });
       var kws = H.splitKeywords(Store.settings.interestKeywords || "");
+      var m = H.isMobile(); // 手机端已移除出刊：隐藏「生成学报 docx」按钮
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">收藏夹</h1>' +
         '<p class="view-sub">收藏 ' + list.length + " 篇 · 点标题阅读；在 设置 → 行为默认值 可开启“收藏后自动生成标题/摘要/全文”</p></div>" +
@@ -35,7 +36,7 @@
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '" title="查看/自动生成摘要">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
-          (a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '">生成学报 docx</button>' : "") +
+          (!m && a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '">生成学报 docx</button>' : "") +
           "</div>" +
           "</div>";
       }

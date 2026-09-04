@@ -119,7 +119,7 @@
 
           // 最近入库
           '<div class="card" style="padding-bottom:8px"><div class="art-head" style="margin-bottom:4px"><h3 style="margin:0">最近入库</h3>' +
-          '<span class="muted">共 ' + journals.length + " 份学报</span></div>" +
+          '<span class="muted">最新 ' + arts.length + " 篇</span></div>" +
           recentMobile(arts) + "</div>"
         );
       }

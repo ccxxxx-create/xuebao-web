@@ -16,6 +16,7 @@
       return String(d.getFullYear()) + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0");
     },
     nowIso: function () { return new Date().toISOString(); },
+    isMobile: function () { return window.matchMedia && window.matchMedia("(max-width:760px)").matches; },
     fmtDateCN: function (iso) {
       if (!iso) return "";
       var d = new Date(iso);

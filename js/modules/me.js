@@ -34,7 +34,6 @@
         '<div class="me-list">' +
         ENTRIES.concat([
           { key: "rankings", label: "排行榜", desc: "按价值与喜好综合排序", icon: '<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>' },
-          { key: "journal", label: "学报出刊", desc: "选文一键生成 docx", icon: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
           { key: "sources", label: "信源与镜像", desc: "9 个官方信源状态与启停", icon: '<svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>' }
         ]).map(function (e) { return meRow(e.key, e.label, e.label, e.desc, e.icon); }).join("") +
         "</div></div>" +

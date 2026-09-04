@@ -21,6 +21,7 @@
       var arts = filter(all);
       var favN = all.filter(function (a) { return a.fav; }).length;
       var selN = all.filter(function (a) { return a.selected; }).length;
+      var m = H.isMobile(); // 手机端已移除出刊：隐藏选入学报/直接出刊入口与选文计数
       if (!arts.length) state.page = 1;
       // 数据更新感知：上次拉取镜像后新增了文章（updatedAt 变新），自动回到第 1 页（最新一排），
       // 避免停留在旧的已译页，误以为“本页标题均已翻译”而新文章在其它页。仅重置分页，不动筛选。
@@ -36,7 +37,7 @@
       }
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">资料库</h1>' +
-        '<p class="view-sub">共 ' + all.length + " 篇 · 显示 " + arts.length + " 篇 · 收藏 " + favN + " 篇 · 学报选文 " + selN + " 篇 · 点击标题进入阅读页</p></div>" +
+        '<p class="view-sub">共 ' + all.length + " 篇 · 显示 " + arts.length + " 篇 · 收藏 " + favN + " 篇" + (m ? "" : " · 学报选文 " + selN + " 篇") + " · 点击标题进入阅读页</p></div>" +
         '<div class="head-actions"><a class="btn sm" href="#/settings" title="在设置里切换 资料库标题 的显示方式">标题显示设置</a></div></div>' +
         '<div class="filters">' +
         '<input class="search" id="fQ" placeholder="关键词（标题/正文/摘要/作者）" value="' + H.esc(state.q) + '">' +
@@ -117,11 +118,11 @@
           "</div>" +
           '<div class="art-actions">' +
           '<button class="btn sm" data-act="fav" data-url="' + H.esc(a.url) + '">' + (a.fav ? "取消收藏" : "收藏") + "</button>" +
-          '<button class="btn sm' + (a.selected ? " primary" : "") + '" data-act="sel" data-url="' + H.esc(a.url) + '" title="加入学报出刊队列">' + (a.selected ? "✓ 已选入学报" : "选入学报") + "</button>" +
+          (m ? "" : '<button class="btn sm' + (a.selected ? " primary" : "") + '" data-act="sel" data-url="' + H.esc(a.url) + '" title="加入学报出刊队列">' + (a.selected ? "✓ 已选入学报" : "选入学报") + "</button>") +
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
-          (a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '" title="直接为这一篇生成学报 docx">直接出刊</button>' : "") +
+          (!m && a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '" title="直接为这一篇生成学报 docx">直接出刊</button>' : "") +
           "</div>" +
           "</div>";
       }
