@@ -372,11 +372,8 @@
       bind(el, a);
 
       function bodyHtml(a) {
-        // 配图：仅在 英文原文 / 中文全文 界面对应位置显示，中英对照不放图
-        var imgUrl = a.image || "";
-        var img = imgUrl
-          ? '<figure class="art-fig"><img class="art-img" src="' + esc(imgUrl) + '" alt="" loading="lazy" onerror="this.closest(\'.art-fig\').remove()"></figure>'
-          : "";
+        // 仅保留文字正文（用户明确不抓图片）；不再渲染配图
+        var img = "";
         if (state.tab === "en") {
           return '<div class="prose" style="max-height:none">' + img + esc(a.body || "(正文缺失)") + "</div>";
         }

@@ -48,10 +48,10 @@
         '<button class="btn sm danger" id="ibClear">清空</button></div></div>' +
         (items.length
           ? items.map(function (x) {
-              return '<div class="art inbox-card" data-id="' + H.esc(x.id) + '" title="点击查看详情"' + (x.read ? "" : ' style="border-left:3px solid #2f7fd1"') + '>' +
+              return '<div class="art inbox-card' + (x.read ? "" : " unread") + '" data-id="' + H.esc(x.id) + '" title="点击查看详情">' +
                 '<div class="art-head"><div style="flex:1;min-width:0">' +
                 '<div class="art-title" style="font-weight:600">' +
-                (x.read ? "" : '<span class="badge state-error">新</span> ') +
+                (x.read ? "" : '<span class="badge accent">新</span> ') +
                 H.esc(KIND[x.kind] || x.kind) + " · " + H.esc(x.title) + "</div>" +
                 '<div class="art-meta"><span>' + H.fmtDateTime(new Date(x.at)) + "</span></div>" +
                 "</div></div>" +
@@ -64,13 +64,7 @@
         if (!root.__ib) {
           root.__ib = true;
           root.addEventListener("click", function (e) {
-            var op = e.target.closest("[data-art-url]");
-            if (op && op.dataset.artUrl) {
-              if (window.UI && UI.openArticle) { UI.openArticle(op.dataset.artUrl, "inbox"); return; }
-              window.open(op.dataset.artUrl, "_blank", "noopener");
-              return;
-            }
-            // 点击整张卡片（含标题与预览正文）都能展开详情，自动标记已读
+            // 任何与本卡片相关的交互（点原文链接 / 点卡片看详情）都视为“阅读过”，自动标记已读
             var card = e.target.closest(".inbox-card");
             if (card) {
               var id = card.dataset.id;
@@ -79,6 +73,15 @@
                 Store.inboxMarkRead(id);
                 App.refreshMail();
               }
+            }
+            var op = e.target.closest("[data-art-url]");
+            if (op && op.dataset.artUrl) {
+              if (window.UI && UI.openArticle) { UI.openArticle(op.dataset.artUrl, "inbox"); return; }
+              window.open(op.dataset.artUrl, "_blank", "noopener");
+              return;
+            }
+            // 点击整张卡片（含标题与预览正文）都能展开详情
+            if (card) {
               if (item) {
                 App.openModal(
                   '<div class="modal-head"><h3>' + H.esc(KIND[item.kind] || item.kind) + "</h3><button class=\"btn sm\" data-close>×</button></div>" +

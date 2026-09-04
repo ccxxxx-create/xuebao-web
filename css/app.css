@@ -292,6 +292,12 @@ input[type="range"]{accent-color:var(--primary);height:26px}
 
 /* 收件箱正文（简报等） */
 .inbox-card{cursor:pointer}
+.inbox-card.unread{background:var(--accent-weak,#eef5fd)}
+.inbox-card:hover{background:var(--hover-bg,#f1f4f8)}
+html[data-theme="night"] .inbox-card.unread{background:#173a5c}
+html[data-theme="night"] .inbox-card:hover{background:#1b2b3c}
+html[data-theme="paper"] .inbox-card.unread{background:#fbf4e2}
+html[data-theme="paper"] .inbox-card:hover{background:#f4ecd8}
 .inbox-body{white-space:pre-wrap;word-break:break-word;margin:7px 0 0;font-size:.86rem;color:var(--text2);line-height:1.7;max-height:176px;overflow:hidden}
 .inbox-body .art-open{display:inline-block;margin:2px 0;padding:2px 10px;color:#0b6bcb;background:#eaf3fc;border-radius:6px;font-size:.82rem;cursor:pointer;text-decoration:none}
 .inbox-body .art-open:hover{background:#d9eafa;color:#094e92}
