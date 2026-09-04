@@ -718,6 +718,44 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   html[data-theme="night"] .reader-mode .rd-mobilebar{background:#182534;border-color:var(--line)}
   html[data-theme="paper"] .reader-mode .rd-mobilebar{background:#fffdf6;border-color:var(--line)}
 
+  /* ===== 手机端总览：今日榜 / 统计条 / 刷新状态 / 最近入库 ===== */
+  .m-card-today{padding:14px 14px 8px}
+  .m-sec-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .m-sec-head h3{margin:0;font-size:15px;display:flex;align-items:center;gap:6px}
+  .m-sec-head h3 svg{width:18px;height:18px;stroke:var(--accent);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .m-sec-more{border:0;background:transparent;color:var(--accent);font-size:13px;cursor:pointer;padding:2px 4px}
+  .m-sec-more:hover{color:var(--primary)}
+  .m-today-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .m-today-item:last-child{border-bottom:0}
+  .m-today-item:active{background:var(--accent-weak)}
+  .m-rank{width:24px;height:24px;flex:none;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+  .m-rank.ghost{background:#eef1f5;color:var(--text2)}
+  .m-today-body{flex:1;min-width:0}
+  .m-today-title{font-size:14px;font-weight:600;line-height:1.4;color:var(--text)}
+  .m-today-meta{font-size:11.5px;color:var(--text3);margin-top:2px}
+  .m-today-arrow{color:var(--text3);font-size:18px;line-height:1}
+  html[data-theme="night"] .m-rank.ghost{background:#223140}
+
+  .m-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0 0 12px}
+  .m-stat{display:flex;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;position:relative;text-decoration:none}
+  .m-stat-num{font-size:22px;font-weight:700;color:var(--primary);line-height:1.2}
+  .m-stat-lab{font-size:12px;color:var(--text2)}
+  .m-stat-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;opacity:0;transition:.15s}
+  .m-stat:active .m-stat-arrow{opacity:1;right:9px;color:var(--primary)}
+
+  .m-refresh{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;margin-bottom:12px}
+  .m-refresh-info{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:11.5px;color:var(--text3);line-height:1.4}
+  .m-refresh-info span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .m-refresh .btn{flex:none}
+
+  .m-recent-item{padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .m-recent-item:last-child{border-bottom:0}
+  .m-recent-item:active{background:var(--accent-weak)}
+  .m-recent-title{font-size:14px;font-weight:600;line-height:1.45;color:var(--text)}
+  .m-recent-meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;color:var(--text3);font-size:11.5px;margin-top:5px}
+  html[data-theme="night"] .m-recent-item:active,html[data-theme="night"] .m-today-item:active{background:#1b2b3c}
+  html[data-theme="paper"] .m-recent-item:active,html[data-theme="paper"] .m-today-item:active{background:#f4ecd8}
+
   /* ===== 「我的」聚合页入口列表 ===== */
   .me-list{display:flex;flex-direction:column}
   .me-item{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:8px}
