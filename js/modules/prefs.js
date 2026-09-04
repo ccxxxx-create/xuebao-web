@@ -48,10 +48,9 @@
       function kwCard() {
         return '<div class="card"><h3>我的关键词</h3>' +
           '<p class="muted">命中后资料库/收藏夹显示「相关 N」角标。模糊匹配：任意位置出现即算相关，多个为“或”。</p>' +
-          '<div class="field"><label>点击标签删除；输入后回车或点“添加”</label>' +
+          '<div class="field"><label>点击标签删除；输入后回车加入，再点下方「保存关键词」生效</label>' +
           '<div class="kw-tags" id="kwChips">' + chipHtml() + "</div>" +
-          '<div style="display:flex;gap:8px"><input id="kwInput" placeholder="输入关键词，如：无人机 / aircraft carrier" style="flex:1">' +
-          '<button class="btn" id="kwAdd">添加</button></div></div>' +
+          '<input id="kwInput" placeholder="输入关键词，如：无人机 / aircraft carrier" style="width:100%"></div>' +
           '<div class="art-actions"><button class="btn primary" id="bfKwSave">保存关键词</button></div></div>';
       }
       function learnCard() {
@@ -101,11 +100,12 @@
             renderChips();
           }
         });
-        root.querySelector("#kwAdd").addEventListener("click", function () { addKw(input.value); });
-        input.addEventListener("keydown", function (e) {
-          if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addKw(input.value); }
+        input.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" || ev.key === ",") { ev.preventDefault(); addKw(input.value); }
         });
         root.querySelector("#bfKwSave").addEventListener("click", function () {
+          // 移植"添加"功能：保存前先把输入框当前词加入
+          addKw(input.value);
           s.interestKeywords = kwArr.join(",");
           Store.saveSettings();
           App.toast("关键词已保存", "ok");

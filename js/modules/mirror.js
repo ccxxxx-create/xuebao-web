@@ -156,18 +156,31 @@
     });
   }
 
-  /* 合并镜像条目进本设备资料库（按 url + 规范化标题双重去重，防跨源同题重复） */
+  /* 合并镜像条目进本设备资料库（按 url + 规范化标题双重去重，防跨源同题重复）。
+     新增：本机无此文章时入库；回填：本机已有但正文为空、镜像有正文时补全（修复“有链接可见原文但系统内暂无正文”）。 */
   function merge(json) {
     return Store.getAllArticles().then(function (existing) {
+      var byUrl = {};
+      existing.forEach(function (a) { byUrl[a.url] = a; });
       var have = {}, haveT = {};
       existing.forEach(function (a) {
         have[a.url] = 1;
         var k = normTitle(a.title);
         if (k) haveT[k] = 1;
       });
-      var added = [];
+      var added = [], backfill = [];
       (json.items || []).forEach(function (it) {
-        if (!it || !it.url || have[it.url]) return;
+        if (!it || !it.url) return;
+        var loc = byUrl[it.url];
+        if (loc) {
+          // 已存在：本机缺正文而镜像有 → 回填正文/摘要
+          if (!loc.body && it.body) {
+            loc.body = it.body;
+            if (!loc.summary && it.summary) loc.summary = it.summary;
+            backfill.push(loc);
+          }
+          return;
+        }
         var k = normTitle(it.title);
         if (k && haveT[k]) return; // 同题（跨源转载）已存在，跳过
         if (k) haveT[k] = 1;
@@ -200,7 +213,8 @@
         added.push(art);
         have[it.url] = 1;
       });
-      if (added.length) return Store.bulkPutArticles(added).then(function () { return added.length; });
+      var toPut = added.concat(backfill);
+      if (toPut.length) return Store.bulkPutArticles(toPut).then(function () { return added.length; });
       return 0;
     });
   }

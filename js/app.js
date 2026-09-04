@@ -327,7 +327,8 @@
           var ss = Store.settings;
           ss.lastPullAt = Date.now();
           Store.saveSettings();
-          return { added: 0, noFresh: true };
+          // 镜像无新增（数据时间未变），但仍执行 merge 以回填旧文缺失正文（修复“有链接但系统内暂无正文”）
+          return MIRROR.merge(json).then(function () { return { added: 0, noFresh: true }; });
         }
         // 本设备停用的信源：不入库（历史数据保留）
         if (Store.settings.channelOns) {
