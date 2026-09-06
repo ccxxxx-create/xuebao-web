@@ -328,11 +328,117 @@
     });
   }
 
+  /* ---------- 最小 XLSX（术语表 Excel 导出/导入）：inlineStr 写、兼容真实 Excel 的 sharedStrings 读 ---------- */
+  function colLetter(i) {
+    var s = "";
+    i++;
+    while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = (i - 1 - m) / 26; }
+    return s;
+  }
+
+  function buildXlsx(sheetName, rows) {
+    var enc = new TextEncoder();
+    var body = "";
+    rows.forEach(function (row, r) {
+      body += '<row r="' + (r + 1) + '">';
+      (row || []).forEach(function (cell, c) {
+        var ref = colLetter(c) + (r + 1);
+        var v = String(cell == null ? "" : cell);
+        if (v === "") { body += '<c r="' + ref + '"/>'; return; }
+        body += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(v) + "</t></is></c>";
+      });
+      body += "</row>";
+    });
+    // 三列常见布局给个舒适列宽
+    var widths = rows.length && rows[0].length ? rows[0].length : 3;
+    var cols = "<cols>";
+    for (var ci = 0; ci < widths; ci++) cols += '<col min="' + (ci + 1) + '" max="' + (ci + 1) + '" width="32" customWidth="1"/>';
+    cols += "</cols>";
+    var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + body + "</sheetData>" + cols + "</worksheet>";
+    var wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets><sheet name="' + xmlEsc(sheetName) + '" sheetId="1" r:id="rId1"/></sheets></workbook>';
+    var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      "</Types>";
+    var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      "</Relationships>";
+    var wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      "</Relationships>";
+    return buildZip([
+      { name: "[Content_Types].xml", data: enc.encode(ct) },
+      { name: "_rels/.rels", data: enc.encode(rels) },
+      { name: "xl/workbook.xml", data: enc.encode(wb) },
+      { name: "xl/_rels/workbook.xml.rels", data: enc.encode(wbRels) },
+      { name: "xl/worksheets/sheet1.xml", data: enc.encode(sheet) }
+    ]);
+  }
+
+  /* 读取 xlsx 第一个工作表为二维数组（处理 inlineStr / 共享字符串 / 数字三种单元格） */
+  function readXlsxRows(file) {
+    function cellVal(attrs, inner, shared) {
+      var t = (attrs.match(/t="([^"]*)"/) || [])[1] || "";
+      if (t === "inlineStr") {
+        var m = inner && inner.match(/<t[^>]*>([\s\S]*?)<\/t>/);
+        return m ? m[1] : "";
+      }
+      var vm = inner && inner.match(/<v[^>]*>([\s\S]*?)<\/v>/);
+      if (!vm) return "";
+      if (t === "s") { var idx = parseInt(vm[1], 10); return (shared && shared[idx] != null) ? shared[idx] : ""; }
+      return vm[1];
+    }
+    function parseSheet(xml, shared) {
+      var rows = [];
+      var rowRe = /<row[^>]*?>([\s\S]*?)<\/row>/g, rm;
+      while ((rm = rowRe.exec(xml))) {
+        var grid = [];
+        var cellRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g, cm;
+        while ((cm = cellRe.exec(rm[1]))) {
+          var ref = (cm[1].match(/r="([A-Z]+)\d+"/) || [])[1] || "";
+          var col = 0;
+          for (var i = 0; i < ref.length; i++) col = col * 26 + (ref.charCodeAt(i) - 64);
+          grid[col - 1] = cellVal(cm[1], cm[2], shared);
+        }
+        for (var k = 0; k < grid.length; k++) if (grid[k] == null) grid[k] = "";
+        rows.push(grid);
+      }
+      return rows;
+    }
+    function parseShared(u8) {
+      if (!u8) return [];
+      var xml = new TextDecoder().decode(u8);
+      var out = [], m, re = /<si[^>]*>([\s\S]*?)<\/si>/g;
+      while ((m = re.exec(xml))) {
+        var ts = "", tm, tre = /<t[^>]*>([\s\S]*?)<\/t>/g;
+        while ((tm = tre.exec(m[1]))) ts += tm[1];
+        out.push(ts);
+      }
+      return out;
+    }
+    return zipRead(file, "xl/worksheets/sheet1.xml").then(function (sheetU8) {
+      var sheet = new TextDecoder().decode(sheetU8);
+      return zipRead(file, "xl/sharedStrings.xml").then(function (ssU8) {
+        return parseSheet(sheet, parseShared(ssU8));
+      }).catch(function () { return parseSheet(sheet, []); });
+    });
+  }
+
   window.DOCX = {
     STYLE: STYLE,
     buildDocx: buildDocx,
     verifyDocx: verifyDocx,
     extractTemplate: extractTemplate,
+    buildXlsx: buildXlsx,
+    readXlsxRows: readXlsxRows,
     fileName: function (pubDate, zhTitle, enTitle) {
       return H.ymd(new Date(pubDate || Date.now())) + "-" + H.safeFile(zhTitle || enTitle || "学报条目") + ".docx";
     }

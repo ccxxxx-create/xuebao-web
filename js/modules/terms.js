@@ -137,6 +137,53 @@
     return out;
   }
 
+  /* —— Excel 导入/导出（电脑端）：三列 = 英文主形式 / 英文变体 / 中文规范译名 —— */
+  function xlsxExport(terms) {
+    var rows = [["英文", "英文变体", "中文"]];
+    var sorted = terms.slice().sort(function (a, b) { return String(a.term_en || "").localeCompare(String(b.term_en || "")); });
+    sorted.forEach(function (t) {
+      var vs = (t.en_variants || []).filter(function (v) { return v && v !== t.term_en; });
+      rows.push([t.term_en || "", vs.join("\n"), t.term_zh || ""]);
+    });
+    var blob = DOCX.buildXlsx("术语表", rows);
+    H.download("术语表_" + H.ymd() + ".xlsx", blob);
+    return sorted.length;
+  }
+  function xlsxImport(file) {
+    return DOCX.readXlsxRows(file).then(function (rows) {
+      if (!rows || rows.length < 2) throw new Error("表格为空（需至少 1 行表头 + 1 行数据）");
+      // 容错表头：首行若不是表头（不含"英文"），按数据行处理
+      var body = rows.slice();
+      var head = (rows[0] || []).join("|");
+      if (/英文|english|term/i.test(head)) body = rows.slice(1);
+      var added = 0, updated = 0, skipped = 0;
+      return body.reduce(function (p, row) {
+        return p.then(function () {
+          var en = String(row[0] || "").trim();
+          var variantsRaw = String(row[1] || "").trim();
+          var zh = String(row[2] || "").trim();
+          if (!en || !zh) { skipped++; return null; }
+          var variants = variantsRaw.split(/[\r\n;；,，、]+/).map(function (s) { return s.trim(); }).filter(function (s) { return s && s !== en; });
+          return Store.getAllTerms().then(function (terms) {
+            var t = terms.find(function (x) { return x.term_en.toLowerCase() === en.toLowerCase(); });
+            if (t) {
+              t.term_zh = zh;
+              var vs = (t.en_variants || []).slice();
+              variants.forEach(function (v) { if (vs.indexOf(v) < 0) vs.push(v); });
+              t.en_variants = vs;
+              updated++;
+              return Store.putTerm(t);
+            }
+            added++;
+            return Store.putTerm({ term_en: en, term_zh: zh, en_variants: variants, scope: "all", source: "Excel 导入", enabled: 1 });
+          });
+        });
+      }, Promise.resolve()).then(function () {
+        return { added: added, updated: updated, skipped: skipped };
+      });
+    });
+  }
+
   var M = {
     key: "terms",
     label: "术语",
@@ -161,6 +208,15 @@
           }).join("") + "</div></div>"
         : "";
 
+      // Excel 导入/导出仅电脑端（手机端保留阅读与提取，不做文件管理）
+      var xlsxCard = H.isMobile() ? "" :
+        '<div class="card"><div class="card-title">导入 / 导出（Excel）</div>' +
+        '<p class="muted" style="margin-bottom:10px">三列格式：英文 · 英文变体 · 中文。导出全词库做备份汇总；导入按"英文主形式"合并——已有概念更新译名并并进变体，新概念自动入库。</p>' +
+        '<button class="btn" id="tXlsxOut">导出术语表（.xlsx）</button>' +
+        '<input type="file" id="tXlsxIn" accept=".xlsx" hidden>' +
+        '<button class="btn" id="tXlsxImp" style="margin-left:8px">从 Excel 导入</button>' +
+        "</div>";
+
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">术语库</h1>' +
         '<p class="view-sub">启用 ' + on + " / 共 " + terms.length + " 条概念 · 每条含规范译名与多个英文变体，译到任一变体都按规范译名；命中词条注入翻译/学报编译提示词</p></div>" +
@@ -168,6 +224,7 @@
         '<button class="btn ghost" id="tMerge" title="自动把同译法多条并成一条概念">归并去重</button>' +
         '<button class="btn primary" id="tAdd">+ 新增概念</button></div></div>' +
         candHtml +
+        xlsxCard +
         '<div class="card">' +
         '<div class="card-title">概念词表</div>' +
         (terms.length
@@ -188,6 +245,27 @@
       el.querySelector("#tAdd").addEventListener("click", function () { editModal(null); });
       el.querySelector("#tMerge").addEventListener("click", function () {
         Store.mergeTermsByZh().then(function (n) { App.toast(n > 0 ? "已归并 " + n + " 条重复译法" : "无重复需要归并", "ok"); App.refresh(); });
+      });
+      var xOut = el.querySelector("#tXlsxOut");
+      if (xOut) xOut.addEventListener("click", function () {
+        try {
+          var n = xlsxExport(terms);
+          App.toast("已导出 " + n + " 条术语（.xlsx）", "ok");
+        } catch (e) { App.toast("导出失败：" + (e && e.message || e), "err"); }
+      });
+      var xInBtn = el.querySelector("#tXlsxImp"), xIn = el.querySelector("#tXlsxIn");
+      if (xInBtn) xInBtn.addEventListener("click", function () { xIn.click(); });
+      if (xIn) xIn.addEventListener("change", function () {
+        var file = xIn.files && xIn.files[0];
+        xIn.value = "";
+        if (!file) return;
+        if (!/\.xlsx$/i.test(file.name)) { App.toast("请选择 .xlsx 文件", "err"); return; }
+        xlsxImport(file).then(function (r) {
+          App.toast("导入完成：新增 " + r.added + " 条 · 更新 " + r.updated + " 条" + (r.skipped ? " · 跳过空行 " + r.skipped : ""), "ok");
+          App.refresh();
+        }).catch(function (e) {
+          App.toast("导入失败：" + (e && e.message || e), "err");
+        });
       });
       el.querySelectorAll("[data-adopt]").forEach(function (b) {
         b.addEventListener("click", function () {
