@@ -1105,6 +1105,8 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   .bottom-nav .bn-item{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
     border:0;background:transparent;color:var(--text2);cursor:pointer;padding:5px 2px 3px;transition:color .15s;position:relative}
   .bottom-nav .bn-item svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  /* v1.25.1：主题 sprite 图标（fill:currentColor，随主题换形状与配色），覆盖上方线条规则 */
+  .bottom-nav .bn-item svg.bn-use{width:22px;height:22px;stroke:none;fill:currentColor}
   .bottom-nav .bn-item .bn-label{font-size:11px;line-height:1;white-space:nowrap}
   .bottom-nav .bn-item.active{color:var(--primary)}
   .bottom-nav .bn-item.active svg{stroke-width:2.2}

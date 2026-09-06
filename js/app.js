@@ -29,6 +29,16 @@
     inbox: MAIL_ICO,
     me: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
   };
+  /* v1.25.1：底栏图标随主题走——有 sprite 套的主题借用侧栏同名图形（收件箱→报纸形、我的→书签形，
+     手机端无学报/兴趣页不会撞车）；默认蓝天无 sprite，回落现有线条图标 */
+  var M_SPRITE = { dashboard: "overview", library: "library", favorites: "favorites", inbox: "journal", me: "interests" };
+  function mobileIcon(k) {
+    var prefix = spritePrefix();
+    if (prefix && M_SPRITE[k]) {
+      return '<svg class="bn-use"><use href="#' + prefix + "-" + M_SPRITE[k] + '"/></svg>';
+    }
+    return M_ICO[k];
+  }
   /* 「我的」页内入口见 modules/me.js 的 ENTRIES。出刊(journal)已从手机端移除，仅桌面/平板保留。 */
   /* v1.25：总览页频道 tab 行已移除（信源收进设置，排行榜走今日榜「查看全部」），总览页直接呈现内容 */
 
@@ -510,7 +520,7 @@
         if (k === "inbox" && inboxUn) badge = '<i class="bn-badge">' + (inboxUn > 99 ? "99+" : inboxUn) + "</i>";
         var active = activeRoot === k;
         return '<button class="bn-item' + (active ? " active" : "") + '" data-view="' + k + '" title="' + l + '">' +
-          M_ICO[k] + badge +
+          mobileIcon(k) + badge +
           '<span class="bn-label">' + l + "</span></button>";
       }).join("");
     nav.querySelectorAll(".bn-item").forEach(function (b) {
@@ -615,7 +625,8 @@
       if (t) el.setAttribute("data-theme", t); else el.removeAttribute("data-theme");
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", THEME_META[t] || "#0b3a6e");
-      renderNav();   // 侧栏图标随主题即时切换（sprite use / 线性两套）
+      renderNav();      // 侧栏图标随主题即时切换（sprite use / 线性两套）
+      renderMobile();   // v1.25.1：手机底栏图标同样随主题即时切换
     },
     /* 宠物切换（设置页）：重绘侧栏窝位 */
     updatePet: function () { PET.apply(); },
