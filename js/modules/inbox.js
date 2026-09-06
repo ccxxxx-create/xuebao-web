@@ -41,8 +41,7 @@
     async render(el) {
       var items = Store.loadInbox();
       el.innerHTML =
-        '<div class="view-head"><div><h1 class="view-title">收件箱</h1>' +
-        '<p class="view-sub">更新公告、周末简报与系统消息都会投递到这里（仅存本机）。</p></div>' +
+        '<div class="view-head"><div><h1 class="view-title">收件箱</h1></div>' +
         '<div class="head-actions"><button class="btn sm" id="ibCheck">检查更新</button>' +
         '<button class="btn sm" id="ibReadAll">全部已读</button>' +
         '<button class="btn sm danger" id="ibClear">清空</button></div></div>' +
@@ -63,7 +62,7 @@
                 '<div class="inbox-body">' + makeBody(x.body || "", false) + openBrief + "</div>" +
                 "</div>";
             }).join("")
-          : '<div class="empty"><b>收件箱是空的</b>以后的新版本公告、周末简报等会出现在这里。</div>');
+          : '<div class="empty"><b>收件箱是空的</b>新公告会出现在这里。</div>');
       bind(el);
       function bind(root) {
         if (!root.__ib) {

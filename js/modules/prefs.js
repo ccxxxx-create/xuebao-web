@@ -29,8 +29,7 @@
           '<span class="kw-tag kw-more" data-more>' + (kwOpen ? "收起（共 " + kwArr.length + " 个）" : "＋ 还有 " + (kwArr.length - KW_COLLAPSE) + " 个") + "</span>";
       }
       el.innerHTML =
-        '<div class="view-head"><div><h1 class="view-title">兴趣中心</h1>' +
-        '<p class="view-sub">选择上方入口进入对应小界面</p></div></div>' +
+        '<div class="view-head"><div><h1 class="view-title">兴趣中心</h1></div></div>' +
         '<div class="maintabs" role="tablist" aria-label="兴趣中心功能切换">' + TABS.map(function (t) {
           return '<button role="tab" aria-selected="' + (state.tab === t.id ? "true" : "false") + '" class="' + (state.tab === t.id ? "active" : "") + '" data-tab="' + t.id + '">' + t.label + "</button>";
         }).join("") + "</div>" +
@@ -47,7 +46,7 @@
       }
       function kwCard() {
         return '<div class="card"><h3>我的关键词</h3>' +
-          '<p class="muted">命中后资料库/收藏夹显示「相关 N」角标。模糊匹配：任意位置出现即算相关，多个为“或”。</p>' +
+          '<p class="muted">命中的文章会显示「相关 N」角标。</p>' +
           '<div class="field"><label>点击标签删除；输入后回车加入，再点下方「保存关键词」生效</label>' +
           '<div class="kw-tags" id="kwChips">' + chipHtml() + "</div>" +
           '<input id="kwInput" placeholder="输入关键词，如：无人机 / aircraft carrier" style="width:100%"></div>' +
@@ -55,7 +54,6 @@
       }
       function learnCard() {
         return '<div class="card"><h3>喜好学习（数据积累 · 可选）</h3>' +
-          '<p class="muted">记录正向喜好（<b>收藏、生成学报</b>）；取消收藏为中性；“不感兴趣”与阅读时长弱正留大后期。</p>' +
           '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="bfLearn"' + (s.allowLearn ? " checked" : "") + "> 允许记录我的喜好（仅本机）</label>" +
           '<div class="art-actions"><button class="btn primary" id="bfLearnSave">保存</button>' +
           '<button class="btn" id="clrPref">清除行为记录</button></div>' +
@@ -64,7 +62,7 @@
       function draftCard(favN) {
         var ok = favN >= 3;
         return '<div class="card"><h3>自动提炼关键词草稿</h3>' +
-          '<p class="muted">从收藏文章的标题/摘要提炼候选词（覆盖文章数优先）。结果<b>不自动加入</b>，勾选后点加入。当前收藏 ' + favN + " 篇（≥3 可提炼，越多越准）。</p>" +
+          '<p class="muted">从收藏文章提炼候选词，勾选后才会加入。当前收藏 ' + favN + " 篇（≥3 可提炼，越多越准）。</p>" +
           '<div class="art-actions">' +
           '<button class="btn primary" id="kwExtract"' + (ok ? "" : " disabled") + ">" + (ok ? "开始提炼" : "收藏不足 3 篇") + "</button>" +
           '<button class="btn" id="kwExtClear">清空候选</button></div>' +

@@ -23,7 +23,7 @@
       var nowH = H.fmtDateTime ? H.fmtDateTime(Date.now()) : "";
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">信源与镜像</h1>' +
-        '<p class="view-sub">9 个官方信源每日定时汇集最新动态；可在此启用或停用单个信源（停用后不再收录新内容，历史数据保留）</p></div>' +
+        '<p class="view-sub">9 个官方信源每日定时汇集最新动态</p></div>' +
         '<div class="head-actions src-actions">' +
         '<button class="btn sm primary" id="srcPull">↻ 立即更新</button>' +
         '<div class="muted src-state">定时拉取：' + H.esc(((s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"]).join("、")) +
@@ -50,7 +50,6 @@
             ' <button class="btn sm" data-ch="' + c.id + '">' + (on ? "停用" : "启用") + "</button></td>" +
             "<td data-label='备注' class='muted' style='max-width:260px'>" + H.esc(c.note) + (m && m.error ? " · " + H.esc(m.error) : "") + "</td></tr>";
         }).join("") + "</tbody></table></div>" +
-        '<p class="muted">说明：停用仅作用于<b>本设备</b>（不再入库该源新条目），不改变云端公共镜像，也不删除已收录历史。</p>' +
         "</div>";
 
       var b = null;

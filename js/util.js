@@ -109,7 +109,7 @@
     kwBadge: function (r) {
       if (!r || !r.score) return "";
       var cls = r.score >= 10 ? "state-error" : r.score >= 4 ? "" : "ghost";
-      return '<span class="badge ' + cls + '" style="background:#fdeee0;color:#b06a1b">相关 ' + r.score + "</span>";
+      return '<span class="badge ' + cls + '" style="background:var(--warn-weak);color:var(--warn)">相关 ' + r.score + "</span>";
     },
 
     /* —— 价值排序（榜单 / 周末简报 / 离线回测共用）—— */

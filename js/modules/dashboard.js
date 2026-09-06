@@ -67,7 +67,7 @@
 
       /* —— 桌面端：最近入库列表（保持原样） —— */
       function recentHtml(list, rtStr) {
-        if (!list.length) return '<div class="empty"><b>资料库为空</b>待每日定时刷新（' + H.esc(rtStr) + "）自动抓取官方信源镜像。</div>";
+        if (!list.length) return '<div class="empty"><b>资料库为空</b>待每日定时刷新（' + H.esc(rtStr) + "）自动汇集官方信源。</div>";
         var top = list.slice().sort(function (a, b) { return String(b.pubDate).localeCompare(String(a.pubDate)); }).slice(0, 6);
         return '<div>' + top.map(function (a) {
           return '<div class="art" style="margin-bottom:8px"><div class="art-head">' +
@@ -75,7 +75,7 @@
             (a.titleZh ? ' <span class="badge ghost" style="font-weight:400">' + H.esc(a.title) + "</span>" : "") + "</div>" +
             '<div class="art-meta"><span class="badge A">A 官网直采</span><span>' + H.esc(a.channelName || a.channel) + "</span><span>" +
             H.fmtDay(a.pubDate) + "</span>" +
-            (a.fav ? '<span class="badge" style="background:#fdeee0;color:#b06a1b">收藏</span>' : "") +
+            (a.fav ? '<span class="badge" style="background:var(--warn-weak);color:var(--warn)">收藏</span>' : "") +
             "</div></div>" +
             "</div></div>";
         }).join("") + "</div>";
@@ -99,7 +99,7 @@
           '<div class="m-sec-head"><h3><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>今日榜</h3>' +
           '<button class="m-sec-more" data-goto="rankings">查看全部 ›</button></div>' +
           (top.length ? top.map(function (a, i) { return todayItem(a, i + 1); }).join("") :
-            '<div class="empty" style="padding:22px 10px"><b>暂无近期文章</b>待每日定时刷新（' + H.esc(rtStr) + "）自动抓取官方信源镜像。</div>") +
+            '<div class="empty" style="padding:22px 10px"><b>暂无近期文章</b>等每日定时刷新后，这里就有内容了。</div>') +
           "</div>" +
 
           // 统计区精炼

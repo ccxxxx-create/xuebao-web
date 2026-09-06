@@ -100,30 +100,162 @@
     { zh: "基地", en: "military base", vs: ["base", "installation", "military installation"] }
   ];
 
-  var SEED_KEY = "xuebao-term-seeded";   // 已导入过种子词库（仅一次，防止清库后被重复导入）
+  /* ── 内置词库第二包（v1.24）：面向手机端「看新闻」场景扩充 ——
+     覆盖 太空/海军/空军/导弹核/陆军重装备/网络情报/地缘组织 等高频报道词汇。
+     与第一包不同：不分冷启动，老用户升级后自动补装（按英文名幂等合入，不覆盖已有条目）。 */
+  var SEED_TERMS_V2 = [
+    // —— 太空 / 卫星 ——
+    { zh: "军用卫星", en: "military satellite", vs: ["defense satellite", "military satellites"] },
+    { zh: "侦察卫星", en: "reconnaissance satellite", vs: ["spy satellite", "imaging satellite", "earth observation satellite", "remote sensing satellite"] },
+    { zh: "通信卫星", en: "communications satellite", vs: ["communication satellite", "COMSAT"] },
+    { zh: "全球定位系统", en: "GPS", vs: ["Global Positioning System", "GPS satellites", "GNSS", "global navigation satellite system"] },
+    { zh: "反卫星武器", en: "anti-satellite weapon", vs: ["ASAT", "anti-satellite missile", "anti-satellite test", "counterspace weapon"] },
+    { zh: "轨道", en: "orbit", vs: ["orbital", "low Earth orbit", "LEO", "geostationary orbit", "GEO"] },
+    { zh: "太空军", en: "Space Force", vs: ["U.S. Space Force", "USSF", "Space Command", "SPACECOM"] },
+    { zh: "发射载具", en: "launch vehicle", vs: ["rocket", "booster", "launch rocket"] },
+    // —— 海军 / 舰艇 ——
+    { zh: "航空母舰", en: "aircraft carrier", vs: ["carrier", "flattop"] },
+    { zh: "核动力航母", en: "nuclear-powered aircraft carrier", vs: ["nuclear carrier", "supercarrier"] },
+    { zh: "潜艇", en: "submarine", vs: ["sub", "boats"] },
+    { zh: "核潜艇", en: "nuclear submarine", vs: ["nuclear-powered submarine"] },
+    { zh: "弹道导弹潜艇", en: "ballistic missile submarine", vs: ["SSBN", "boomer", "strategic missile submarine"] },
+    { zh: "攻击潜艇", en: "attack submarine", vs: ["SSN", "attack sub", "nuclear attack submarine"] },
+    { zh: "驱逐舰", en: "destroyer", vs: ["guided-missile destroyer", "DDG"] },
+    { zh: "护卫舰", en: "frigate", vs: ["guided-missile frigate", "FFG"] },
+    { zh: "两栖攻击舰", en: "amphibious assault ship", vs: ["LHA", "LHD", "helicopter carrier", "amphib"] },
+    { zh: "船坞登陆舰", en: "amphibious transport dock", vs: ["LPD", "landing platform dock", "dock landing ship", "LSD"] },
+    { zh: "宙斯盾", en: "Aegis", vs: ["Aegis combat system", "Aegis-equipped", "Aegis destroyer"] },
+    { zh: "声呐", en: "sonar", vs: ["sonar array", "towed array"] },
+    { zh: "鱼雷", en: "torpedo", vs: ["heavyweight torpedo", "torpedo attack"] },
+    { zh: "水雷战", en: "mine warfare", vs: ["naval mine", "sea mine", "minesweeping", "mine countermeasures"] },
+    { zh: "自由航行", en: "freedom of navigation", vs: ["FONOP", "freedom of navigation operation", "innocent passage"] },
+    { zh: "海试", en: "sea trial", vs: ["sea trials", "shakedown cruise"] },
+    { zh: "服役", en: "commissioning", vs: ["commissioned into service", "enter service"] },
+    // —— 空军 / 军机 ——
+    { zh: "轰炸机", en: "bomber", vs: ["bombing aircraft"] },
+    { zh: "战略轰炸机", en: "strategic bomber", vs: ["heavy bomber", "long-range bomber"] },
+    { zh: "战斗机", en: "fighter jet", vs: ["fighter aircraft", "fighter plane", "jet fighter", "fighters"] },
+    { zh: "截击机", en: "interceptor", vs: ["interceptor aircraft", "interception aircraft"] },
+    { zh: "空中加油", en: "aerial refueling", vs: ["air refueling", "tanker aircraft", "refueling tanker", "mid-air refueling"] },
+    { zh: "空运", en: "airlift", vs: ["air transport", "cargo aircraft", "strategic airlift"] },
+    { zh: "架次", en: "sortie", vs: ["sorties", "flight sortie"] },
+    { zh: "禁飞区", en: "no-fly zone", vs: ["no fly zone", "airspace restriction", "flight restriction zone"] },
+    { zh: "制空权", en: "air superiority", vs: ["air dominance", "control of the air"] },
+    { zh: "拦截", en: "intercept", vs: ["interception", "shadowed", "escorted away", "buzzed"] },
+    { zh: "紧急起飞", en: "scramble", vs: ["scrambled jets", "emergency launch"] },
+    { zh: "飞行训练", en: "flight training", vs: ["training flight", "training sortie", "flight operations"] },
+    // —— 导弹 / 核力量 ——
+    { zh: "洲际弹道导弹", en: "intercontinental ballistic missile", vs: ["ICBM", "intercontinental ballistic missiles"] },
+    { zh: "潜射弹道导弹", en: "submarine-launched ballistic missile", vs: ["SLBM", "submarine-launched missile"] },
+    { zh: "中程导弹", en: "intermediate-range missile", vs: ["intermediate range missile", "medium-range missile", "MRBM", "short-range ballistic missile", "SRBM"] },
+    { zh: "核弹头", en: "nuclear warhead", vs: ["warhead", "nuclear payload"] },
+    { zh: "三位一体核力量", en: "nuclear triad", vs: ["triad", "strategic triad"] },
+    { zh: "核试验", en: "nuclear test", vs: ["nuclear test site", "underground nuclear test"] },
+    { zh: "试射", en: "test launch", vs: ["test firing", "missile test", "test-fire", "live-fire test"] },
+    { zh: "反导拦截", en: "missile interception", vs: ["missile intercept", "missile defense interception", "exoatmospheric intercept"] },
+    { zh: "萨德", en: "THAAD", vs: ["Terminal High Altitude Area Defense", "Terminal High Altitude Area Defence"] },
+    { zh: "爱国者导弹", en: "Patriot missile", vs: ["Patriot", "Patriot battery", "PAC-3", "MIM-104 Patriot"] },
+    // —— 陆军 / 重装备 ——
+    { zh: "榴弹炮", en: "howitzer", vs: ["self-propelled howitzer", "towed howitzer", "artillery piece"] },
+    { zh: "火箭炮", en: "rocket launcher", vs: ["multiple rocket launcher", "MRL", "MLRS", "Multiple Launch Rocket System"] },
+    { zh: "高机动火箭炮兵系统", en: "HIMARS", vs: ["High Mobility Artillery Rocket System"] },
+    { zh: "主战坦克", en: "main battle tank", vs: ["MBT", "battle tank", "tank"] },
+    { zh: "步兵战车", en: "infantry fighting vehicle", vs: ["IFV", "armored fighting vehicle", "AFV"] },
+    { zh: "装甲车", en: "armored vehicle", vs: ["armoured vehicle", "armored personnel carrier", "APC"] },
+    { zh: "精确制导弹药", en: "precision-guided munition", vs: ["PGM", "smart munition", "guided bomb", "JDAM", "precision munition"] },
+    { zh: "火炮", en: "artillery", vs: ["artillery fire", "tube artillery", "field artillery"] },
+    { zh: "迫击炮", en: "mortar", vs: ["mortars", "mortar fire"] },
+    { zh: "轻武器", en: "small arms", vs: ["firearms", "rifles", "light weapons"] },
+    { zh: "定向能武器", en: "directed energy weapon", vs: ["DEW", "laser weapon", "high-power microwave weapon"] },
+    // —— 网络 / 情报 / 电子战 ——
+    { zh: "网络攻击", en: "cyberattack", vs: ["cyber attack", "cyberattack campaign", "hack", "intrusion"] },
+    { zh: "网络安全", en: "cybersecurity", vs: ["cyber security", "cyber defense"] },
+    { zh: "网络司令部", en: "Cyber Command", vs: ["U.S. Cyber Command", "USCYBERCOM"] },
+    { zh: "信号情报", en: "signals intelligence", vs: ["SIGINT", "signal intelligence", "communications intelligence", "COMINT"] },
+    { zh: "人力情报", en: "human intelligence", vs: ["HUMINT"] },
+    { zh: "公开来源情报", en: "open-source intelligence", vs: ["OSINT", "open source intelligence"] },
+    { zh: "国防情报局", en: "Defense Intelligence Agency", vs: ["DIA"] },
+    { zh: "中央情报局", en: "CIA", vs: ["Central Intelligence Agency"] },
+    { zh: "电子干扰", en: "jamming", vs: ["electronic jamming", "GPS jamming", "signal jamming", "spoofing", "GPS spoofing"] },
+    { zh: "情报界", en: "intelligence community", vs: ["IC", "intel community"] },
+    // —— 地缘 / 组织 / 制度 ——
+    { zh: "北约", en: "NATO", vs: ["North Atlantic Treaty Organization", "North Atlantic Treaty Organisation", "the alliance"] },
+    { zh: "集体防御条款", en: "Article 5", vs: ["Article Five", "collective defense clause", "collective defence"] },
+    { zh: "军备控制", en: "arms control", vs: ["weapon control", "arms control treaty"] },
+    { zh: "军备竞赛", en: "arms race", vs: ["weapon race"] },
+    { zh: "防扩散", en: "non-proliferation", vs: ["nonproliferation", "NPT", "Non-Proliferation Treaty", "counterproliferation"] },
+    { zh: "制裁", en: "sanctions", vs: ["economic sanctions", "sanctions regime", "export controls"] },
+    { zh: "禁运", en: "embargo", vs: ["arms embargo", "trade embargo"] },
+    { zh: "代理人战争", en: "proxy war", vs: ["proxy conflict", "proxy warfare"] },
+    { zh: "混合战争", en: "hybrid warfare", vs: ["hybrid war", "hybrid threats"] },
+    { zh: "局势升级", en: "escalation", vs: ["escalate", "escalating tensions", "de-escalation", "deescalation"] },
+    { zh: "停火", en: "ceasefire", vs: ["cease-fire", "truce", "halt to fighting"] },
+    { zh: "维和", en: "peacekeeping", vs: ["peacekeeping operation", "peacekeepers"] },
+    { zh: "兵棋推演", en: "wargame", vs: ["war game", "wargaming", "tabletop exercise", "simulation exercise"] },
+    { zh: "战备状态", en: "readiness", vs: ["combat readiness", "force readiness", "operational readiness"] },
+    { zh: "警戒状态", en: "alert", vs: ["high alert", "alert status", "on alert"] },
+    { zh: "动员", en: "mobilization", vs: ["mobilise", "mobilize", "partial mobilization"] },
+    { zh: "预备役", en: "reserve", vs: ["reserves", "reserve forces", "Reserve Component"] },
+    { zh: "征兵", en: "conscription", vs: ["draft", "military draft", "enlistment"] },
+    { zh: "退伍军人", en: "veteran", vs: ["veterans", "former service members"] },
+    { zh: "国防部长", en: "defense secretary", vs: ["Secretary of Defense", "SecDef", "defense minister", "Defence Secretary"] },
+    { zh: "参谋长联席会议", en: "Joint Chiefs of Staff", vs: ["JCS", "chairman of the Joint Chiefs", "CJCS"] },
+    { zh: "军事委员会", en: "Armed Services Committee", vs: ["Senate Armed Services Committee", "SASC", "House Armed Services Committee", "HASC"] },
+    { zh: "国防授权法案", en: "National Defense Authorization Act", vs: ["NDAA", "defense authorization bill"] },
+    { zh: "国防拨款", en: "defense appropriations", vs: ["defense funding", "military appropriations"] },
+    { zh: "国防战略", en: "National Defense Strategy", vs: ["NDS", "defense strategy"] },
+    { zh: "核态势评估", en: "Nuclear Posture Review", vs: ["NPR"] },
+    { zh: "四防协议", en: "acquisition and cross-servicing agreement", vs: ["ACSA", "logistics support agreement"] },
+    // —— 行动 / 事件 ——
+    { zh: "实弹演习", en: "live-fire exercise", vs: ["live-fire drill", "live fire drill", "live ammunition exercise"] },
+    { zh: "战斗巡逻", en: "combat patrol", vs: ["patrol mission", "routine patrol", "patrol"] },
+    { zh: "自由飞越", en: "overflight", vs: ["flyover", "airspace violation", "incursion into airspace", "air incursion"] },
+    { zh: "海上对峙", en: "maritime confrontation", vs: ["standoff at sea", "close encounter at sea", "unsafe interaction"] },
+    { zh: "伤亡", en: "casualty", vs: ["casualties", "fatalities", "deaths"] },
+    { zh: "撤军", en: "withdrawal", vs: ["troop withdrawal", "pullout", "drawdown"] },
+    { zh: "增兵", en: "troop surge", vs: ["surge", "reinforcement", "additional troops"] },
+    { zh: "轮换部署", en: "rotational deployment", vs: ["rotation", "rotational forces", "deploy rotation"] },
+    { zh: "停战协议", en: "armistice", vs: ["peace agreement", "truce agreement"] }
+  ];
+  var SEED_KEY = "xuebao-term-seeded";          // 第一包：仅库空时冷启动导入
+  var SEED_KEY_V2 = "xuebao-term-seeded-v2";    // 第二包：老用户升级后也自动补装（幂等）
+
+  function seedRow(s) {
+    var seen = {};
+    var vs = (s.vs || []).filter(function (v) {
+      var k = (v || "").trim().toLowerCase();
+      if (!k || k === s.en.toLowerCase() || seen[k]) return false;
+      seen[k] = true;
+      return true;
+    });
+    return { term_en: s.en, term_zh: s.zh, en_variants: vs, scope: "all", source: "内置军语库", enabled: 1 };
+  }
+
   function seedIfEmpty() {
     var seeded = 0;
     try { seeded = parseInt(localStorage.getItem(SEED_KEY), 10) || 0; } catch (e) {}
-    if (seeded) return Promise.resolve(0);
-    return Store.getAllTerms().then(function (terms) {
-      if (!terms.length) {
-        var rows = SEED_TERMS.map(function (s) {
-          var seen = {};
-          var vs = (s.vs || []).filter(function (v) {
-            var k = (v || "").trim().toLowerCase();
-            if (!k || k === s.en.toLowerCase() || seen[k]) return false;
-            seen[k] = true;
-            return true;
-          });
-          return { term_en: s.en, term_zh: s.zh, en_variants: vs, scope: "all", source: "JP 1-02 军事术语种子", enabled: 1 };
-        });
-        return Store.bulkPutTerms(rows).then(function () { return rows.length; });
-      }
-      return 0;
+    var first = Store.getAllTerms().then(function (terms) {
+      if (seeded || terms.length) return 0;
+      var rows = SEED_TERMS.map(seedRow);
+      return Store.bulkPutTerms(rows).then(function () { return rows.length; });
     }).then(function (n) {
       try { localStorage.setItem(SEED_KEY, "1"); } catch (e) {}
       return n;
     });
+    // 第二包：无论新旧用户，只要没装过就合入；已存在的同名英文条目不覆盖（尊重用户修改）
+    var seededV2 = 0;
+    try { seededV2 = parseInt(localStorage.getItem(SEED_KEY_V2), 10) || 0; } catch (e) {}
+    var second = seededV2 ? Promise.resolve(0) : Store.getAllTerms().then(function (terms) {
+      var have = {};
+      (terms || []).forEach(function (t) { if (t && t.term_en) have[String(t.term_en).toLowerCase()] = 1; });
+      var rows = SEED_TERMS_V2.filter(function (s) { return s.en && !have[String(s.en).toLowerCase()]; }).map(seedRow);
+      if (!rows.length) return 0;
+      return Store.bulkPutTerms(rows).then(function () { return rows.length; });
+    }).then(function (n) {
+      try { localStorage.setItem(SEED_KEY_V2, "1"); } catch (e) {}
+      return n;
+    });
+    return Promise.all([first, second]).then(function (r) { return (r[0] || 0) + (r[1] || 0); });
   }
 
   function parseExtract(text) {
@@ -192,7 +324,7 @@
       await seedIfEmpty();
       // 自动归并同译法（幂等）：进入术语库即合并，避免“多写法多条”的混乱
       await Store.mergeTermsByZh().catch(function () { return 0; });
-      var cands = Store.loadCands().filter(function (c) { return c.state === "pending"; });
+      var cands = H.isMobile() ? [] : Store.loadCands().filter(function (c) { return c.state === "pending"; });
       var terms = await Store.getAllTerms();
       terms = terms.slice().sort(function (a, b) { return (b.enabled || 0) - (a.enabled || 0); });
       var on = terms.filter(function (t) { return t.enabled !== 0; }).length;
@@ -208,7 +340,7 @@
           }).join("") + "</div></div>"
         : "";
 
-      // Excel 导入/导出仅电脑端（手机端保留阅读与提取，不做文件管理）
+      // Excel 导入/导出仅电脑端（手机端定位为纯浏览，不做文件管理，v1.24 起也不再做提取确认）
       var xlsxCard = H.isMobile() ? "" :
         '<div class="card"><div class="card-title">导入 / 导出（Excel）</div>' +
         '<p class="muted" style="margin-bottom:10px">三列格式：英文 · 英文变体 · 中文。导出全词库做备份汇总；导入按"英文主形式"合并——已有概念更新译名并并进变体，新概念自动入库。</p>' +
@@ -217,33 +349,49 @@
         '<button class="btn" id="tXlsxImp" style="margin-left:8px">从 Excel 导入</button>' +
         "</div>";
 
+      var isMob = H.isMobile();
+      var subHtml = isMob
+        ? "内置军语库 · 共 " + terms.length + " 条 · 译到任一英文写法都按规范译名翻译"
+        : "启用 " + on + " / 共 " + terms.length + " 条概念 · 译到任一英文变体都按规范译名；命中词条自动注入翻译提示词";
+
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">术语库</h1>' +
-        '<p class="view-sub">启用 ' + on + " / 共 " + terms.length + " 条概念 · 每条含规范译名与多个英文变体，译到任一变体都按规范译名；命中词条注入翻译/学报编译提示词</p></div>" +
+        '<p class="view-sub">' + subHtml + "</p></div>" +
         '<div class="head-actions">' +
-        '<button class="btn ghost" id="tMerge" title="自动把同译法多条并成一条概念">归并去重</button>' +
+        (isMob ? "" : '<button class="btn ghost" id="tMerge" title="自动把同译法多条并成一条概念">归并去重</button>') +
         '<button class="btn primary" id="tAdd">+ 新增概念</button></div></div>' +
         candHtml +
         xlsxCard +
         '<div class="card">' +
         '<div class="card-title">概念词表</div>' +
+        '<div class="filters"><input id="tSearch" class="search" type="search" placeholder="搜索：中文 / 英文 / 变体，如 无人机、drone"></div>' +
         (terms.length
-          ? '<div class="tbl-wrap"><table class="data"><thead><tr><th>规范译名</th><th>英文（主 + 同义变体）</th><th>作用范围</th><th>状态</th><th>操作</th></tr></thead><tbody>' +
+          ? '<div class="tbl-wrap"><table class="data" id="tTbl"><thead><tr><th>规范译名</th><th>英文（主 + 同义变体）</th><th>作用范围</th><th>状态</th><th>操作</th></tr></thead><tbody>' +
           terms.map(function (t) {
             var vs = Store.termVariants(t);
             var chips = vs.map(function (v) { return '<span class="term-chip">' + H.esc(v) + "</span>"; }).join("");
-            return "<tr><td><b>" + H.esc(t.term_zh) + "</b></td><td data-label=\"英文\">" + chips + "</td><td data-label=\"作用范围\">" + H.esc(t.scope || "all") + "</td>" +
+            var hay = H.esc((t.term_zh + " " + t.term_en + " " + (t.en_variants || []).join(" ")).toLowerCase());
+            return '<tr data-tsearch="' + hay + '"><td><b>' + H.esc(t.term_zh) + "</b></td><td data-label=\"英文\">" + chips + "</td><td data-label=\"作用范围\">" + H.esc(t.scope || "all") + "</td>" +
               "<td>" + (t.enabled !== 0 ? '<span class="badge state-ok">启用</span>' : '<span class="badge ghost">停用</span>') + "</td>" +
               '<td><button class="btn sm" data-edit="' + H.esc(t.term_en) + '">编辑</button> ' +
               '<button class="btn sm" data-tog="' + H.esc(t.term_en) + '">' + (t.enabled !== 0 ? "停用" : "启用") + "</button> " +
               '<button class="btn sm danger" data-del="' + H.esc(t.term_en) + '">删除</button></td></tr>';
           }).join("") + "</tbody></table></div>"
-          : '<div class="empty"><b>术语库为空</b>可先加入无人机/反无人机/巡飞弹等常用军语，或在阅读时一键「提取本篇术语」。</div>') +
-        "</div>" +
-        '<div class="note">用法：阅读文章时点「提取本篇术语」→ 术语进「待确认」→ 采纳并入词库。一个概念可录多个英文变体（如 drone / UAV），译到任一都按同一条规范译名。预置可自行增删：drone/UAV→无人机；counter-UAS/counter-drone→反无人机；loitering munition→巡飞弹；ground-based radar→地面雷达；defense budget→防务预算；think tank→智库。（老词表中译法重复的多条会在进入本页时自动归并）</div>';
+          : '<div class="empty"><b>术语库为空</b>' + (isMob ? "点右上「+ 新增概念」手动加入；更完整的内置军语库将在电脑端维护。" : "可点右上「+ 新增概念」手动加入，或在阅读文章时一键提取。") + "</div>") +
+        "</div>";
+
+      // 搜索：中/英/变体实时过滤（纯前端，不落库）
+      var searchEl = el.querySelector("#tSearch");
+      if (searchEl) searchEl.addEventListener("input", function () {
+        var q = this.value.trim().toLowerCase();
+        el.querySelectorAll("#tTbl tbody tr").forEach(function (tr) {
+          tr.style.display = !q || (tr.getAttribute("data-tsearch") || "").indexOf(q) >= 0 ? "" : "none";
+        });
+      });
 
       el.querySelector("#tAdd").addEventListener("click", function () { editModal(null); });
-      el.querySelector("#tMerge").addEventListener("click", function () {
+      var mergeBtn = el.querySelector("#tMerge");
+      if (mergeBtn) mergeBtn.addEventListener("click", function () {
         Store.mergeTermsByZh().then(function (n) { App.toast(n > 0 ? "已归并 " + n + " 条重复译法" : "无重复需要归并", "ok"); App.refresh(); });
       });
       var xOut = el.querySelector("#tXlsxOut");

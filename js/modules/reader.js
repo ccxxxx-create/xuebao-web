@@ -456,7 +456,7 @@
         '<div class="view-head"><div><h1 class="view-title">' + esc(a.titleZh || a.title) + "</h1>" +
         (a.titleZh && a.titleZh !== a.title ? '<p class="view-sub" style="margin-top:6px">' + esc(a.title) + "</p>" : "") +
         '<div class="art-meta" style="margin-top:8px">' + cmpMeta(a) +
-        (a.fav ? '<span class="badge" style="background:#fdeee0;color:#b06a1b">收藏</span>' : "") +
+        (a.fav ? '<span class="badge" style="background:var(--warn-weak);color:var(--warn)">收藏</span>' : "") +
         (kwr && kwr.score ? H.kwBadge(kwr) : "") +
         "</div></div>" +
         '<div class="head-actions">' +
@@ -483,7 +483,8 @@
         '<button class="btn sm" id="rdLike" title="喜欢这篇文章（正向反馈）">' + icon("like", a.like) + "</button>" +
         '<button class="btn sm" id="rdFav" title="' + (a.fav ? "取消收藏" : "收藏") + '">' + icon("fav", a.fav) + "</button>" +
         '<button class="btn sm primary" id="rdSum" title="摘要（中/英）">' + icon("sum") + "</button>" +
-        '<button class="btn sm" id="rdTerms" title="提取本篇核心军语/科技术语进候选（以整篇文章为单位）">' + icon("terms") + "</button>" +
+        // 手机端不做「提取术语」（反复提取再确认太重）：手机定位为看新闻的阅读端，术语库内置即用
+        (H.isMobile() ? "" : '<button class="btn sm" id="rdTerms" title="提取本篇核心军语/科技术语进候选（以整篇文章为单位）">' + icon("terms") + "</button>") +
         '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + " title=\"" + H.esc(fullLabel || "翻译全文") + '">' + icon("full") + "</button>" +
         "</div>";
 
@@ -548,6 +549,7 @@
                 if (nowOn) {
                   a.like = 1;
                   Store.logPreference("like", x.url, x.titleZh || x.title); // 正向学习信号（静默记录，不打扰）
+                  App.petReact("happy");   // 宠物开心一下
                 } else {
                   a.like = 0;
                 }
@@ -565,6 +567,7 @@
                 if (nowOn) {
                   Store.logPreference("fav", x.url, x.titleZh || x.title);
                   App.toast("已收藏", "ok");
+                  App.petReact("happy");
                   window.UI.afterFav(x);
                 } else {
                   App.toast("已取消收藏");

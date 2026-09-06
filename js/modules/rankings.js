@@ -27,7 +27,7 @@
     return c;
   }
   function metaHtml(a, num, extraBadges) {
-    var medal = num <= 3 ? '<span class="badge" style="background:#ffe9c2;color:#8a5a00">TOP' + num + "</span>" : '<span class="badge ghost">' + num + "</span>";
+    var medal = num <= 3 ? '<span class="badge" style="background:var(--warn-weak);color:var(--warn)">TOP' + num + "</span>" : '<span class="badge ghost">' + num + "</span>";
     return '<div class="art-meta" style="margin-top:6px"><span class="badge A">A</span>' +
       "<span>" + H.esc(a.channelName || a.channel) + "</span><span>" + H.fmtDay(a.pubDate) + "</span>" +
       (extraBadges || "") + "</div>";
@@ -35,7 +35,7 @@
   function reasonHtml(reasons) {
     if (!reasons || !reasons.length) return "";
     return '<div class="art-meta" style="margin-top:4px">' + reasons.map(function (r) {
-      return '<span class="badge" style="background:#e4f1fd;color:#0b4f8f">' + H.esc(r) + "</span>";
+      return '<span class="badge" style="background:var(--accent-weak);color:var(--primary)">' + H.esc(r) + "</span>";
     }).join("") + "</div>";
   }
   function itemHtml(a, num, reasons) {
@@ -53,8 +53,7 @@
       if (s.exploreRate == null) s.exploreRate = 0.1;
       var all = (await Store.getAllArticles()).filter(function (a) { return Store.channelOn(a.channel); });
       el.innerHTML =
-        '<div class="view-head"><div><h1 class="view-title">排行榜</h1>' +
-        '<p class="view-sub">今日榜关注时效；兴趣榜按「兴趣相关/新鲜度/来源权威/热度」加权排序。权重与探索率在 设置 → 排序与喜好学习 调节。</p></div>' +
+        '<div class="view-head"><div><h1 class="view-title">排行榜</h1></div>' +
         '<div class="head-actions"><a class="btn primary" href="#/settings">⚙ 调权重与探索率</a></div></div>' +
         '<div class="filters seg">' +
         '<button class="' + (state.tab === "today" ? "active" : "") + '" data-tab="today">今日榜</button>' +

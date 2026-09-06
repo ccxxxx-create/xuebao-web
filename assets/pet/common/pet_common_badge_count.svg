@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- P-7 · 任务数角标底（数字由前端 DOM 叠加，不烘字）· currentColor 控制底色 -->
+  <circle cx="16" cy="16" r="14" fill="currentColor"/>
+  <circle cx="16" cy="16" r="14" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="2.5"/>
+</svg>

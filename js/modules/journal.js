@@ -178,7 +178,7 @@
       var curId = Store.settings.journalTemplateId || "builtin";
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">学报出刊</h1>' +
-        '<p class="view-sub">从资料库挑文章 → 点「直接出刊」逐个生成学报 Word 文档 · 出刊记录 ' + journals.length + " 份</p></div>" +
+        '<p class="view-sub">出刊记录 ' + journals.length + " 份</p></div>" +
         '<div class="head-actions"><a class="btn primary" href="#/library">去资料库选文 →</a></div></div>' +
 
         '<div class="card"><h3>出刊模板</h3>' +
@@ -212,9 +212,8 @@
               '<button class="btn sm" data-vrf="' + j.id + '">校验报告</button> ' +
               '<button class="btn sm danger" data-del="' + j.id + '">删除</button></td></tr>';
           }).join("") + "</tbody></table></div>"
-          : '<div class="empty"><b>暂无出刊记录</b>在「资料库」给文章点「直接出刊」，生成后的文件会记录在这里可回看、重新下载。</div>') +
-        "</div>" +
-        '<div class="note">生成的 Word 严格按所选模板版式（页面尺寸/边距/字体字号）输出，“供稿”默认是占位文字，可在 Word 中直接改为真实署名。</div>';
+          : '<div class="empty"><b>暂无出刊记录</b>在「资料库」给文章点「直接出刊」，文件会记录在这里。</div>') +
+        "</div>";
 
       bindUpload(el);
 

@@ -6,7 +6,7 @@
 
   function artBadges(a) {
     var out = [];
-    if (a.fav) out.push('<span class="badge" style="background:#fdeee0;color:#b06a1b">收藏</span>');
+    if (a.fav) out.push('<span class="badge" style="background:var(--warn-weak);color:var(--warn)">收藏</span>');
     if (a.titleZh) out.push('<span class="badge state-ok">已译标题</span>');
     if (a.zhState === "ok") out.push('<span class="badge state-ok">全文已译</span>');
     return out.join(" ");
@@ -164,6 +164,7 @@
             if (nowOn) {
               Store.logPreference("fav", a.url, a.titleZh || a.title);
               App.toast("已收藏", "ok");
+              App.petReact("happy");
               window.UI.afterFav(a);
             }
             else { App.toast("已取消收藏"); App.refresh(); }

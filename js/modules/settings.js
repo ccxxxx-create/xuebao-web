@@ -36,9 +36,9 @@
     var presetOpts = LLM.PRESETS.map(function (x) {
       return '<option value="' + x.id + '"' + (s.preset === x.id ? " selected" : "") + ">" + H.esc(x.label) + "</option>";
     }).join("");
-    return '<div class="card"><h3>模型（翻译 / 编译在线直连）</h3>' +
+    return subHead("翻译模型") +
       '<p style="margin:0 0 6px">状态：' + statusBadge(s) + "</p>" +
-      '<p class="muted">翻译与出刊调用在线大模型接口。密钥仅保存在本机、不会上传；未配置时翻译与出刊会先提示去配置。</p>' +
+      '<p class="muted">密钥仅保存在本机、不会上传；未配置时翻译与出刊会先提示去配置。</p>' +
       '<div class="filters" style="margin-top:6px">' +
       '<label class="chip"><input type="radio" name="pvMode" value="preset"' + (isPreset ? " checked" : "") + "> 厂商预置</label>" +
       '<label class="chip"><input type="radio" name="pvMode" value="custom"' + (!isPreset ? " checked" : "") + "> 自定义端点</label>" +
@@ -50,8 +50,7 @@
       '<div class="field"><label>模型名</label><input id="pvModel" value="' + H.esc(model) + '" placeholder="模型 id"></div>' +
       '<div class="field"><label>API Key（本地明文存储，不上传）</label><input id="pvKey" type="password" value="' + H.esc(s.apiKey || "") + '" placeholder="sk-…"></div>' +
       '<div class="art-actions"><button class="btn" id="pvTest">测试连接</button><button class="btn primary" id="pvSave" title="保存并自动测试连接；必填项空缺会醒目提示">保存并测试连接</button></div>' +
-      '<div id="pvResult"></div>' +
-      "</div>";
+      '<div id="pvResult"></div>';
   }
 
   function effPx(s) {
@@ -62,6 +61,13 @@
   }
 
   /* 设置项折叠：卡片只留标题，点击展开/收起 */
+  /* 设置页分组内小节标题 */
+  function subHead(t) { return '<h4 class="set-sub-t">' + H.esc(t) + "</h4>"; }
+  /* 组卡外壳：h3 标题 + 当前值摘要；正文交给 collapseCards 折叠 */
+  function setCard(title, sum, inner) {
+    return '<div class="card"><h3>' + H.esc(title) + (sum ? '<span class="set-sum">' + H.esc(sum) + "</span>" : "") + "</h3>" + inner + "</div>";
+  }
+
   function collapseCards(root, openTitles) {
     root.querySelectorAll(".card").forEach(function (c) {
       var h = c.querySelector("h3");
@@ -73,6 +79,7 @@
       h.classList.add("set-head");
       var open = (openTitles || []).some(function (t) { return h.textContent.indexOf(t) >= 0; });
       body.hidden = !open;
+      h.classList.toggle("collapsed", !open);   // 初始折叠态箭头朝下（v1.24 修复方向反了）
       h.addEventListener("click", function () {
         body.hidden = !body.hidden;
         h.classList.toggle("collapsed", body.hidden);
@@ -82,16 +89,14 @@
 
   function displaySectionHtml(s) {
     var px = effPx(s);
-    return '<div class="card"><h3>显示与字号</h3>' +
-      '<p class="muted">拖动滑条实时预览，松手自动保存（12–24px，建议 14–20）。rem 相对字号，兼容 Chrome / Edge / Firefox / Safari。</p>' +
+    return subHead("显示与字号") +
       '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
       '<label class="muted" for="dsRange">界面字号</label>' +
       '<input type="range" id="dsRange" min="12" max="24" step="1" value="' + px + '" style="flex:1;min-width:160px;max-width:320px">' +
-      '<span class="badge" id="dsVal" style="background:#e4f1fd;color:#0b4f8f;font-size:.9rem;min-width:52px;text-align:center">' + px + " px</span>" +
+      '<span class="badge" id="dsVal" style="background:var(--accent-weak);color:var(--primary);font-size:.9rem;min-width:52px;text-align:center">' + px + " px</span>" +
       "</div>" +
       '<div class="field" style="margin:4px 0 0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dsDualTitle"' + (s.libDualTitle !== false ? " checked" : "") + "> 资料库标题：中英双语显示（关闭后仅显示英文标题）</label></div>" +
-      '<div class="fz-preview" id="fzSample">预览：述势 · 今日新增 29 篇 · “相关角标与摘要随字号实时缩放”</div>' +
-      "</div>";
+      '<div class="fz-preview" id="fzSample">预览：述势 · 今日新增 29 篇 · “相关角标与摘要随字号实时缩放”</div>';
   }
 
   /* 主题外观（多主题系统：蓝天/深空夜航/纸面学报/极简灰/艺术装饰/解密档案/终端/玻璃晨光） */
@@ -138,8 +143,7 @@
       "</span></span>";
   }
   function themeSectionHtml(s) {
-    return '<div class="card"><h3>主题外观</h3>' +
-      '<p class="muted" style="margin:2px 0 10px">每张卡片就是该主题的页面缩略模样，点选即时生效并保存到本机。</p>' +
+    return subHead("主题外观") +
       '<div class="theme-grid" id="thGrid">' +
       THEMES.map(function (t) {
         return '<button type="button" class="theme-pick' + ((s.theme || "") === t[0] ? " on" : "") + '" data-th="' + t[0] + '" title="' + H.esc(t[1]) + '">' +
@@ -147,14 +151,13 @@
           '<span class="th-name">' + H.esc(t[1]) + "</span>" +
           ((s.theme || "") === t[0] ? '<span class="th-check">✓ 使用中</span>' : "") +
           "</button>";
-      }).join("") + "</div></div>";
+      }).join("") + "</div>";
   }
 
   /* 阅读宠物：空白=关闭；xiaoyi=小翼 / xinshi=信使 / jiaoguan=教官 / dida=滴答 */
   var PETS = [["", "关闭"], ["xiaoyi", "小翼 · 卡通战机"], ["xinshi", "信使 · 机械信鸽"], ["jiaoguan", "教官 · 情报猫头鹰"], ["dida", "滴答 · 电报机"], ["haowang", "好望 · 老飞艇"], ["moling", "墨翎 · 胖钢笔"], ["xiazi", "匣子 · 老收音机"], ["chuchu", "戳戳 · 朱泥图章"], ["sinan", "斗勺 · 司南"]];
   function petSectionHtml(s) {
-    return '<div class="card"><h3>阅读宠物</h3>' +
-      '<p class="muted" style="margin:2px 0 10px">宠物会作为后台翻译/摘要/简报任务的「看得见的陪伴」，随任务状态切换表情、统计进行中数量；点击窝位可展开任务面板。</p>' +
+    return subHead("阅读宠物") +
       '<div class="pet-set" id="petSet">' +
       PETS.map(function (p) {
         var on = (s.pet || "") === p[0];
@@ -166,7 +169,7 @@
           prev + '<span class="pet-pn"><b>' + H.esc(nm[0]) + "</b>" + (nm[1] ? "<small>" + H.esc(nm[1]) + "</small>" : "") + "</span>" +
           (on ? '<span class="th-check">✓ 使用中</span>' : "") +
           "</button>";
-      }).join("") + "</div></div>";
+      }).join("") + "</div>";
   }
 
   function cleanSectionHtml(s) {
@@ -204,8 +207,8 @@
   function rankSectionHtml(s) {
     var w = s.rankWeights || {};
     var btLast = s.btLastAt ? H.fmtDateTime(s.btLastAt) + "（" + H.ago(s.btLastAt) + "）" : "从未";
-    return '<div class="card"><h3>排序与喜好学习</h3>' +
-      '<p class="muted">以「低 / 中 / 高」粗调各维度偏好即可（系统自动换算并归一），作用于「兴趣榜」与「周末简报」的排序；点选即保存，纯本地生效。</p>' +
+    return subHead("排序与喜好学习") +
+      '<p class="muted">以「低 / 中 / 高」粗调即可，点选即保存；作用于「兴趣榜」与「周末简报」的排序。</p>' +
       '<div class="rw-segs" id="rwSegs" style="margin-top:6px">' +
       segRow("rel", rwLevel(w.rel)) +
       segRow("fresh", rwLevel(w.fresh)) +
@@ -216,10 +219,10 @@
       '<div class="art-actions" style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;justify-content:flex-end">' +
       '<button class="btn sm primary" id="btRun">运行一次离线回测</button>' +
       '<button class="btn sm" id="rwReset">恢复默认</button></div>' +
-      '<div id="rwMsg" class="muted" style="margin-top:12px;font-size:.86rem;line-height:1.6">离线回测：把您的收藏当标准答案，按当前档位统计收藏进入排序前 20% 的比例，验证配比是否懂您。</div>' +
+      '<div id="rwMsg" class="muted" style="margin-top:12px;font-size:.86rem;line-height:1.6">回测结果将显示在这里。</div>' +
       '<div class="field" style="margin-top:14px;margin-bottom:6px;padding-top:12px;border-top:1px dashed var(--line)"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="btAuto"' + (s.btAuto ? " checked" : "") + "> 打开页面时自动回测（每日最多一次，结果投递收件箱）</label></div>" +
       '<div class="field" style="margin:0"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoTune"' + (s.autoTune ? " checked" : "") + "> 自动微调排序权重（每日最多一次；您 24 小时内手动调过则跳过，尊重手动）</label></div>" +
-      '<p class="muted" style="margin:10px 0 0">上次回测：' + btLast + '</p></div>';
+      '<p class="muted" style="margin:10px 0 0">上次回测：' + btLast + "</p>";
   }
 
   /* 二级手风琴分组头 */
@@ -232,23 +235,22 @@
   var TIME_OPTS = ["06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
   function refreshSectionHtml(s) {
     var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
-    return '<div class="card"><h3>资料刷新（自动抓取）</h3>' +
+    return subHead("资料刷新") +
       '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="rfOn"' + (s.autoRefresh ? " checked" : "") + "> 每日定时自动刷新官方信源</label>" +
       '<div class="field"><label>刷新时段（多选，至少一个；到点各静默拉取一次）</label>' +
       '<div class="time-chips" id="rfChips">' +
       TIME_OPTS.map(function (t) {
         return '<button type="button" class="time-chip' + (rt.indexOf(t) >= 0 ? " on" : "") + '" data-t="' + t + '">' + t + "</button>";
       }).join("") + "</div></div>" +
-      '<p class="muted">到设定时间各静默拉取一次；失败不打扰，留待下一时段自动重试。这是资料更新的主要途径。</p>' +
-      '<div class="art-actions"><button class="btn primary" id="rfSave">保存刷新设置</button></div></div>';
+      '<p class="muted">到设定时间各静默拉取一次；失败不打扰，留待下一时段自动重试。</p>' +
+      '<div class="art-actions"><button class="btn primary" id="rfSave">保存刷新设置</button></div>';
   }
 
-  /* 自动化与行为：全部默认关闭，按分类手风琴展开；保存按钮统一在此 */
-  function behaviorSectionHtml(s) {
-    var sel = cleanSectionHtml(s);
-    return '<div class="card"><h3>自动化与行为</h3>' +
-      '<p class="muted" style="margin:2px 0 10px">除「资料刷新」外，其余自动化默认全部关闭（点组标题展开）。涉及 AI 的功能会消耗模型额度，请按需开启。</p>' +
-      grp("翻译与摘要自动化", true,
+  /* 自动化（除资料刷新外默认全部关闭）；开关即点即存，不再设总保存按钮 */
+  function autoSectionInner(s) {
+    return subHead("自动化") +
+      '<p class="muted" style="margin:0 0 8px">除「资料刷新」外，其余自动化默认关闭，涉及 AI 的功能会消耗模型额度。</p>' +
+      grp("翻译与摘要自动化", false,
         '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoTr"' + (s.autoTitleTr ? " checked" : "") + "> 进资料库时自动翻译新标题（默认开，可按需关闭）</label>" +
         '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavTr"' + (s.favAutoTr ? " checked" : "") + "> 收藏时自动：生成中文标题 + 中/英摘要</label>" +
         '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfFavFull"' + (s.favAutoFull ? " checked" : "") + "> 收藏时自动：全文翻译（可与上项组合）</label>" +
@@ -256,32 +258,40 @@
       grp("周末简报", false,
         '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfBrief"' + (s.weeklyBrief ? " checked" : "") + "> 周末简报自动投递（周六/周日首次打开）</label>" +
         '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfBriefAi"' + (s.briefAi ? " checked" : "") + "> 简报 AI 增强：全期综述 + 逐条点评（需配置模型）</label>" +
-        '<div class="art-actions" style="margin-top:8px"><button class="btn" id="bfBriefNow">立即生成本周简报</button></div>') +
-      grp("资料清理", false,
-        '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期资料（收藏/已选/已出刊永不自动删）</label>" +
-        '<div class="filters" style="margin-top:8px;margin-bottom:0"><span class="muted">保留期</span><select id="clDays">' + sel + "</select></div>" +
-        '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button><button class="btn" id="clRun">立即清理过期文章</button></div>' +
-        '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div>') +
-      grp("系统与更新", false,
-        '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动接收新版本与公告（打开页面即检查，约 10 分钟一次；仅读通知不耗模型）</label>") +
-      grp("供稿署名", false,
-        '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label><input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>') +
-      '<div class="modal-actions" style="margin-top:12px"><button class="btn primary" id="bfSave">保存自动化与行为设置</button></div></div>';
+        '<div class="art-actions" style="margin-top:8px"><button class="btn" id="bfBriefNow">立即生成本周简报</button></div>');
+  }
+
+  /* 资料清理（归入「数据」组） */
+  function cleanSectionInner(s) {
+    var sel = cleanSectionHtml(s);
+    return subHead("资料清理") +
+      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期资料（收藏/已选/已出刊永不自动删）</label>" +
+      '<div class="filters" style="margin-top:8px;margin-bottom:0"><span class="muted">保留期</span><select id="clDays">' + sel + "</select></div>" +
+      '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button><button class="btn" id="clRun">立即清理过期文章</button></div>' +
+      '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div>';
+  }
+
+  /* 系统与更新 + 供稿署名（归入「系统」组）；开关即点即存 */
+  function sysSectionInner(s) {
+    return subHead("系统与更新") +
+      '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bfAutoChk"' + (s.autoCheck !== false ? " checked" : "") + "> 自动接收新版本与公告（打开页面即检查，约 10 分钟一次；仅读通知不耗模型）</label>" +
+      subHead("供稿署名") +
+      '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label><input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>';
   }
 
   function mirrorSectionHtml(s) {
-    return '<div class="card"><h3>镜像与抓取</h3>' + mirrorStatusHtml(s) +
-      '<div class="field"><label>信源镜像仓库（只读，由部署维护，请勿修改以防异常）</label>' +
+    return subHead("信源状态") + mirrorStatusHtml(s) +
+      '<div class="field"><label>信源汇集仓库（系统统一维护，请勿修改）</label>' +
       '<div class="mono">' + H.esc(s.mirrorRepo || "未配置") + "</div></div>" +
       '<div class="field"><label>更新通知仓库（只读）</label>' +
       '<div class="mono">' + H.esc(s.updateRepo || "未配置") + "</div></div>" +
-      '<p class="muted">说明：抓取在 GitHub Actions（每天 09:00）完成；本页仅展示状态与仓库信息，不可编辑。</p>' +
+      '<p class="muted">官方信源每日定时汇集；本页仅展示状态，不可编辑。</p>' +
       '<div class="art-actions"><button class="btn" id="bfChkUpdate">检查更新</button></div>' +
-      '<div id="bfRepoMsg" class="muted" style="margin-top:6px"></div></div>';
+      '<div id="bfRepoMsg" class="muted" style="margin-top:6px"></div>';
   }
 
   function dataSectionHtml() {
-    return '<div class="card"><h3>数据与本机占用（本设备独立）</h3>' +
+    return subHead("本机占用") +
       '<div class="grid g3" style="margin-bottom:8px">' +
       '<div class="stat"><div class="num" id="stUsage">—</div><div class="lab">已用（浏览器存储）</div></div>' +
       '<div class="stat"><div class="num" id="stArt">…</div><div class="lab">本设备文章数</div></div>' +
@@ -293,8 +303,22 @@
       '<button class="btn danger" id="dbClear">清空资料库</button>' +
       '<input type="file" id="dbFile" accept=".json" style="display:none">' +
       "</div>" +
-      '<p class="muted">导出包含文章、译文、摘要、术语、学报记录与设置；导入按 url 合并（本设备已有的译文/锁定不会被覆盖）。备份用于换设备/迁移，数据不上云。</p>' +
-      "</div>";
+      '<p class="muted">导出包含文章、译文、摘要、术语、学报记录与设置；导入按 url 合并（本设备已有的译文/锁定不会被覆盖）。数据不上云，备份用于换设备迁移。</p>';
+  }
+
+  /* 帮助（v1.24 新增）：各页面的使用说明统一收口到这里，页面内不再堆提示文字 */
+  function helpSectionHtml() {
+    function qa(t, body) { return grp(t, false, '<p class="muted" style="margin:0;line-height:1.8">' + body + "</p>"); }
+    return subHead("常见问题") +
+      qa("收件箱是什么", "底部导航的「收件箱」接收新版本公告、周末简报与系统消息，全部只存本机。未读时底栏图标会有红点数字。") +
+      qa("术语库怎么用", "术语库内置上百条军语：一个概念可录多个英文写法（如 drone / UAV），翻译时命中任一写法都按同一条规范译名处理。电脑端阅读文章时还可一键「提取术语」，确认后并入词库；手机端为纯浏览与搜索。") +
+      qa("排行榜怎么排序", "「今日榜」看时效；「兴趣榜」按 兴趣相关 / 新鲜度 / 来源权威 / 热度 加权，并保留一小部分探索位给新内容。权重在「模型与智能服务 → 排序与喜好学习」用高/中/低调节。") +
+      qa("翻译与摘要怎么开", "标题翻译、摘要、全文翻译、出刊都需要先在「模型与智能服务」里配置在线模型；密钥只保存在本机。收藏时自动翻译/摘要等开关默认关闭，按需打开。") +
+      qa("学报怎么出", "在「资料库」给文章点「直接出刊」，按所选模板生成 Word 文档；「供稿」默认是占位文字，出刊后在 Word 里改成真实署名即可。也可以上传自己的范文 .docx 解构成模板。") +
+      qa("资料怎么更新", "每天在设定时段（默认 09:00 / 12:00 / 18:00）自动刷新官方信源；总览页的「立即更新」按钮有 10 分钟冷却，防止请求过密。") +
+      qa("数据存在哪、怎么迁移", "所有数据与设置只保存在本机浏览器，不会上传。换设备前先「导出备份 JSON」，在新设备的「数据与刷新 → 本机占用」里导入即可。") +
+      qa("宠物有什么玩法", "宠物是后台任务的「看得见的陪伴」：干活时带上配件、出错会皱眉、全部完成会欢呼；平时会眨眼、东张西望。没任务时点一点它，偶尔投喂个小零食；手机端可以按住拖动，靠边会自动收起。") +
+      qa("版本更新与公告", "打开页面会自动检查新版本（约 10 分钟一次，也可在「信源状态」里手动检查）。有新版会弹窗提示；每次更新的说明都会作为公告投递到收件箱。");
   }
 
   var M = {
@@ -304,24 +328,29 @@
       var s = Store.settings;
       var usage = await Store.usage();
       var arts = await Store.getAllArticles();
+      // 四大组摘要（标题行右侧显示当前值，折叠时也能一眼看清）
+      var themeSum = (THEMES.filter(function (t) { return (t[0] || "") === (s.theme || ""); })[0] || ["", "蓝天"])[1].split(" · ")[0];
+      var petName = s.pet ? (PETS.filter(function (p) { return p[0] === s.pet; })[0] || ["", ""])[1].split(" · ")[0] : "关";
+      var modelOk = !!(LLM.endpoint(s).baseUrl && LLM.endpoint(s).model && s.apiKey);
+      var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
+      var dataSum = s.autoRefresh ? "每天 " + rt.join(" / ") : "手动更新";
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">设置</h1>' +
-        '<p class="view-sub">设置按分类收纳：点击标题展开或收起。除每日定时刷新外，所有自动化默认关闭，请按需开启。</p></div></div>' +
-        modelSectionHtml(s) +
-        refreshSectionHtml(s) +
-        behaviorSectionHtml(s) +
-        rankSectionHtml(s) +
-        displaySectionHtml(s) +
-        themeSectionHtml(s) +
-        petSectionHtml(s) +
-        mirrorSectionHtml(s) +
-        dataSectionHtml() +
-        '<div class="card"><h3>关于</h3>' +
-        '<div class="muted">SENTRA 述势 v' + H.esc(s.appVersion || "1.0.0") +
-        "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作的外军防务资讯台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
-        "数据与设置只保存在本机浏览器中，导出备份即可迁移到其它设备。</div></div>";
+        '<p class="view-sub">按分组收纳，点标题展开；用不上「帮助」里的说明，随时可以来查。</p></div></div>' +
+        setCard("外观与阅读", themeSum + " · 字号 " + effPx(s) + "px · 宠物" + petName,
+          displaySectionHtml(s) + themeSectionHtml(s) + petSectionHtml(s)) +
+        setCard("模型与智能服务", modelOk ? "模型已配置" : "模型未配置",
+          modelSectionHtml(s) + autoSectionInner(s) + rankSectionHtml(s)) +
+        setCard("数据与刷新", dataSum,
+          refreshSectionHtml(s) + cleanSectionInner(s) + mirrorSectionHtml(s) + dataSectionHtml()) +
+        setCard("系统与帮助", "v" + H.esc(s.appVersion || "1.0.0"),
+          sysSectionInner(s) + helpSectionHtml() +
+          subHead("关于") +
+          '<div class="muted">SENTRA 述势 v' + H.esc(s.appVersion || "1.0.0") +
+          "（build " + (s.versionCode || 2) + "）<br>面向军迷与研究工作的外军防务资讯台：每日定时汇集多个官方信源，支持双语阅读、术语标注、兴趣排序与一键出刊（学报 docx）。<br>" +
+          "数据与设置只保存在本机浏览器中，导出备份即可迁移到其它设备。</div>");
 
-      collapseCards(el, ["模型（", "资料刷新", "自动化与行为", "排序与喜好学习", "显示与字号", "主题外观", "阅读宠物", "数据与本机占用", "关于"]);
+      collapseCards(el, []);
       bindModel(el, s);
       bindOther(el, s, usage, arts);
 
@@ -580,19 +609,30 @@
           App.refresh();
         });
         // —— 兴趣相关（关键词/喜好学习）已移至左侧「兴趣中心」页 ——
-        // 自动化与行为
-        root.querySelector("#bfSave").addEventListener("click", function () {
-          s.signatureText = root.querySelector("#bfSign").value.trim();
-          s.autoTitleTr = root.querySelector("#bfAutoTr").checked;
-          s.favAutoTr = root.querySelector("#bfFavTr").checked;
-          s.favAutoFull = root.querySelector("#bfFavFull").checked;
-          s.compareAutoFull = root.querySelector("#bfCmpAuto").checked;
-          s.autoClean = root.querySelector("#bfAutoClean").checked;
-          s.autoCheck = root.querySelector("#bfAutoChk").checked;
-          s.weeklyBrief = root.querySelector("#bfBrief").checked;
-          s.briefAi = root.querySelector("#bfBriefAi").checked;
+        // 自动化开关：全部即点即存（v1.24 取消统一保存按钮）
+        function bindToggle(id, key, onMsg, offMsg) {
+          var box = root.querySelector(id);
+          if (!box) return;
+          box.addEventListener("change", function () {
+            s[key] = box.checked;
+            Store.saveSettings();
+            App.toast(box.checked ? onMsg : (offMsg || "已关闭"), "ok");
+          });
+        }
+        bindToggle("#bfAutoTr", "autoTitleTr", "进库自动翻译标题：开", "进库自动翻译标题：关");
+        bindToggle("#bfFavTr", "favAutoTr", "收藏时自动标题+摘要：开", "收藏时自动标题+摘要：关");
+        bindToggle("#bfFavFull", "favAutoFull", "收藏时自动全文翻译：开", "收藏时自动全文翻译：关");
+        bindToggle("#bfCmpAuto", "compareAutoFull", "对照页自动补译文：开", "对照页自动补译文：关");
+        bindToggle("#bfAutoClean", "autoClean", "自动清理过期资料：开", "自动清理过期资料：关");
+        bindToggle("#bfAutoChk", "autoCheck", "自动接收新版本与公告：开", "自动接收新版本与公告：关");
+        bindToggle("#bfBrief", "weeklyBrief", "周末简报自动投递：开", "周末简报自动投递：关");
+        bindToggle("#bfBriefAi", "briefAi", "简报 AI 增强：开", "简报 AI 增强：关");
+        // 供稿署名：失焦或回车即存
+        var sign = root.querySelector("#bfSign");
+        if (sign) sign.addEventListener("change", function () {
+          s.signatureText = sign.value.trim();
           Store.saveSettings();
-          App.toast("已保存", "ok");
+          App.toast("供稿署名已保存", "ok");
         });
         // 周末简报：立即生成（手动，不占用每周自动名额）
         var briefBtn = root.querySelector("#bfBriefNow");

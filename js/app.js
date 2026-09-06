@@ -29,14 +29,7 @@
     inbox: MAIL_ICO,
     me: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
   };
-  /* 「我的」页内入口（术语库/喜好/设置 + 榜单/信源），层级聚合。出刊(journal)已从手机端移除，仅桌面/平板保留。 */
-  var ME_ENTRIES = [
-    { key: "rankings", label: "排行榜", icon: ICO.rankings, desc: "按价值与喜好综合排序" },
-    { key: "sources", label: "信源与镜像", icon: ICO.sources, desc: "9 个官方信源状态与启停" },
-    { key: "terms", label: "术语库", icon: ICO.terms, desc: "军语/术语命中与候选" },
-    { key: "prefs", label: "兴趣与喜好", icon: ICO.prefs, desc: "关键词、喜好学习、偏好档案" },
-    { key: "settings", label: "设置", icon: ICO.settings, desc: "模型、字体、主题、数据与更新" }
-  ];
+  /* 「我的」页内入口见 modules/me.js 的 ENTRIES。出刊(journal)已从手机端移除，仅桌面/平板保留。 */
   /* 总览页频道 tab（手机端）：出刊(journal)已移除，仅 总览/排行榜/信源 */
   var CHANNEL_TABS = [
     { key: "dashboard", label: "总览" },
@@ -70,6 +63,7 @@
       var fab = document.getElementById("taskFab");
       var panel = document.getElementById("taskPanel");
       fab.addEventListener("click", function () {
+        if (fab.dataset.petmode) return;   // 手机宠物模式：点击由 PET 的 pointer 流程接管（拖动/收起/投喂）
         TASK_UI.panelOpen = !TASK_UI.panelOpen;
         panel.hidden = !TASK_UI.panelOpen;
         TASK_UI.renderPanel();
@@ -84,12 +78,18 @@
     refresh: function () {
       var ts = MIRROR.tasks();
       var active = ts.filter(function (t) { return t.state === "queued" || t.state === "running"; });
+      var failed = ts.some(function (t) { return t.state === "failed" && !t.cancel; });
+      var wrap = document.getElementById("taskUI");
       var fab = document.getElementById("taskFab");
       var badge = document.getElementById("taskBadge");
-      // 宠物启用时（桌面/平板有侧栏窝）隐藏右下角任务球，由宠物窝承担入口；手机无侧栏仍保留任务球
+      var petMode = !!(wrap && wrap.classList.contains("pet-mode"));
       var petOn = !!(Store.settings.pet || "");
-      if (fab) fab.hidden = (petOn && !isMobile()) ? true : (ts.length === 0);
-      if (badge) badge.textContent = active.length;
+      // 宠物模式：悬浮宠物常驻（它就是任务入口）；桌面宠物启用时任务球由侧栏窝接管；否则无任务即隐藏
+      if (fab) fab.hidden = petMode ? false : ((petOn && !isMobile()) ? true : (ts.length === 0));
+      if (badge) {
+        badge.textContent = failed && !active.length ? "!" : String(active.length);
+        badge.hidden = petMode ? (!active.length && !failed) : false;
+      }
       // 有全文翻译完成时给一次轻提示（避免闭门等待）
       ts.forEach(function (t) {
         if (t.kind === "full" && (t.state === "ok" || t.state === "failed" || t.state === "cancelled")) {
@@ -134,25 +134,112 @@
     }
   };
 
-  /* —— 阅读宠物：后台任务驱动状态机（工作/等待/完成/出错/待机），点击展开任务面板 —— */
+  /* —— 阅读宠物 v2（v1.24）：任务状态机 + 闲置小动作引擎 + 配件联动 + 手机端可拖动悬浮宠物 ——
+     资产：assets/pet/<role>/ 单帧姿势图（blink/happy/tired/side/back 此前闲置，全部启用）；
+     配件与食物：assets/pet/common/（美术方案 common 素材）。动画 class 挂在舞台层，宠物与配件一起动。 */
   var PET_META = { xiaoyi: "小翼", xinshi: "信使", jiaoguan: "教官", dida: "滴答", haowang: "好望", moling: "墨翎", xiazi: "匣子", chuchu: "戳戳", sinan: "斗勺" };
+  /* 干活配件按性格映射（美术方案 §2B.3 的「干活配件」） */
+  var PET_TOOL = { xiaoyi: "binoculars", haowang: "binoculars", xinshi: "magnifier", chuchu: "magnifier", jiaoguan: "radar", sinan: "radar", dida: "typepad", moling: "typepad", xiazi: "headphones" };
+  var PET_FOODS = ["star", "fish", "newspaper"];
+  var PET_DOCK_KEY = "xuebao-petdock-v1";
   var PET = {
     el: null,
     state: "idle",          // idle / waiting / working / done / error
-    timer: 0,
+    timer: 0, blinkTimer: 0, ambientTimer: 0,
     _prevActive: 0,
-    /* 状态 → [图片尾部, 动效 class]。等待复用「疑惑」神态；完成用欢呼；出错用皱眉。 */
-    _MAP: { idle: ["idle", "breathe"], waiting: ["puzzled", "breathe"], working: ["working", "working"], done: ["cheer", "cheer"], error: ["error", "error"] },
+    _pose: "idle", _anim: "breathe",
+    _feeding: false,
+    _loaded: {},
+    /* 逻辑状态 → 姿势图片尾。等待复用「疑惑」神态；完成用欢呼；出错用皱眉。 */
+    _MAP: { idle: "idle", waiting: "puzzled", working: "working", done: "cheer", error: "error" },
     init: function () {
       var nest = document.getElementById("petNest");
-      if (!nest) return;
-      this.el = nest;
-      nest.addEventListener("click", function () {
-        var panel = document.getElementById("taskPanel");
-        if (panel) { TASK_UI.panelOpen = true; panel.hidden = false; TASK_UI.renderPanel(); }
-      });
+      if (nest) {
+        this.el = nest;
+        nest.addEventListener("click", function () { PET._nestTap(); });
+      }
       if (window.MIRROR && MIRROR.onTasks) MIRROR.onTasks(function () { PET.refresh(); });
       this.apply();
+      this._startAmbient();
+    },
+    _nestTap: function () {
+      var ts = (window.MIRROR && MIRROR.tasks()) || [];
+      var busy = ts.some(function (t) { return t.state === "running" || t.state === "queued" || t.state === "failed"; });
+      if (busy) {
+        var panel = document.getElementById("taskPanel");
+        if (panel) { TASK_UI.panelOpen = true; panel.hidden = false; TASK_UI.renderPanel(); }
+        return;
+      }
+      this.feed(this.el ? this.el.querySelector(".pet-stage-wrap") : null);
+    },
+    _fabTap: function () {
+      var ts = (window.MIRROR && MIRROR.tasks()) || [];
+      var busy = ts.some(function (t) { return t.state === "running" || t.state === "queued" || t.state === "failed"; });
+      var panel = document.getElementById("taskPanel");
+      if (busy && panel) {
+        TASK_UI.panelOpen = !TASK_UI.panelOpen;
+        panel.hidden = !TASK_UI.panelOpen;
+        TASK_UI.renderPanel();
+        return;
+      }
+      this.feed(document.querySelector("#taskFab .pet-stage-wrap"));
+    },
+    /* 投喂：随机食物件出现 → 吃掉 → 开心（美术方案 P-6 食物件联动） */
+    feed: function (stage) {
+      if (this._feeding || this.state !== "idle" || !stage) return;
+      var role = Store.settings.pet || "";
+      if (!role) return;
+      var self = this;
+      this._feeding = true;
+      var img = document.createElement("img");
+      img.className = "pet-food";
+      img.alt = "";
+      img.src = "assets/pet/common/pet_common_food_" + PET_FOODS[Math.floor(Math.random() * PET_FOODS.length)] + "@2x.png";
+      stage.appendChild(img);
+      setTimeout(function () {
+        if (img.parentNode) img.parentNode.removeChild(img);
+        self.react("happy");
+        setTimeout(function () { self._feeding = false; }, 1200);
+      }, 950);
+    },
+    /* 事件表情（收藏/喜欢/新文章入库）：只在待机时表演，不打断任务状态 */
+    react: function (kind) {
+      if (this.state !== "idle") return;
+      this._flash(kind === "cheer" ? "cheer" : "happy", 1500);
+    },
+    _flash: function (pose, ms) {
+      var self = this;
+      if (this.state !== "idle") return;
+      this._swap(pose, pose === "blink" ? "breathe" : "wobble");
+      setTimeout(function () {
+        if (self.state === "idle") self._swap("idle", "breathe");
+      }, ms);
+    },
+    _swap: function (pose, anim) {
+      this._pose = pose;
+      this._anim = anim || "breathe";
+      this._paint();
+    },
+    /* 只换 src/class，不重建 DOM（预载过的姿势图切换零闪烁） */
+    _paint: function () {
+      var role = Store.settings.pet || "";
+      if (!role) return;
+      var src = "assets/pet/" + role + "/pet_" + role + "_front_" + this._pose + "@64@2x.png";
+      var accSrc = this.state === "working" && PET_TOOL[role]
+        ? "assets/pet/common/pet_common_prop_" + PET_TOOL[role] + "@2x.png" : "";
+      var anim = this._anim || "breathe";
+      [document.getElementById("petNest"), document.getElementById("taskFab")].forEach(function (host) {
+        if (!host) return;
+        var stage = host.querySelector(".pet-stage-wrap");
+        if (!stage) return;
+        var img = stage.querySelector(".pet-img"), acc = stage.querySelector(".pet-acc");
+        if (img) img.src = src;
+        stage.className = "pet-stage-wrap " + anim;
+        if (acc) {
+          if (accSrc) { acc.src = accSrc; acc.hidden = false; }
+          else acc.hidden = true;
+        }
+      });
     },
     set: function (st) {
       if (this.timer) clearTimeout(this.timer);
@@ -179,27 +266,33 @@
       else if (justDone) st = "done";
       else st = "idle";
       this.set(st);
-      this.updateBadge(ts, activeCount, failed);
+      this.updateBadge(activeCount, failed);
     },
-    updateBadge: function (ts, activeCount, failed) {
-      var b = this.el ? this.el.querySelector(".pet-badge") : null;
-      if (!b) return;
-      if (failed) { b.hidden = false; b.textContent = "!"; b.className = "pet-badge err"; }
-      else if (activeCount) { b.hidden = false; b.textContent = activeCount > 9 ? "9+" : activeCount; b.className = "pet-badge"; }
-      else { b.hidden = true; }
+    updateBadge: function (activeCount, failed) {
+      var txt = failed ? "!" : (activeCount ? (activeCount > 9 ? "9+" : String(activeCount)) : "");
+      var b = this.el && this.el.querySelector(".pet-badge");
+      if (b) { b.hidden = !txt; b.textContent = txt || "0"; b.className = "pet-badge" + (failed ? " err" : ""); }
+      var fb = document.querySelector("#taskFab .tf-badge");
+      if (fb) { fb.hidden = !txt; fb.textContent = txt || "0"; }
     },
     apply: function () {
-      if (!this.el) return;
       var role = Store.settings.pet || "";
-      if (!role) { this.el.hidden = true; return; }
-      this.el.hidden = false;
-      var name = PET_META[role] || role;
-      var m = this._MAP[this.state] || this._MAP.idle;
-      var img = "assets/pet/" + role + "/pet_" + role + "_front_" + m[0] + "@64@2x.png";
-      this.el.innerHTML =
-        '<img class="pet-img ' + m[1] + '" src="' + img + '" alt="' + name + '">' +
-        '<span class="pet-name">' + name + "</span>" +
-        '<span class="pet-badge" hidden></span>';
+      if (this.el) this.el.hidden = !role;
+      if (!role) { this._mobileShell(false); return; }
+      this._preload(role);
+      var nest = this.el;
+      if (nest && nest.dataset.role !== role) {
+        nest.dataset.role = role;
+        var name = PET_META[role] || role;
+        nest.innerHTML =
+          '<span class="pet-stage-wrap breathe"><img class="pet-img" alt="' + name + '"><img class="pet-acc" alt="" hidden></span>' +
+          '<span class="pet-name">' + name + "</span>" +
+          '<span class="pet-badge" hidden></span>';
+      }
+      this._pose = this._MAP[this.state] || "idle";
+      this._anim = this.state === "working" ? "working" : this.state === "done" ? "cheer" : this.state === "error" ? "error" : "breathe";
+      this._paint();
+      this._mobileShell(true);
       if (window.MIRROR) {
         var run = 0, que = 0, fail = 0;
         MIRROR.tasks().forEach(function (t) {
@@ -207,8 +300,137 @@
           else if (t.state === "queued") que++;
           else if (t.state === "failed" && !t.cancel) fail++;
         });
-        this.updateBadge(MIRROR.tasks(), run + que, fail);
+        this.updateBadge(run + que, fail);
       }
+    },
+    _preload: function (role) {
+      if (this._loaded[role]) return;
+      this._loaded[role] = 1;
+      ["idle", "blink", "puzzled", "working", "cheer", "error", "happy", "tired", "side", "back"].forEach(function (p) {
+        var im = new Image();
+        im.src = "assets/pet/" + role + "/pet_" + role + "_front_" + p + "@64@2x.png";
+      });
+      PET_FOODS.forEach(function (f) { var im = new Image(); im.src = "assets/pet/common/pet_common_food_" + f + "@2x.png"; });
+      Object.keys(PET_TOOL).forEach(function (r) { var im = new Image(); im.src = "assets/pet/common/pet_common_prop_" + PET_TOOL[r] + "@2x.png"; });
+    },
+    /* 闲置小动作引擎：眨眼 2.6~6.5s 一次；每 17~38s 随机张望/转身/开心，深夜更常打哈欠 */
+    _startAmbient: function () {
+      var self = this;
+      function blinkLoop() {
+        if (!document.hidden && self.state === "idle" && !self._feeding) self._flash("blink", 170);
+        self.blinkTimer = setTimeout(blinkLoop, 2600 + Math.random() * 3900);
+      }
+      function ambientLoop() {
+        if (!document.hidden && self.state === "idle" && !self._feeding) {
+          var h = new Date().getHours();
+          var pool = ["side", "back", "happy"];
+          if (h >= 23 || h <= 5) pool = pool.concat(["tired", "tired"]);
+          self._flash(pool[Math.floor(Math.random() * pool.length)], 1300 + Math.random() * 1100);
+        }
+        self.ambientTimer = setTimeout(ambientLoop, 17000 + Math.random() * 21000);
+      }
+      if (this.blinkTimer) clearTimeout(this.blinkTimer);
+      if (this.ambientTimer) clearTimeout(this.ambientTimer);
+      this.blinkTimer = setTimeout(blinkLoop, 2000 + Math.random() * 2200);
+      this.ambientTimer = setTimeout(ambientLoop, 9000 + Math.random() * 9000);
+    },
+    /* 手机端：任务球宠物化（常驻可拖动，拖到边上松手半收起）；桌面/平板维持侧栏窝 */
+    _mobileShell: function (petOn) {
+      var wrap = document.getElementById("taskUI"), fab = document.getElementById("taskFab");
+      if (!wrap || !fab) return;
+      var mode = !!(petOn && isMobile());
+      if (!mode) {
+        wrap.classList.remove("pet-mode", "docked", "dock-left", "dock-right", "dragging");
+        wrap.style.left = ""; wrap.style.top = ""; wrap.style.right = ""; wrap.style.bottom = "";
+        if (fab.dataset.petmode) {
+          fab.dataset.petmode = "";
+          delete fab.dataset.petrole;
+          fab.innerHTML = '<span class="tf-ico">◐</span><b class="tf-badge" id="taskBadge">0</b>';
+        }
+        TASK_UI.refresh();
+        return;
+      }
+      var role = Store.settings.pet || "";
+      if (!fab.dataset.petmode || fab.dataset.petrole !== role) {
+        wrap.classList.add("pet-mode");   // 先挂标记，TASK_UI.refresh 据此让悬浮球常驻
+        fab.dataset.petmode = "1";
+        fab.dataset.petrole = role;
+        var name = PET_META[role] || role;
+        fab.innerHTML =
+          '<span class="pet-stage-wrap breathe"><img class="pet-img" alt="' + name + '"><img class="pet-acc" alt="" hidden></span>' +
+          '<b class="tf-badge" id="taskBadge" hidden>0</b>';
+        this._paint();
+        this.updateBadge(this._prevActive, 0);
+        this._initDrag(wrap, fab);
+      }
+      TASK_UI.refresh();
+    },
+    _initDrag: function (wrap, fab) {
+      if (wrap.__petDrag) return;
+      wrap.__petDrag = true;
+      function loadPos() { try { return JSON.parse(localStorage.getItem(PET_DOCK_KEY) || "null"); } catch (e) { return null; } }
+      function savePos(p) { try { localStorage.setItem(PET_DOCK_KEY, JSON.stringify(p)); } catch (e) {} }
+      function clamp(p) {
+        var w = wrap.offsetWidth || 58;
+        p.x = Math.min(Math.max(p.x, 4), Math.max(4, window.innerWidth - w - 4));
+        p.y = Math.min(Math.max(p.y, 60), Math.max(70, window.innerHeight - w - 120));
+        return p;
+      }
+      function place(p) {
+        clamp(p);
+        wrap.style.left = p.x + "px"; wrap.style.top = p.y + "px";
+        wrap.style.right = "auto"; wrap.style.bottom = "auto";
+        wrap.classList.toggle("docked", !!p.dock);
+        wrap.classList.toggle("dock-left", p.x <= 8);
+        wrap.classList.toggle("dock-right", p.x > 8);
+      }
+      var p0 = loadPos();
+      if (!p0) p0 = { x: window.innerWidth - (wrap.offsetWidth || 58) - 14, y: window.innerHeight - 150, dock: false };
+      place(p0);
+      var sx = 0, sy = 0, px = 0, py = 0, lastX = p0.x, lastY = p0.y, moved = false, pid = null;
+      fab.addEventListener("pointerdown", function (e) {
+        if (!isMobile()) return;
+        pid = e.pointerId;
+        sx = e.clientX; sy = e.clientY;
+        var cur = loadPos() || p0;
+        px = cur.x; py = cur.y;
+        lastX = cur.x; lastY = cur.y;
+        moved = false;
+        try { fab.setPointerCapture(pid); } catch (err) {}
+      });
+      fab.addEventListener("pointermove", function (e) {
+        if (pid == null || e.pointerId !== pid) return;
+        var dx = e.clientX - sx, dy = e.clientY - sy;
+        // 20px 才算拖动：手指轻晃的正常点按不误触发贴边收起（斜向 8+6px 这类漂移到不了）
+        if (!moved && Math.abs(dx) + Math.abs(dy) < 20) return;
+        if (!moved) { moved = true; wrap.classList.add("dragging"); }
+        var np = clamp({ x: px + dx, y: py + dy });
+        lastX = np.x; lastY = np.y;
+        place(np);
+      });
+      function up(e) {
+        if (pid == null || (e && e.pointerId !== pid)) return;
+        pid = null;
+        wrap.classList.remove("dragging");
+        if (moved) {
+          var w = wrap.offsetWidth || 58;
+          var cur = { x: lastX, y: lastY, dock: true };   // 以拖动终点结算：靠近哪边贴哪边
+          cur.x = (cur.x + w / 2) < window.innerWidth / 2 ? 4 : window.innerWidth - w - 4;
+          place(cur); savePos(cur);
+        } else {
+          var cur2 = loadPos() || p0;
+          if (cur2.dock) {
+            cur2.dock = false;                   // 收起态点一下 → 弹回来
+            place(cur2); savePos(cur2);
+          } else {
+            PET._fabTap();
+          }
+        }
+        moved = false;
+      }
+      fab.addEventListener("pointerup", up);
+      fab.addEventListener("pointercancel", up);
+      window.addEventListener("resize", function () { var cur = loadPos(); if (cur) place(cur); });
     }
   };
 
@@ -339,13 +561,7 @@
         b.innerHTML = '<span class="mail-ico">' + MAIL_ICO + "</span><span>收件箱</span>" + (un ? '<span class="mail-badge">' + un + "</span>" : "");
         b.title = "收件箱（" + un + " 条未读）";
       }
-      // 移动顶栏收件箱徽标
-      var mb = document.getElementById("mobMailBadge");
-      if (mb) {
-        var un2 = Store.inboxUnread();
-        mb.textContent = un2 > 99 ? "99+" : un2;
-        mb.hidden = un2 === 0;
-      }
+      // 手机端未读数由底栏收件箱 tab 的 bn-badge 呈现（renderBottomNav）
     },
     refresh: function () {
       var el = document.getElementById("content");
@@ -354,6 +570,7 @@
       renderNav();
       renderMobile();
       App.refreshMail();
+      if (PET.el || document.getElementById("taskFab")) PET.apply();  // 跨断点/切宠物后同步窝位与悬浮球
       if (m && typeof m.render === "function") {
         m.render(el).catch(function (err) {
           el.innerHTML = '<div class="card"><div class="note">页面渲染出错：' + H.esc(err && err.message ? err.message : err) + "</div></div>";
@@ -419,6 +636,8 @@
     },
     /* 宠物切换（设置页）：重绘侧栏窝位 */
     updatePet: function () { PET.apply(); },
+    /* 宠物事件表情入口（模块调用）：收藏/喜欢/新文章 → happy；任务完成走状态机 done → cheer */
+    petReact: function (kind) { try { PET.react(kind); } catch (e) {} },
     maybeAutoClean: function (silent) {
       // 录入即判断：打开页面/拉取后自动去重；过期清理遵循设置里的自动清理开关
       var jobs = [];
@@ -593,6 +812,7 @@
           s.lastMirrorUpdatedAt = json.updatedAt || H.nowIso();
           s.lastMirrorMeta = json.meta || {};
           Store.saveSettings();
+          if (added > 0) App.petReact("happy");   // 有新文章入库 → 宠物开心一下
           if (added > 0 && s.autoTranslate && LLM.configured()) {
             App.toast("新增 " + added + " 条，自动翻译标题中…");
             return Store.getAllArticles().then(function (all) {
@@ -702,14 +922,12 @@
       var me = document.getElementById("mailEntry");
       if (me) me.addEventListener("click", function () { App.route("#/inbox"); });
       window.addEventListener("hashchange", function () { App.route(location.hash); });
-      // 移动端顶栏：返回 + 收件箱；底部导航入口（数据已在 renderBottomNav 绑定）
+      // 移动端顶栏：返回键（收件箱只保留底栏一个入口，v1.24 移除顶栏信封）
       var mobBack = document.getElementById("mobBack");
       if (mobBack) mobBack.addEventListener("click", function () {
         var to = mobBack.dataset.to || "dashboard";
         App.route("#/" + to);
       });
-      var mobMail = document.getElementById("mobMail");
-      if (mobMail) mobMail.addEventListener("click", function () { App.route("#/inbox"); });
       // 视口跨断点切换时重算手机/桌面外壳（平板/手机互通或窗口缩放）
       var mq = window.matchMedia ? window.matchMedia("(max-width:760px)") : null;
       if (mq && mq.addEventListener) {

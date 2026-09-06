@@ -13,7 +13,7 @@
       var m = H.isMobile(); // 手机端已移除出刊：隐藏「生成学报 docx」按钮
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">收藏夹</h1>' +
-        '<p class="view-sub">收藏 ' + list.length + " 篇 · 点标题阅读；在 设置 → 行为默认值 可开启“收藏后自动生成标题/摘要/全文”</p></div>" +
+        '<p class="view-sub">收藏 ' + list.length + " 篇 · 点标题阅读</p></div>" +
         '<div class="head-actions"><a class="btn primary" href="#/prefs">我的关键词与喜好设置 ⚙</a></div></div>' +
         '<div id="favList">' + (list.length ? list.map(function (a) { return cardHtml(a, kws); }).join("") : '<div class="empty"><b>还没有收藏</b>在资料库点「收藏」即可加入。</div>') + "</div>";
       bind(el);
@@ -29,7 +29,7 @@
           (a.zhState === "ok" ? '<span class="badge state-ok">全文已译</span>' : "") +
           (kwr && kwr.score ? H.kwBadge(kwr) : "") +
           "</div>" +
-          (a.summaryZh ? '<div class="art-sum" style="border-left-color:#b06a1b"><b>【AI 摘要 · 中文】</b> ' + H.esc(a.summaryZh) + "</div>" : "") +
+          (a.summaryZh ? '<div class="art-sum" style="border-left-color:var(--warn)"><b>【AI 摘要 · 中文】</b> ' + H.esc(a.summaryZh) + "</div>" : "") +
           (a.summaryEn ? '<div class="art-sum"><b>【AI 摘要 · English】</b> ' + H.esc(a.summaryEn) + "</div>" : "") +
           '<div class="art-actions">' +
           '<button class="btn sm" data-act="unfav" data-url="' + H.esc(a.url) + '">取消收藏</button>' +
