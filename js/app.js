@@ -147,6 +147,8 @@
   var PET_TOOL = { xiaoyi: "binoculars", haowang: "binoculars", xinshi: "magnifier", chuchu: "magnifier", jiaoguan: "radar", sinan: "radar", dida: "typepad", moling: "typepad", xiazi: "headphones" };
   var PET_FOODS = ["star", "fish", "newspaper"];
   var PET_DOCK_KEY = "xuebao-petdock-v1";
+  /* 图片加载失败兜底（v1.25.2）：内置爪印占位 SVG（灰），保证悬浮球/窝位永远不出现破图 */
+  var PET_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%239aa5b1'%3E%3Cellipse cx='32' cy='42' rx='16' ry='13'/%3E%3Ccircle cx='13' cy='27' r='7'/%3E%3Ccircle cx='26' cy='18' r='7'/%3E%3Ccircle cx='40' cy='18' r='7'/%3E%3Ccircle cx='52' cy='27' r='7'/%3E%3C/g%3E%3C/svg%3E";
   var PET = {
     el: null,
     state: "idle",          // idle / waiting / working / done / error
@@ -238,9 +240,13 @@
         var stage = host.querySelector(".pet-stage-wrap");
         if (!stage) return;
         var img = stage.querySelector(".pet-img"), acc = stage.querySelector(".pet-acc");
-        if (img) img.src = src;
+        if (img) {
+          img.onerror = function () { this.onerror = null; this.src = PET_FALLBACK; };
+          img.src = src;
+        }
         stage.className = "pet-stage-wrap " + anim;
         if (acc) {
+          acc.onerror = function () { this.hidden = true; };   // 配件缺失直接藏起，不出现破图
           if (accSrc) { acc.src = accSrc; acc.hidden = false; }
           else acc.hidden = true;
         }
