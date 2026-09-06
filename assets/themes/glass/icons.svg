@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="64" viewBox="0 0 576 64">
+  <!-- 玻璃晨光 · 通透圆润风侧栏图标组（9 枚 · 64×64 格线 · 主体 currentColor · .glac 晨光橙点缀 / .glwh 高光 / .gldk 柔影） -->
+  <defs>
+    <style>
+      .glac { fill: #f2b05e; }
+      .gldk { fill: #7a92ab; opacity: .18; }
+      .glwh { fill: #ffffff; opacity: .9; }
+    </style>
+    <symbol id="gl-overview" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="5" opacity=".85"/>
+      <path d="M46 18 A20 20 0 0 1 52 32" stroke="#f2b05e" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M32 32 L40 22" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <circle cx="32" cy="32" r="5" fill="currentColor"/>
+      <circle cx="32" cy="32" r="2" class="glwh"/>
+    </symbol>
+    <symbol id="gl-library" viewBox="0 0 64 64">
+      <path d="M14 24 Q22 20 31 22 L31 46 Q22 44 14 48 Z" fill="currentColor"/>
+      <path d="M50 24 Q42 20 33 22 L33 46 Q42 44 50 48 Z" fill="currentColor"/>
+      <rect x="30" y="20" width="4" height="26" rx="2" class="glac"/>
+      <rect x="17" y="28" width="10" height="3" rx="1.5" class="glwh" opacity=".75"/>
+      <rect x="17" y="34" width="8" height="3" rx="1.5" class="glwh" opacity=".7"/>
+      <rect x="37" y="28" width="10" height="3" rx="1.5" class="glwh" opacity=".75"/>
+      <rect x="37" y="34" width="8" height="3" rx="1.5" class="glwh" opacity=".7"/>
+    </symbol>
+    <symbol id="gl-favorites" viewBox="0 0 64 64">
+      <path d="M32 52 C24 44 14 38 16 28 C17.5 20 24 18 28 22 L32 26 L36 22 C40 18 46.5 20 48 28 C50 38 40 44 32 52 Z" fill="currentColor"/>
+      <circle cx="24" cy="26" r="3" class="glwh" opacity=".7"/>
+      <circle cx="44" cy="17" r="3.5" class="glac"/>
+    </symbol>
+    <symbol id="gl-ranking" viewBox="0 0 64 64">
+      <rect x="12" y="32" width="8" height="22" rx="4" fill="currentColor"/>
+      <rect x="26" y="24" width="8" height="30" rx="4" fill="currentColor"/>
+      <rect x="40" y="14" width="8" height="40" rx="4" fill="currentColor"/>
+      <rect x="41.5" y="19" width="3" height="16" rx="1.5" class="glwh" opacity=".5"/>
+      <rect x="8" y="55" width="48" height="3.5" rx="1.75" class="glac" opacity=".8"/>
+    </symbol>
+    <symbol id="gl-journal" viewBox="0 0 64 64">
+      <rect x="14" y="8" width="36" height="48" rx="4" fill="currentColor"/>
+      <path d="M42 8 L50 8 L50 16 Z" class="gldk"/>
+      <rect x="18" y="14" width="24" height="5" rx="2.5" class="glac"/>
+      <rect x="18" y="24" width="26" height="3" rx="1.5" class="glwh" opacity=".8"/>
+      <rect x="18" y="30" width="22" height="3" rx="1.5" class="glwh" opacity=".75"/>
+      <rect x="18" y="36" width="26" height="3" rx="1.5" class="glwh" opacity=".7"/>
+      <rect x="18" y="42" width="16" height="3" rx="1.5" class="glwh" opacity=".6"/>
+    </symbol>
+    <symbol id="gl-sources" viewBox="0 0 64 64">
+      <circle cx="14" cy="32" r="4" fill="currentColor"/>
+      <circle cx="26" cy="32" r="5.5" fill="currentColor"/>
+      <circle cx="40" cy="32" r="7" fill="currentColor"/>
+      <circle cx="12.5" cy="30.5" r="1.5" class="glwh"/>
+      <path d="M50 22 A14 14 0 0 1 50 42" stroke="#f2b05e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M56 16 A22 22 0 0 1 56 48" stroke="#f2b05e" stroke-width="3" opacity=".6" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="gl-terms" viewBox="0 0 64 64">
+      <rect x="14" y="8" width="36" height="48" rx="4" fill="currentColor"/>
+      <rect x="18" y="16" width="8" height="8" rx="2.5" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+      <path d="M20.5 20 L22.5 22.5 L26 18" stroke="#f2b05e" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="18" y="30" width="8" height="8" rx="2.5" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+      <path d="M20.5 34 L22.5 36.5 L26 32" stroke="#f2b05e" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="18" y="44" width="8" height="8" rx="2.5" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+      <path d="M20.5 48 L22.5 50.5 L26 46" stroke="#f2b05e" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="30" y="18" width="18" height="3.5" rx="1.75" class="glwh" opacity=".75"/>
+      <rect x="30" y="32" width="14" height="3.5" rx="1.75" class="glwh" opacity=".7"/>
+      <rect x="30" y="46" width="18" height="3.5" rx="1.75" class="glwh" opacity=".65"/>
+    </symbol>
+    <symbol id="gl-interests" viewBox="0 0 64 64">
+      <path d="M32 10 L37.5 24 L52 24.5 L40.5 33.5 L44.5 48 L32 40 L19.5 48 L23.5 33.5 L12 24.5 L26.5 24 Z" fill="currentColor"/>
+      <circle cx="27" cy="22" r="2.5" class="glwh" opacity=".75"/>
+      <circle cx="48" cy="12" r="4" class="glac"/>
+    </symbol>
+    <symbol id="gl-settings" viewBox="0 0 64 64">
+      <g fill="currentColor"><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(0 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(45 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(90 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(135 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(180 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(225 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(270 32 32)"/><rect x="29" y="8" width="6" height="10" rx="3" transform="rotate(315 32 32)"/></g>
+      <circle cx="32" cy="32" r="13" fill="currentColor"/>
+      <circle cx="32" cy="32" r="5" class="glwh" opacity=".85"/>
+      <circle cx="32" cy="32" r="2" class="glac"/>
+    </symbol>
+  </defs>
+
+  <use href="#gl-overview"  x="0"   width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-library"   x="64"  width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-favorites" x="128" width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-ranking"   x="192" width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-journal"   x="256" width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-sources"   x="320" width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-terms"     x="384" width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-interests" x="448" width="64" height="64" color="#5d6f82"/>
+  <use href="#gl-settings"  x="512" width="64" height="64" color="#5d6f82"/>
+</svg>

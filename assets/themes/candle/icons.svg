@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="64" viewBox="0 0 576 64">
+  <!-- 烛光夜读 · 暖琥珀夜读风侧栏图标组（9 枚 · 64×64 格线 · 主体 currentColor 暖炭 · .cdac 琥珀金 #e8a94e / .cdwh 烛光暖白） -->
+  <defs>
+    <style>
+      .cdac { fill: #e8a94e; }
+      .cddk { fill: #000; opacity: .2; }
+      .cdwh { fill: #fdf0dc; opacity: .92; }
+    </style>
+    <symbol id="cd-overview" viewBox="0 0 64 64">
+      <rect x="14" y="26" width="36" height="22" rx="3" fill="currentColor"/>
+      <rect x="14" y="26" width="36" height="22" rx="3" class="cddk"/>
+      <rect x="24" y="10" width="16" height="20" fill="currentColor"/>
+      <rect x="28" y="14" width="3" height="11" class="cdwh"/>
+      <rect x="33" y="12" width="3" height="13" class="cdwh" opacity=".7"/>
+      <circle cx="54" cy="50" r="2.2" class="cdac"/>
+      <path d="M14 17 L18 17 M16 15 L16 19" stroke="#e8a94e" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="cd-library" viewBox="0 0 64 64">
+      <rect x="12" y="8" width="8" height="48" rx="2" fill="currentColor"/>
+      <rect x="22" y="8" width="8" height="48" rx="2" fill="currentColor"/>
+      <rect x="32" y="8" width="8" height="48" rx="2" fill="currentColor"/>
+      <rect x="42" y="8" width="8" height="48" rx="2" fill="currentColor"/>
+      <rect x="12" y="8" width="8" height="48" rx="2" class="cddk"/>
+      <circle cx="48" cy="28" r="3" class="cdac"/>
+      <rect x="14" y="26" width="4" height="12" fill="#fdf0dc" opacity=".65"/>
+      <rect x="44" y="30" width="4" height="12" fill="#fdf0dc" opacity=".65"/>
+    </symbol>
+    <symbol id="cd-favorites" viewBox="0 0 64 64">
+      <path d="M32 6 L37 24 L55 26 L41 37 L46 55 L32 45 L18 55 L23 37 L9 26 L27 24 Z" fill="currentColor"/>
+      <path d="M32 6 L37 24 L55 26 L41 37 L46 55 L32 45 L18 55 L23 37 L9 26 L27 24 Z" class="cddk"/>
+      <path d="M26 18 L28 20 L30.5 17" stroke="#fdf0dc" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M38 18 L40 20 L42.5 17" stroke="#fdf0dc" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <circle cx="32" cy="38" r="2.5" class="cdac"/>
+    </symbol>
+    <symbol id="cd-ranking" viewBox="0 0 64 64">
+      <rect x="12" y="34" width="12" height="18" rx="2" fill="currentColor"/>
+      <rect x="28" y="24" width="12" height="28" rx="2" fill="currentColor"/>
+      <rect x="44" y="12" width="12" height="40" rx="2" fill="currentColor"/>
+      <rect x="12" y="34" width="12" height="18" rx="2" class="cddk"/>
+      <rect x="28" y="24" width="12" height="28" rx="2" class="cddk"/>
+      <rect x="44" y="12" width="12" height="40" rx="2" class="cddk"/>
+      <rect x="44" y="12" width="12" height="6" class="cdac"/>
+      <rect x="28" y="24" width="12" height="5" class="cdac"/>
+      <rect x="12" y="34" width="12" height="5" class="cdac"/>
+    </symbol>
+    <symbol id="cd-journal" viewBox="0 0 64 64">
+      <rect x="14" y="10" width="36" height="46" rx="3" fill="currentColor"/>
+      <rect x="14" y="10" width="36" height="46" rx="3" class="cddk"/>
+      <rect x="20" y="16" width="24" height="3.5" rx="1.75" class="cdwh" opacity=".8"/>
+      <rect x="20" y="24" width="24" height="3" rx="1.5" class="cdwh" opacity=".55"/>
+      <rect x="20" y="32" width="18" height="3" rx="1.5" class="cdwh" opacity=".55"/>
+      <rect x="20" y="40" width="14" height="3" rx="1.5" class="cdwh" opacity=".5"/>
+      <circle cx="44" cy="47" r="4" class="cdac"/>
+      <path d="M44 43 L45.5 45.5 L48 46 L45.5 47.5 L44 50 L42.5 47.5 L40 46 L42.5 45.5 Z" fill="#fdf0dc" opacity=".85"/>
+    </symbol>
+    <symbol id="cd-sources" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="22" fill="currentColor"/>
+      <circle cx="32" cy="32" r="22" class="cddk"/>
+      <circle cx="32" cy="32" r="14" fill="#fdf0dc" opacity=".25"/>
+      <path d="M32 32 L32 12 A20 20 0 0 1 48 26 Z" fill="#e8a94e" opacity=".85"/>
+      <rect x="31" y="18" width="2" height="14" fill="#fdf0dc" opacity=".7"/>
+      <circle cx="32" cy="32" r="2.5" class="cdac"/>
+    </symbol>
+    <symbol id="cd-terms" viewBox="0 0 64 64">
+      <rect x="12" y="32" width="40" height="24" rx="3" fill="currentColor"/>
+      <rect x="12" y="32" width="40" height="24" rx="3" class="cddk"/>
+      <rect x="16" y="8" width="32" height="26" rx="3" fill="currentColor"/>
+      <rect x="16" y="8" width="32" height="26" rx="3" class="cddk"/>
+      <rect x="20" y="14" width="24" height="3" rx="1.5" class="cdwh" opacity=".7"/>
+      <rect x="20" y="21" width="18" height="3" rx="1.5" class="cdwh" opacity=".55"/>
+      <rect x="20" y="28" width="12" height="3" rx="1.5" class="cdwh" opacity=".45"/>
+      <rect x="18" y="38" width="28" height="4" rx="2" class="cdac"/>
+      <rect x="18" y="46" width="20" height="4" rx="2" class="cdwh" opacity=".5"/>
+    </symbol>
+    <symbol id="cd-interests" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="5"/>
+      <circle cx="32" cy="26" r="5" class="cdac"/>
+      <path d="M27 41 L37 41 M32 30 L32 36 M32 36 L26 44 M32 36 L38 44" stroke="#fdf0dc" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <circle cx="18" cy="50" r="2" class="cdac"/>
+      <circle cx="46" cy="50" r="2" class="cdac"/>
+    </symbol>
+    <symbol id="cd-settings" viewBox="0 0 64 64">
+      <g fill="currentColor">
+        <rect x="29" y="10" width="6" height="9" rx="2.5"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(45 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(90 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(135 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(180 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(225 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(270 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(315 32 32)"/>
+        <circle cx="32" cy="32" r="14"/>
+      </g>
+      <circle cx="32" cy="32" r="5.5" class="cdac"/>
+      <circle cx="32" cy="32" r="2.2" fill="#fdf0dc"/>
+    </symbol>
+  </defs>
+  <use href="#cd-overview"  x="0"   width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-library"   x="64"  width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-favorites" x="128" width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-ranking"   x="192" width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-journal"   x="256" width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-sources"   x="320" width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-terms"     x="384" width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-interests" x="448" width="64" height="64" color="#e9d3a8"/>
+  <use href="#cd-settings"  x="512" width="64" height="64" color="#e9d3a8"/>
+</svg>

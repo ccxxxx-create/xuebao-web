@@ -149,6 +149,8 @@
   var PET_DOCK_KEY = "xuebao-petdock-v1";
   /* 图片加载失败兜底（v1.25.2）：内置爪印占位 SVG（灰），保证悬浮球/窝位永远不出现破图 */
   var PET_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%239aa5b1'%3E%3Cellipse cx='32' cy='42' rx='16' ry='13'/%3E%3Ccircle cx='13' cy='27' r='7'/%3E%3Ccircle cx='26' cy='18' r='7'/%3E%3Ccircle cx='40' cy='18' r='7'/%3E%3Ccircle cx='52' cy='27' r='7'/%3E%3C/g%3E%3C/svg%3E";
+  /* 暴露给设置页等内联 onerror 使用（与悬浮球/窝位同一兜底图） */
+  window.PET_IMG_FALLBACK = PET_FALLBACK;
   var PET = {
     el: null,
     state: "idle",          // idle / waiting / working / done / error
@@ -227,11 +229,17 @@
       this._anim = anim || "breathe";
       this._paint();
     },
+    /* 姿势图文件名：idle/blink/… 用 front_<pose>；side/back 是独立姿势族（<pose>_idle）。
+       历史 bug：此前一律拼 front_<pose>，导致 side/back 请求不存在的文件并回退灰色兜底块。 */
+    _file: function (role, pose) {
+      if (pose === "side" || pose === "back") return "assets/pet/" + role + "/pet_" + role + "_" + pose + "_idle@64@2x.png";
+      return "assets/pet/" + role + "/pet_" + role + "_front_" + pose + "@64@2x.png";
+    },
     /* 只换 src/class，不重建 DOM（预载过的姿势图切换零闪烁） */
     _paint: function () {
       var role = Store.settings.pet || "";
       if (!role) return;
-      var src = "assets/pet/" + role + "/pet_" + role + "_front_" + this._pose + "@64@2x.png";
+      var src = this._file(role, this._pose);
       var accSrc = this.state === "working" && PET_TOOL[role]
         ? "assets/pet/common/pet_common_prop_" + PET_TOOL[role] + "@2x.png" : "";
       var anim = this._anim || "breathe";
@@ -317,9 +325,10 @@
     _preload: function (role) {
       if (this._loaded[role]) return;
       this._loaded[role] = 1;
+      var self = this;
       ["idle", "blink", "puzzled", "working", "cheer", "error", "happy", "tired", "side", "back"].forEach(function (p) {
         var im = new Image();
-        im.src = "assets/pet/" + role + "/pet_" + role + "_front_" + p + "@64@2x.png";
+        im.src = self._file(role, p);
       });
       PET_FOODS.forEach(function (f) { var im = new Image(); im.src = "assets/pet/common/pet_common_food_" + f + "@2x.png"; });
       Object.keys(PET_TOOL).forEach(function (r) { var im = new Image(); im.src = "assets/pet/common/pet_common_prop_" + PET_TOOL[r] + "@2x.png"; });

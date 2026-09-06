@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="64" viewBox="0 0 576 64">
+  <!-- 艺术装饰 · Art Deco 几何装饰风侧栏图标组（9 枚 · 64×64 格线 · 主体 currentColor · .adac 金色点缀 / .adwh 象牙白高光） -->
+  <defs>
+    <style>
+      .adac { fill: #c9a227; }
+      .addk { fill: #000; opacity: .15; }
+      .adwh { fill: #f5ecd7; opacity: .95; }
+    </style>
+    <symbol id="ad-overview" viewBox="0 0 64 64">
+      <g fill="#c9a227"><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(0 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(45 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(90 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(135 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(180 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(225 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(270 32 36)"/><rect x="30.5" y="9" width="3" height="11" rx="1.5" transform="rotate(315 32 36)"/></g>
+      <circle cx="32" cy="36" r="14" fill="currentColor"/>
+      <circle cx="32" cy="36" r="8" class="addk"/>
+      <circle cx="32" cy="36" r="4.5" class="adwh"/>
+      <path d="M52 4 L54.2 8.8 L59 11 L54.2 13.2 L52 18 L49.8 13.2 L45 11 L49.8 8.8 Z" class="adac"/>
+    </symbol>
+    <symbol id="ad-library" viewBox="0 0 64 64">
+      <path d="M14 24 Q22 20 31 22 L31 46 Q22 44 14 48 Z" fill="currentColor"/>
+      <path d="M50 24 Q42 20 33 22 L33 46 Q42 44 50 48 Z" fill="currentColor"/>
+      <rect x="29" y="18" width="6" height="30" class="adac"/>
+      <path d="M32 4 L35 9.5 L32 15 L29 9.5 Z" class="adac"/>
+      <rect x="17" y="30" width="9" height="3" rx="1.5" class="adwh" opacity=".8"/>
+      <rect x="17" y="36" width="7" height="3" rx="1.5" class="adwh" opacity=".7"/>
+      <rect x="39" y="30" width="9" height="3" rx="1.5" class="adwh" opacity=".8"/>
+      <rect x="39" y="36" width="7" height="3" rx="1.5" class="adwh" opacity=".7"/>
+    </symbol>
+    <symbol id="ad-favorites" viewBox="0 0 64 64">
+      <path d="M32 4 L48 32 L32 60 L16 32 Z" fill="currentColor"/>
+      <path d="M32 4 L32 60" stroke="#000" stroke-opacity=".15" stroke-width="2.5"/>
+      <path d="M16 32 L48 32" stroke="#000" stroke-opacity=".15" stroke-width="2.5"/>
+      <path d="M32 4 L32 32 L16 32 Z" class="addk"/>
+      <rect x="20" y="32" width="24" height="5" class="adac"/>
+      <path d="M8 22 L10.2 26.8 L15 29 L10.2 31.2 L8 36 L5.8 31.2 L1 29 L5.8 26.8 Z" class="adac"/>
+    </symbol>
+    <symbol id="ad-ranking" viewBox="0 0 64 64">
+      <rect x="10" y="32" width="9" height="20" fill="currentColor"/>
+      <rect x="8" y="26" width="13" height="6" class="adac"/>
+      <rect x="23" y="24" width="9" height="28" fill="currentColor"/>
+      <rect x="21" y="16" width="13" height="8" class="adac"/>
+      <rect x="36" y="14" width="9" height="38" fill="currentColor"/>
+      <rect x="34" y="8" width="13" height="6" class="adac"/>
+      <rect x="6" y="52" width="52" height="5" class="adac"/>
+      <path d="M52 4 L54.2 8.8 L59 11 L54.2 13.2 L52 18 L49.8 13.2 L45 11 L49.8 8.8 Z" class="adwh" opacity=".6"/>
+    </symbol>
+    <symbol id="ad-journal" viewBox="0 0 64 64">
+      <rect x="14" y="16" width="36" height="8" rx="3" fill="currentColor"/>
+      <rect x="14" y="42" width="36" height="8" rx="3" fill="currentColor"/>
+      <rect x="16" y="22" width="32" height="22" fill="currentColor"/>
+      <path d="M32 26 L35.5 33 L32 40 L28.5 33 Z" class="adac"/>
+      <rect x="17" y="30" width="12" height="3" rx="1.5" class="adwh" opacity=".75"/>
+      <rect x="35" y="30" width="12" height="3" rx="1.5" class="adwh" opacity=".75"/>
+      <rect x="26" y="17" width="12" height="6" rx="2" class="adwh" opacity=".5"/>
+      <rect x="26" y="43" width="12" height="6" rx="2" class="adwh" opacity=".5"/>
+    </symbol>
+    <symbol id="ad-sources" viewBox="0 0 64 64">
+      <rect x="30" y="8" width="4" height="40" fill="currentColor"/>
+      <rect x="22" y="48" width="20" height="6" class="adac"/>
+      <rect x="30.5" y="4" width="3" height="4" class="adwh"/>
+      <circle cx="32" cy="18" r="11" fill="none" stroke="#c9a227" stroke-width="3"/>
+      <circle cx="32" cy="18" r="17" fill="none" stroke="#c9a227" stroke-width="2" opacity=".5"/>
+      <rect x="17" y="16" width="3" height="9" rx="1.5" transform="rotate(-38 18.5 20.5)" class="adac"/>
+      <rect x="44" y="16" width="3" height="9" rx="1.5" transform="rotate(38 45.5 20.5)" class="adac"/>
+    </symbol>
+    <symbol id="ad-terms" viewBox="0 0 64 64">
+      <rect x="16" y="12" width="32" height="42" fill="currentColor"/>
+      <rect x="16" y="12" width="8" height="42" rx="3" class="addk"/>
+      <rect x="24" y="12" width="8" height="5" class="adac"/>
+      <rect x="26" y="20" width="20" height="6" class="adac"/>
+      <rect x="26" y="30" width="20" height="4" rx="2" class="adwh" opacity=".65"/>
+      <rect x="26" y="38" width="14" height="4" rx="2" class="adwh" opacity=".5"/>
+      <rect x="26" y="46" width="18" height="3" rx="1.5" class="adwh" opacity=".45"/>
+    </symbol>
+    <symbol id="ad-interests" viewBox="0 0 64 64">
+      <g fill="#c9a227"><rect x="30.5" y="4" width="3" height="14" rx="1.5" transform="rotate(0 32 32)"/><rect x="30.5" y="4" width="3" height="14" rx="1.5" transform="rotate(90 32 32)"/><rect x="30.5" y="4" width="3" height="14" rx="1.5" transform="rotate(180 32 32)"/><rect x="30.5" y="4" width="3" height="14" rx="1.5" transform="rotate(270 32 32)"/></g>
+      <g fill="#c9a227"><rect x="30.5" y="12" width="3" height="8" rx="1.5" transform="rotate(45 32 32)"/><rect x="30.5" y="12" width="3" height="8" rx="1.5" transform="rotate(135 32 32)"/><rect x="30.5" y="12" width="3" height="8" rx="1.5" transform="rotate(225 32 32)"/><rect x="30.5" y="12" width="3" height="8" rx="1.5" transform="rotate(315 32 32)"/></g>
+      <circle cx="32" cy="32" r="9" fill="currentColor"/>
+      <circle cx="32" cy="32" r="4" class="adwh"/>
+    </symbol>
+    <symbol id="ad-settings" viewBox="0 0 64 64">
+      <g fill="#c9a227"><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(0 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(45 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(90 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(135 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(180 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(225 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(270 32 32)"/><rect x="29" y="10" width="6" height="10" rx="2" transform="rotate(315 32 32)"/></g>
+      <circle cx="32" cy="32" r="14" fill="currentColor"/>
+      <circle cx="32" cy="32" r="7" class="addk"/>
+      <circle cx="32" cy="32" r="3" class="adwh"/>
+      <path d="M52 4 L54.2 8.8 L59 11 L54.2 13.2 L52 18 L49.8 13.2 L45 11 L49.8 8.8 Z" class="adac"/>
+    </symbol>
+  </defs>
+
+  <use href="#ad-overview"  x="0"   width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-library"   x="64"  width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-favorites" x="128" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-ranking"   x="192" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-journal"   x="256" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-sources"   x="320" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-terms"     x="384" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-interests" x="448" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ad-settings"  x="512" width="64" height="64" color="#e8dcbc"/>
+</svg>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="64" viewBox="0 0 576 64">
+  <!-- 解密档案 · 牛皮纸卷宗风侧栏图标组（9 枚 · 64×64 格线 · 主体 currentColor · .arac 暗红印章点缀 / .arwh 纸色高光） -->
+  <defs>
+    <style>
+      .arac { fill: #a0312a; }
+      .ardk { fill: #000; opacity: .16; }
+      .arwh { fill: #fbf3e2; opacity: .95; }
+    </style>
+    <symbol id="ar-overview" viewBox="0 0 64 64">
+      <path d="M12 22 L52 22 L52 52 Q52 56 48 56 L16 56 Q12 56 12 52 Z" fill="currentColor"/>
+      <rect x="10" y="18" width="44" height="6" rx="2" fill="currentColor"/>
+      <rect x="10" y="18" width="44" height="6" rx="2" class="ardk"/>
+      <rect x="16" y="8" width="18" height="12" rx="2" class="arwh"/>
+      <rect x="34" y="12" width="14" height="8" rx="2" class="arwh"/>
+      <rect x="16" y="8" width="8" height="5" rx="2" class="arac"/>
+      <rect x="20" y="32" width="24" height="3.5" rx="1.75" class="arwh" opacity=".65"/>
+      <rect x="20" y="40" width="18" height="3.5" rx="1.75" class="arwh" opacity=".65"/>
+      <rect x="20" y="48" width="12" height="3.5" rx="1.75" class="arwh" opacity=".65"/>
+    </symbol>
+    <symbol id="ar-library" viewBox="0 0 64 64">
+      <rect x="12" y="30" width="40" height="22" rx="3" fill="currentColor"/>
+      <rect x="10" y="24" width="44" height="8" rx="3" fill="currentColor"/>
+      <rect x="10" y="24" width="44" height="8" rx="3" class="ardk"/>
+      <rect x="16" y="14" width="28" height="12" rx="2" class="arwh"/>
+      <rect x="20" y="10" width="24" height="12" rx="2" class="arwh"/>
+      <rect x="20" y="10" width="9" height="5" rx="2" class="arac"/>
+      <rect x="16" y="36" width="28" height="4" rx="2" class="arwh" opacity=".6"/>
+      <rect x="16" y="44" width="20" height="4" rx="2" class="arwh" opacity=".5"/>
+    </symbol>
+    <symbol id="ar-favorites" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="5"/>
+      <path d="M32 21 L35 28 L43 29.5 L37 35 L38.5 43 L32 39.5 L25.5 43 L27 35 L21 29.5 L29 28 Z" class="arac"/>
+      <circle cx="32" cy="10" r="2.5" class="arac"/>
+      <circle cx="54" cy="32" r="2.5" class="arac"/>
+      <circle cx="32" cy="54" r="2.5" class="arac"/>
+      <circle cx="10" cy="32" r="2.5" class="arac"/>
+    </symbol>
+    <symbol id="ar-ranking" viewBox="0 0 64 64">
+      <rect x="10" y="18" width="20" height="8" rx="2" fill="currentColor"/>
+      <circle cx="22" cy="22" r="2" class="arwh"/>
+      <rect x="30" y="20" width="4" height="4" class="arac"/>
+      <rect x="10" y="32" width="32" height="8" rx="2" fill="currentColor"/>
+      <circle cx="26" cy="36" r="2" class="arwh"/>
+      <rect x="38" y="34" width="4" height="4" class="arac"/>
+      <rect x="10" y="46" width="44" height="8" rx="2" fill="currentColor"/>
+      <circle cx="32" cy="50" r="2" class="arwh"/>
+      <rect x="50" y="48" width="4" height="4" class="arac"/>
+    </symbol>
+    <symbol id="ar-journal" viewBox="0 0 64 64">
+      <rect x="14" y="14" width="36" height="42" rx="2" fill="currentColor"/>
+      <rect x="20" y="18" width="36" height="40" rx="2" fill="currentColor"/>
+      <rect x="26" y="10" width="16" height="7" rx="2" class="arac"/>
+      <rect x="28" y="12" width="12" height="3" rx="1.5" class="arwh" opacity=".7"/>
+      <rect x="24" y="27" width="26" height="3.5" rx="1.75" class="arwh" opacity=".65"/>
+      <rect x="24" y="34" width="26" height="3.5" rx="1.75" class="arwh" opacity=".6"/>
+      <rect x="24" y="41" width="18" height="3.5" rx="1.75" class="arwh" opacity=".5"/>
+      <circle cx="50" cy="50" r="4" class="arac" opacity=".85"/>
+    </symbol>
+    <symbol id="ar-sources" viewBox="0 0 64 64">
+      <rect x="14" y="16" width="36" height="8" rx="3" fill="currentColor"/>
+      <rect x="14" y="42" width="36" height="8" rx="3" fill="currentColor"/>
+      <rect x="16" y="22" width="32" height="22" fill="currentColor"/>
+      <path d="M47 10 C53 7 56 13 52 18 L46 25" stroke="#a0312a" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <rect x="20" y="27" width="20" height="3" rx="1.5" class="arwh" opacity=".65"/>
+      <rect x="20" y="34" width="16" height="3" rx="1.5" class="arwh" opacity=".55"/>
+      <circle cx="48" cy="52" r="3" class="arac" opacity=".8"/>
+    </symbol>
+    <symbol id="ar-terms" viewBox="0 0 64 64">
+      <rect x="14" y="10" width="36" height="46" rx="3" fill="currentColor"/>
+      <rect x="14" y="10" width="36" height="8" rx="3" class="ardk"/>
+      <rect x="30" y="13" width="12" height="3.5" rx="1.75" class="arac"/>
+      <circle cx="22" cy="25" r="2.5" class="ardk"/>
+      <circle cx="22" cy="35" r="2.5" class="ardk"/>
+      <circle cx="22" cy="45" r="2.5" class="ardk"/>
+      <rect x="29" y="22" width="16" height="3.5" rx="1.75" class="arwh" opacity=".65"/>
+      <rect x="29" y="32" width="16" height="3.5" rx="1.75" class="arwh" opacity=".6"/>
+      <rect x="29" y="42" width="12" height="3.5" rx="1.75" class="arwh" opacity=".5"/>
+      <rect x="40" y="46" width="9" height="6" rx="1.5" class="arac"/>
+    </symbol>
+    <symbol id="ar-interests" viewBox="0 0 64 64">
+      <rect x="12" y="26" width="40" height="26" rx="2" fill="currentColor"/>
+      <rect x="18" y="20" width="40" height="26" rx="2" fill="currentColor"/>
+      <rect x="18" y="20" width="9" height="6" rx="2" class="arac"/>
+      <rect x="22" y="34" width="30" height="3.5" rx="1.75" class="arwh" opacity=".65"/>
+      <rect x="22" y="41" width="24" height="3.5" rx="1.75" class="arwh" opacity=".55"/>
+      <rect x="12" y="20" width="8" height="5" rx="2" class="ardk"/>
+    </symbol>
+    <symbol id="ar-settings" viewBox="0 0 64 64">
+      <rect x="12" y="4" width="40" height="6" rx="2" class="arac"/>
+      <rect x="12" y="8" width="40" height="50" rx="3" fill="currentColor"/>
+      <rect x="16" y="13" width="32" height="11" rx="2" class="ardk"/>
+      <rect x="28" y="16.5" width="8" height="2.5" rx="1.25" class="arwh"/>
+      <rect x="16" y="28" width="32" height="11" rx="2" class="ardk"/>
+      <rect x="28" y="31.5" width="8" height="2.5" rx="1.25" class="arwh"/>
+      <rect x="16" y="43" width="32" height="11" rx="2" class="ardk"/>
+      <rect x="28" y="46.5" width="8" height="2.5" rx="1.25" class="arwh"/>
+    </symbol>
+  </defs>
+
+  <use href="#ar-overview"  x="0"   width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-library"   x="64"  width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-favorites" x="128" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-ranking"   x="192" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-journal"   x="256" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-sources"   x="320" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-terms"     x="384" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-interests" x="448" width="64" height="64" color="#e8dcbc"/>
+  <use href="#ar-settings"  x="512" width="64" height="64" color="#e8dcbc"/>
+</svg>

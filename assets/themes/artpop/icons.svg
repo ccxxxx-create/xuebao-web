@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="576" height="64" viewBox="0 0 576 64">
+  <!-- 艺术号外 · 波普高饱和 · 9 枚 · 64×64 · 主题色三色（粉 #ff4d6d / 黄 #ffd23f / 深 #003049）+ 白 -->
+  <defs>
+    <style>
+      .pk{fill:#ff4d6d}.yl{fill:#ffd23f}.nv{fill:#003049}.wh{fill:#fff}
+    </style>
+    <symbol id="ap-overview" viewBox="0 0 64 64">
+      <rect x="8" y="12" width="48" height="40" class="pk"/>
+      <rect x="8" y="12" width="48" height="40" fill="none" stroke="#003049" stroke-width="4"/>
+      <rect x="11" y="15" width="42" height="34" class="wh"/>
+      <rect x="11" y="15" width="42" height="34" fill="none" stroke="#003049" stroke-width="3"/>
+      <circle cx="22" cy="32" r="6" class="yl"/>
+      <circle cx="22" cy="32" r="6" fill="none" stroke="#003049" stroke-width="2.5"/>
+      <path d="M34 26 L46 26 M34 32 L46 32 M34 38 L42 38" stroke="#003049" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ap-library" viewBox="0 0 64 64">
+      <rect x="10" y="14" width="44" height="40" class="yl"/>
+      <rect x="10" y="14" width="44" height="40" fill="none" stroke="#003049" stroke-width="4"/>
+      <path d="M20 22 L44 22 L44 38 L20 38 Z" class="wh"/>
+      <path d="M20 22 L44 22 L44 38 L20 38 Z" fill="none" stroke="#003049" stroke-width="3"/>
+      <path d="M32 22 L32 38" stroke="#003049" stroke-width="3"/>
+      <circle cx="20" cy="46" r="4" class="pk"/>
+      <circle cx="20" cy="46" r="4" fill="none" stroke="#003049" stroke-width="2.5"/>
+      <rect x="32" y="42" width="14" height="4" class="nv"/>
+    </symbol>
+    <symbol id="ap-favorites" viewBox="0 0 64 64">
+      <path d="M14 40 Q10 28 20 24 Q30 20 32 28 Q34 20 44 24 Q54 28 50 40 Q46 50 32 56 Q18 50 14 40 Z" class="pk"/>
+      <path d="M14 40 Q10 28 20 24 Q30 20 32 28 Q34 20 44 24 Q54 28 50 40 Q46 50 32 56 Q18 50 14 40 Z" fill="none" stroke="#003049" stroke-width="4"/>
+      <circle cx="48" cy="14" r="6" class="yl"/>
+      <circle cx="48" cy="14" r="6" fill="none" stroke="#003049" stroke-width="2.5"/>
+    </symbol>
+    <symbol id="ap-ranking" viewBox="0 0 64 64">
+      <circle cx="32" cy="36" r="18" class="yl"/>
+      <circle cx="32" cy="36" r="18" fill="none" stroke="#003049" stroke-width="4"/>
+      <path d="M22 4 L42 4 L37 22 L27 22 Z" class="pk"/>
+      <path d="M22 4 L42 4 L37 22 L27 22 Z" fill="none" stroke="#003049" stroke-width="3"/>
+      <path d="M32 28 L34.5 33 L40 34 L36 38 L37 43 L32 40.5 L27 43 L28 38 L24 34 L29.5 33 Z" class="nv"/>
+    </symbol>
+    <symbol id="ap-journal" viewBox="0 0 64 64">
+      <rect x="8" y="12" width="48" height="42" class="wh"/>
+      <rect x="8" y="12" width="48" height="42" fill="none" stroke="#003049" stroke-width="4"/>
+      <rect x="8" y="12" width="48" height="10" class="pk"/>
+      <rect x="8" y="22" width="48" height="2" class="nv"/>
+      <rect x="14" y="28" width="20" height="3" class="nv"/>
+      <rect x="14" y="36" width="36" height="2" class="nv"/>
+      <rect x="14" y="42" width="30" height="2" class="nv"/>
+      <rect x="14" y="48" width="20" height="2" class="nv"/>
+      <circle cx="48" cy="33" r="5" class="yl"/>
+      <circle cx="48" cy="33" r="5" fill="none" stroke="#003049" stroke-width="2.5"/>
+    </symbol>
+    <symbol id="ap-sources" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="22" class="pk"/>
+      <circle cx="32" cy="32" r="22" fill="none" stroke="#003049" stroke-width="4"/>
+      <circle cx="32" cy="32" r="14" class="yl"/>
+      <circle cx="32" cy="32" r="14" fill="none" stroke="#003049" stroke-width="3"/>
+      <path d="M32 32 L32 18 A14 14 0 0 1 45 26 Z" class="nv"/>
+      <circle cx="32" cy="32" r="3" class="wh"/>
+      <path d="M14 16 L20 16 M14 22 L18 22 M10 12 L24 12" stroke="#003049" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ap-terms" viewBox="0 0 64 64">
+      <rect x="12" y="8" width="40" height="48" class="yl"/>
+      <rect x="12" y="8" width="40" height="48" fill="none" stroke="#003049" stroke-width="4"/>
+      <rect x="16" y="14" width="32" height="3" class="nv"/>
+      <rect x="16" y="22" width="32" height="2" class="nv"/>
+      <rect x="16" y="28" width="20" height="2" class="nv"/>
+      <rect x="16" y="34" width="28" height="2" class="nv"/>
+      <rect x="16" y="42" width="32" height="6" class="pk"/>
+      <rect x="16" y="42" width="32" height="6" fill="none" stroke="#003049" stroke-width="2.5"/>
+    </symbol>
+    <symbol id="ap-interests" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="22" class="yl"/>
+      <circle cx="32" cy="32" r="22" fill="none" stroke="#003049" stroke-width="4"/>
+      <path d="M32 12 L38 26 L52 28 L41 38 L46 52 L32 44 L18 52 L23 38 L12 28 L26 26 Z" class="pk"/>
+      <path d="M32 12 L38 26 L52 28 L41 38 L46 52 L32 44 L18 52 L23 38 L12 28 L26 26 Z" fill="none" stroke="#003049" stroke-width="3"/>
+      <circle cx="32" cy="32" r="4" class="wh"/>
+    </symbol>
+    <symbol id="ap-settings" viewBox="0 0 64 64">
+      <g class="pk">
+        <rect x="29" y="10" width="6" height="9" rx="2.5"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(45 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(90 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(135 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(180 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(225 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(270 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(315 32 32)"/>
+        <circle cx="32" cy="32" r="14"/>
+      </g>
+      <g fill="none" stroke="#003049" stroke-width="3.5">
+        <rect x="29" y="10" width="6" height="9" rx="2.5"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(45 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(90 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(135 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(180 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(225 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(270 32 32)"/>
+        <rect x="29" y="10" width="6" height="9" rx="2.5" transform="rotate(315 32 32)"/>
+        <circle cx="32" cy="32" r="14"/>
+      </g>
+      <circle cx="32" cy="32" r="6" class="yl"/>
+      <circle cx="32" cy="32" r="6" fill="none" stroke="#003049" stroke-width="2.5"/>
+    </symbol>
+  </defs>
+  <use href="#ap-overview"  x="0"   width="64" height="64"/>
+  <use href="#ap-library"   x="64"  width="64" height="64"/>
+  <use href="#ap-favorites" x="128" width="64" height="64"/>
+  <use href="#ap-ranking"   x="192" width="64" height="64"/>
+  <use href="#ap-journal"   x="256" width="64" height="64"/>
+  <use href="#ap-sources"   x="320" width="64" height="64"/>
+  <use href="#ap-terms"     x="384" width="64" height="64"/>
+  <use href="#ap-interests" x="448" width="64" height="64"/>
+  <use href="#ap-settings"  x="512" width="64" height="64"/>
+</svg>

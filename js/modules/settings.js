@@ -163,7 +163,7 @@
         var on = (s.pet || "") === p[0];
         var nm = p[1].split(" · ");
         var prev = p[0]
-          ? '<span class="pet-stage"><img class="pet-prev" src="assets/pet/' + p[0] + '/pet_' + p[0] + '_front_idle@96@2x.png" alt="" loading="lazy"></span>'
+          ? '<span class="pet-stage"><img class="pet-prev" src="assets/pet/' + p[0] + '/pet_' + p[0] + '_front_idle@96@2x.png" alt="" loading="lazy" onerror="this.onerror=null;this.src=PET_IMG_FALLBACK;"></span>'
           : '<span class="pet-stage off"><span class="pet-offline">关</span></span>';
         return '<button type="button" class="pet-pick' + (on ? " on" : "") + '" data-pet="' + p[0] + '" title="' + H.esc(p[1]) + '">' +
           prev + '<span class="pet-pn"><b>' + H.esc(nm[0]) + "</b>" + (nm[1] ? "<small>" + H.esc(nm[1]) + "</small>" : "") + "</span>" +

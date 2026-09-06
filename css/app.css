@@ -1042,13 +1042,15 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
 .pet-stage-wrap.breathe{animation:petBreathe 2.6s ease-in-out infinite}
 .pet-stage-wrap.working{animation:petWork 2.6s ease-in-out infinite}
 .pet-stage-wrap.cheer{animation:petCheer .5s ease-in-out 3}
-.pet-stage-wrap.error{animation:petErr 1.3s ease-in-out infinite}
+.pet-stage-wrap.error{animation:petErr .7s ease-in-out 2}
 .pet-stage-wrap.wobble{animation:petSway .9s ease-in-out 1}
 @keyframes petBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
-/* 干活=专注地轻晃：早期 1.1s ±2px 的抖动看起来像 bug（后台批量翻译期间一直抖），改慢改轻 */
-@keyframes petWork{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-1.5px) rotate(-1deg)}70%{transform:translateY(.5px) rotate(.8deg)}}
+/* 干活=专注的轻缓浮动：只做上下 2px 柔和浮动，去掉任何旋转/左右抖动。
+   早期/此前的 ±1°~±1.5° 旋转+位移会让用户觉得"一直在抖"（后台批量任务期间 working 态持续数分钟）。 */
+@keyframes petWork{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes petCheer{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-9px) scale(1.05)}}
-@keyframes petErr{0%,100%{transform:rotate(0)}25%{transform:rotate(-3.5deg)}75%{transform:rotate(3.5deg)}}
+/* 出错=轻轻偏头示意（有限 2 次，不循环抖动）；持续错误由右上"!"角标与皱眉神态提示 */
+@keyframes petErr{0%,100%{transform:rotate(0)}30%{transform:rotate(-2deg)}70%{transform:rotate(2deg)}}
 /* 闲置小动作/事件表情：轻摆一下即可，蹦跳只留给任务完成 */
 @keyframes petSway{0%,100%{transform:rotate(0)}35%{transform:rotate(-2.5deg)}70%{transform:rotate(2deg)}}
 
