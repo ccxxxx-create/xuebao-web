@@ -110,13 +110,40 @@
                 ["ink", "墨韵东方", "linear-gradient(135deg,#f5efe2,#b03a2e)"],
                 ["astro", "星图罗盘", "linear-gradient(135deg,#0f1a2e,#d8b45a)"],
                 ["letter", "铅字编辑部", "linear-gradient(135deg,#f2ead8,#b02a26)"]];
+  /* 每主题迷你预览调色板（与 app.css 各主题 token 保持一致；新增主题时同步补一条） */
+  var THEME_MOCK = {
+    "":         { bg: "#f2f4f7", card: "#ffffff", pri: "#1f5c99", acc: "#2f7fd1", txt: "#1b2532", line: "#e2e6ec" },
+    night:      { bg: "#0e1622", card: "#182534", pri: "#5ca6e6", acc: "#4791d2", txt: "#e9eff7", line: "#2b3d52" },
+    paper:      { bg: "#f3edde", card: "#fffdf6", pri: "#7a5a2e", acc: "#9a7b3f", txt: "#3a2e1c", line: "#e0d4bb" },
+    gray:       { bg: "#eceff2", card: "#ffffff", pri: "#4a5868", acc: "#5d6d7e", txt: "#1d2733", line: "#d8dde3" },
+    artdeco:    { bg: "#f3ecd9", card: "#fbf6e8", pri: "#8a6b2a", acc: "#c9a227", txt: "#3a2f1e", line: "#e0d3ae" },
+    archive:    { bg: "#ece0c2", card: "#f8f0dc", pri: "#2f4a3c", acc: "#a0312a", txt: "#2e2a20", line: "#dccca6" },
+    hud:        { bg: "#0b120e", card: "#13231b", pri: "#7df9a4", acc: "#a4f5c0", txt: "#d7f5e0", line: "#24382c" },
+    glass:      { bg: "#e9f1f8", card: "#ffffff", pri: "#4a86c8", acc: "#6ba3d9", txt: "#2c3a4a", line: "#d5e2ef" },
+    broadsheet: { bg: "#f6f1e2", card: "#fffdf7", pri: "#1a1a1a", acc: "#b8322f", txt: "#1a1a1a", line: "#d8cdb4" },
+    nightcamo:  { bg: "#1f2b20", card: "#26352a", pri: "#4b6e3a", acc: "#a9f37a", txt: "#dfe9dc", line: "#3c4f3c" },
+    artpop:     { bg: "#f8f4ec", card: "#ffffff", pri: "#003049", acc: "#ff4d6d", txt: "#141414", line: "#1c1c1c" },
+    candle:     { bg: "#1c1712", card: "#2a221a", pri: "#e8a94e", acc: "#f4c37a", txt: "#f2e3c8", line: "#4a3c2c" },
+    ink:        { bg: "#f5efe2", card: "#faf5e9", pri: "#2f2a24", acc: "#b03a2e", txt: "#3a352d", line: "#ddd2b8" },
+    astro:      { bg: "#0f1a2e", card: "#16233c", pri: "#d8b45a", acc: "#e6c986", txt: "#e6ecf7", line: "#2c3d5c" },
+    letter:     { bg: "#f2ead8", card: "#faf5e8", pri: "#1a1a1a", acc: "#b02a26", txt: "#2a2620", line: "#d9cdb2" }
+  };
+  function themeMockHtml(mo) {
+    return '<span class="th-mock" style="background:' + mo.bg + '">' +
+      '<i class="tm-bar" style="background:' + mo.pri + '"></i>' +
+      '<span class="tm-card" style="background:' + mo.card + ';border-color:' + mo.line + '">' +
+      '<i class="tm-line" style="background:' + mo.txt + ';width:74%"></i>' +
+      '<i class="tm-line" style="background:' + mo.txt + ';opacity:.35;width:52%"></i>' +
+      '<i class="tm-row"><i class="tm-chip" style="background:' + mo.acc + '"></i><i class="tm-dot" style="background:' + mo.pri + '"></i></i>' +
+      "</span></span>";
+  }
   function themeSectionHtml(s) {
     return '<div class="card"><h3>主题外观</h3>' +
-      '<p class="muted" style="margin:2px 0 10px">一键切换整套配色，选择后即时生效并保存到本机。</p>' +
+      '<p class="muted" style="margin:2px 0 10px">每张卡片就是该主题的页面缩略模样，点选即时生效并保存到本机。</p>' +
       '<div class="theme-grid" id="thGrid">' +
       THEMES.map(function (t) {
         return '<button type="button" class="theme-pick' + ((s.theme || "") === t[0] ? " on" : "") + '" data-th="' + t[0] + '" title="' + H.esc(t[1]) + '">' +
-          '<span class="th-swatch" style="background:' + t[2] + '"></span>' +
+          themeMockHtml(THEME_MOCK[t[0]] || THEME_MOCK[""]) +
           '<span class="th-name">' + H.esc(t[1]) + "</span>" +
           ((s.theme || "") === t[0] ? '<span class="th-check">✓ 使用中</span>' : "") +
           "</button>";
@@ -131,11 +158,12 @@
       '<div class="pet-set" id="petSet">' +
       PETS.map(function (p) {
         var on = (s.pet || "") === p[0];
+        var nm = p[1].split(" · ");
         var prev = p[0]
-          ? '<img class="pet-prev" src="assets/pet/' + p[0] + '/pet_' + p[0] + '_front_idle@64@1x.png" alt="">'
-          : '<span class="pet-prev none">—</span>';
+          ? '<span class="pet-stage"><img class="pet-prev" src="assets/pet/' + p[0] + '/pet_' + p[0] + '_front_idle@96@2x.png" alt="" loading="lazy"></span>'
+          : '<span class="pet-stage off"><span class="pet-offline">关</span></span>';
         return '<button type="button" class="pet-pick' + (on ? " on" : "") + '" data-pet="' + p[0] + '" title="' + H.esc(p[1]) + '">' +
-          prev + '<span class="pet-pn">' + H.esc(p[1]) + "</span>" +
+          prev + '<span class="pet-pn"><b>' + H.esc(nm[0]) + "</b>" + (nm[1] ? "<small>" + H.esc(nm[1]) + "</small>" : "") + "</span>" +
           (on ? '<span class="th-check">✓ 使用中</span>' : "") +
           "</button>";
       }).join("") + "</div></div>";
