@@ -1210,3 +1210,142 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   .pet-stage{width:74px;height:74px}
   .pet-prev{width:66px;height:66px}
 }
+
+/* ============================================================
+   v1.22 移动端逐屏精修 + 主题性格化
+   ============================================================ */
+
+/* ---------- A. 主题性格层（三端生效）：标题字体 + 边框语言 + 组件气质 ---------- */
+:root{--font-head:inherit}
+.view-title,.card h3,.m-sec-head h3,.modal-head h3,.art-title,.m-today-title,.m-recent-title{font-family:var(--font-head)}
+
+html[data-theme="paper"],html[data-theme="paper"] body{
+  --font-head:"KaiTi","STKaiti","华文楷体","楷体",serif}
+html[data-theme="paper"] .view-title{border-bottom:2px solid color-mix(in srgb,var(--primary) 55%,transparent);padding-bottom:7px}
+html[data-theme="paper"] .card h3{letter-spacing:1.5px}
+html[data-theme="paper"] .card{border-color:#d8c9a8}
+
+html[data-theme="broadsheet"],html[data-theme="broadsheet"] body{
+  --font-head:"Times New Roman","SimSun","宋体",Georgia,serif}
+html[data-theme="broadsheet"] .view-title{letter-spacing:1px;border-bottom:3px double #1a1a1a;padding-bottom:7px}
+html[data-theme="broadsheet"] .card{border-radius:6px;border-color:#d8cdb4}
+html[data-theme="broadsheet"] .badge{border-radius:3px}
+
+html[data-theme="ink"],html[data-theme="ink"] body{
+  --font-head:"KaiTi","STKaiti","楷体",serif}
+html[data-theme="ink"] .view-title::after{content:"";display:inline-block;width:9px;height:9px;background:var(--accent);border-radius:2px;margin-left:9px;vertical-align:6px;opacity:.85}
+html[data-theme="ink"] .card{border-color:#ddd2b8;border-radius:8px}
+html[data-theme="ink"] .btn{border-radius:6px}
+
+html[data-theme="hud"],html[data-theme="hud"] body{
+  --font-head:Consolas,"Courier New","Microsoft YaHei",monospace}
+html[data-theme="hud"] body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(0deg,rgba(125,249,164,.028) 0 1px,transparent 1px 3px)}
+html[data-theme="hud"] .card{border:1px solid #24382c;border-radius:4px;
+  box-shadow:0 0 0 1px rgba(125,249,164,.05),inset 0 0 26px rgba(125,249,164,.03)}
+html[data-theme="hud"] .view-title::before{content:"> ";color:var(--primary)}
+html[data-theme="hud"] .btn{border-radius:4px}
+html[data-theme="hud"] .detail-tabs button,html[data-theme="hud"] .mob-channels button{border-radius:4px}
+
+html[data-theme="astro"],html[data-theme="astro"] body{
+  --font-head:Georgia,"Times New Roman","Microsoft YaHei",serif}
+html[data-theme="astro"] .view-title::before{content:"✦ ";color:var(--primary)}
+html[data-theme="astro"] .card{border:1px solid color-mix(in srgb,var(--primary) 38%,var(--line));border-radius:10px;
+  box-shadow:0 0 22px rgba(216,180,90,.06)}
+html[data-theme="astro"] .detail-tabs button.active{box-shadow:0 0 12px rgba(216,180,90,.25)}
+
+html[data-theme="artdeco"],html[data-theme="artdeco"] body{
+  --font-head:Georgia,"Times New Roman","Microsoft YaHei",serif}
+html[data-theme="artdeco"] .card{border:1.5px solid color-mix(in srgb,var(--accent) 55%,transparent);border-radius:8px;
+  box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent)}
+html[data-theme="artdeco"] .view-title{letter-spacing:2.5px}
+
+html[data-theme="archive"],html[data-theme="archive"] body{
+  --font-head:"SimSun","宋体","Microsoft YaHei",serif}
+html[data-theme="archive"] .card{border:1px dashed #b3a67f;border-radius:8px}
+html[data-theme="archive"] .view-head{border-top:3px solid var(--accent);padding-top:9px}
+html[data-theme="archive"] .btn{border-radius:5px}
+
+html[data-theme="artpop"],html[data-theme="artpop"] body{
+  --font-head:"Arial Black","Microsoft YaHei",sans-serif}
+html[data-theme="artpop"] .card{border:2px solid #141414;border-radius:10px;box-shadow:4px 4px 0 #141414}
+html[data-theme="artpop"] .btn{border:2px solid #141414;border-radius:8px;box-shadow:2px 2px 0 #141414}
+html[data-theme="artpop"] .btn:active{transform:translate(2px,2px);box-shadow:none}
+html[data-theme="artpop"] .detail-tabs button.active,html[data-theme="artpop"] .mob-channels button.active{box-shadow:2px 2px 0 #141414}
+
+html[data-theme="candle"],html[data-theme="candle"] body{
+  --font-head:"KaiTi","STKaiti","楷体",serif}
+html[data-theme="candle"] .card{border-color:#4a3c2c;border-radius:12px;
+  box-shadow:0 0 26px rgba(232,169,78,.07),0 1px 3px rgba(0,0,0,.45)}
+
+html[data-theme="glass"] .card{
+  background:color-mix(in srgb,var(--card) 68%,transparent);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.55);border-radius:16px;
+  box-shadow:0 4px 18px rgba(74,134,200,.12)}
+
+html[data-theme="nightcamo"] .view-title::before{content:"● ";color:var(--accent);font-size:.8em;vertical-align:2px}
+html[data-theme="nightcamo"] .card{border:1px solid #3c4f3c}
+
+html[data-theme="gray"] .card{box-shadow:none}
+html[data-theme="gray"] .btn{box-shadow:none}
+
+html[data-theme="night"] .card{border-color:#22344a}
+html[data-theme="night"] .btn.primary{box-shadow:0 0 14px rgba(92,166,230,.18)}
+
+/* ---------- B. 手机端逐屏精修 ---------- */
+@media (max-width:760px){
+  /* 页头：主标题更醒目，副标题弱化，操作钮改胶囊 */
+  .view-title{font-size:22px;letter-spacing:.2px}
+  .view-sub{font-size:12.5px;color:var(--text3);line-height:1.55}
+  .head-actions{gap:8px}
+  .head-actions .btn{border-radius:18px;padding:7px 15px;font-size:12.5px;background:var(--soft);border-color:transparent;color:var(--text2)}
+  .head-actions .btn.primary{background:var(--primary);color:#fff}
+
+  /* 分区标题：统一小节样式 */
+  .card h3{font-size:15.5px;display:flex;align-items:center;gap:7px;margin:0 0 10px}
+  .card h3::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--accent);flex:none}
+
+  /* 列表卡（资料库/收藏夹）：标题层级 + 操作行与正文分离 */
+  .art{border-radius:16px;border-color:color-mix(in srgb,var(--line) 72%,transparent);
+    box-shadow:0 1px 2px rgba(15,30,50,.05);padding:14px 15px;margin-bottom:10px}
+  .art-title{font-size:16px;line-height:1.45}
+  .art-title-en{font-size:12.5px;margin-top:3px}
+  .art-meta{font-size:11.5px;gap:8px}
+  .art-actions{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line);gap:7px}
+  .art-actions .btn{border-radius:16px;padding:5px 12px;font-size:12px;background:var(--soft);border-color:transparent;color:var(--text2)}
+  .art-actions .btn.primary{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
+  .art-actions .btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* 搜索与筛选：收进一张圆角卡，输入控件软底 */
+  .filters{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;gap:8px;margin-bottom:12px}
+  .filters input,.filters select{border:0;background:var(--soft);border-radius:12px;padding:11px 13px}
+  .filters input.search{padding-left:14px}
+
+  /* 分段器（排行榜 今日榜/兴趣榜）：与阅读页分段控件同语言 */
+  .filters.seg{background:color-mix(in srgb,var(--line) 42%,transparent);border:0;padding:4px;border-radius:14px}
+  .filters.seg button{border:0;background:transparent;border-radius:11px;padding:9px 6px;color:var(--text2);font-weight:500}
+  .filters.seg button.active{background:var(--card);color:var(--primary);box-shadow:0 2px 8px rgba(15,30,50,.16);font-weight:600}
+
+  /* 表格 → 卡片（信源/术语等，手机端不再横向拖动） */
+  .tbl-wrap{border:0;overflow:visible}
+  table.data{min-width:0!important}
+  table.data thead{display:none}
+  table.data tr{display:block;border:1px solid var(--line);border-radius:14px;background:var(--card);
+    margin-bottom:10px;overflow:hidden;box-shadow:0 1px 2px rgba(15,30,50,.05)}
+  table.data td{display:block;border-bottom:1px dashed var(--line);padding:9px 13px;font-size:13px;white-space:normal}
+  table.data td:last-child{border-bottom:0}
+  table.data td:first-child{font-size:15px;font-weight:700;padding-top:12px}
+
+  /* 收件箱/排行榜等列表项留白 */
+  .content{padding-top:12px}
+
+  /* 设置分组：卡片间距更清晰 */
+  .set-grid{gap:12px}
+}
+
+/* 表格转卡片时的字段标签（手机端） */
+@media (max-width:760px){
+  table.data td[data-label]::before{content:attr(data-label);display:block;font-size:11px;color:var(--text3);margin-bottom:3px;font-weight:600}
+  table.data td[data-label]{padding-top:8px}
+}

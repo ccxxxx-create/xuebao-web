@@ -45,10 +45,10 @@
           var st = m ? (m.status === "ok" ? '<span class="badge state-ok">正常</span>' : '<span class="badge state-error">异常</span>') : '<span class="badge ghost">尚无记录</span>';
           var on = Store.channelOn(c.id);
           return "<tr><td><b>" + H.esc(c.name) + "</b></td>" +
-            "<td>" + st + "</td><td>" + (m && m.count != null ? m.count : "—") + "</td>" +
-            "<td>" + (on ? '<span class="badge state-ok">收录中</span>' : '<span class="badge ghost">已停用</span>') +
+            "<td data-label=\"云端状态\">" + st + "</td><td data-label=\"云端条数\">" + (m && m.count != null ? m.count : "—") + "</td>" +
+            "<td data-label=\"本设备\">" + (on ? '<span class="badge state-ok">收录中</span>' : '<span class="badge ghost">已停用</span>') +
             ' <button class="btn sm" data-ch="' + c.id + '">' + (on ? "停用" : "启用") + "</button></td>" +
-            "<td class='muted' style='max-width:260px'>" + H.esc(c.note) + (m && m.error ? " · " + H.esc(m.error) : "") + "</td></tr>";
+            "<td data-label='备注' class='muted' style='max-width:260px'>" + H.esc(c.note) + (m && m.error ? " · " + H.esc(m.error) : "") + "</td></tr>";
         }).join("") + "</tbody></table></div>" +
         '<p class="muted">说明：停用仅作用于<b>本设备</b>（不再入库该源新条目），不改变云端公共镜像，也不删除已收录历史。</p>' +
         "</div>";

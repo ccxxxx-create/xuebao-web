@@ -232,7 +232,7 @@
           terms.map(function (t) {
             var vs = Store.termVariants(t);
             var chips = vs.map(function (v) { return '<span class="term-chip">' + H.esc(v) + "</span>"; }).join("");
-            return "<tr><td><b>" + H.esc(t.term_zh) + "</b></td><td>" + chips + "</td><td>" + H.esc(t.scope || "all") + "</td>" +
+            return "<tr><td><b>" + H.esc(t.term_zh) + "</b></td><td data-label=\"英文\">" + chips + "</td><td data-label=\"作用范围\">" + H.esc(t.scope || "all") + "</td>" +
               "<td>" + (t.enabled !== 0 ? '<span class="badge state-ok">启用</span>' : '<span class="badge ghost">停用</span>') + "</td>" +
               '<td><button class="btn sm" data-edit="' + H.esc(t.term_en) + '">编辑</button> ' +
               '<button class="btn sm" data-tog="' + H.esc(t.term_en) + '">' + (t.enabled !== 0 ? "停用" : "启用") + "</button> " +
