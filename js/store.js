@@ -56,8 +56,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.25.5",
-    versionCode: 73,
+    appVersion: "1.25.6",
+    versionCode: 74,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -80,21 +80,27 @@
     if (s.fontSizePx == null) {
       s.fontSizePx = { M: 16, L: 18, XL: 21 }[s.fontZoom || "M"] || 16;
     }
-    // v1.4.0 迁移：从旧版升上来时，把自动化功能一次性强制改为默认关闭（仅保留定时自动刷新）。
-    // ★仅迁移一次：用 _autoMig 标记，之后任何版本升级都不再触碰用户手动开启的开关（修复“设置每次更新被重置”）。
+    // v1.4.0 迁移：把自动化功能收敛为默认关闭（仅保留定时自动刷新）。
+    // ★关键修复：此前 _autoMig 只写在内存、没有立刻落盘，导致每次加载/更新都重复执行迁移、
+    //   把用户（含现代用户）的自动化开关反复重置为默认。现在：
+    //   ①只对"真正从早期旧版(v1.4 之前)升级"的用户重置一次；
+    //   ②无论是否重置，都立刻落盘 _autoMig，此后任何版本升级都不再触碰用户设置。
     if (oldVer > 0 && !s._autoMig) {
-      s.autoTranslate = false;
-      s.favAutoTr = false;
-      s.favAutoFull = false;
-      s.compareAutoFull = false;
-      s.autoClean = false;
-      s.weeklyBrief = false;
-      s.briefAi = false;
-      s.autoTune = false;
-      s.autoRefresh = true;                       // 用户明确要求保留定时刷新机制
-      s.refreshTimes = DEFAULTS.refreshTimes;
-      s.refreshSlots = s.refreshSlots || {};
+      if (oldVer < 20) {                            // 仅识别 v1.4.0 之前的旧版本号；现代用户一律不再重置
+        s.autoTranslate = false;
+        s.favAutoTr = false;
+        s.favAutoFull = false;
+        s.compareAutoFull = false;
+        s.autoClean = false;
+        s.weeklyBrief = false;
+        s.briefAi = false;
+        s.autoTune = false;
+        s.autoRefresh = true;                       // 用户明确要求保留定时刷新机制
+        s.refreshTimes = DEFAULTS.refreshTimes;
+        s.refreshSlots = s.refreshSlots || {};
+      }
       s._autoMig = true;
+      saveSettings(s);                              // ★ 立刻落盘，保证迁移至多执行一次
     }
     // 版本号以“当前运行的代码”为准：避免老用户因本地旧版本号被反复提示更新
     s.appVersion = DEFAULTS.appVersion;
