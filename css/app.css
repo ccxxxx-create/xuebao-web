@@ -5,7 +5,7 @@
 /* 触屏点击高亮：禁用平台默认的蓝色/半透明点击背景块（平板点卡片时残留的蓝色背景） */
 *{-webkit-tap-highlight-color:transparent;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 :root{
-  --soft:#f4f6fa; --soft:color-mix(in srgb,var(--card) 55%,var(--bg)); --bg:#f2f4f7; --card:#ffffff; --line:#e2e6ec; --text:#1b2532; --text2:#5c6775; --text3:#9aa5b1;
+  --soft:#f4f6fa; --soft:color-mix(in srgb,var(--card) 55%,var(--bg)); --bg:#f2f4f7; --card:#ffffff; --line:#e2e6ec; --text:#1b2532; --text2:#5c6775; --text3:#6f7b87;
   --primary:#1f5c99; --accent:#2f7fd1; --accent-weak:#e8f1fa;
   --ok:#0f766e; --ok-weak:#e2f2ec; --warn:#b7791f; --warn-weak:#faf0dd;
   --bad:#b83f58; --bad-weak:#f8e6ec; --violet:#5b4b8a; --violet-weak:#efebf7;
@@ -488,7 +488,7 @@ html[data-theme="night"] ::-webkit-scrollbar-thumb{background:#354a60}
 
 /* —— 主题二：纸面学报（暖纸） —— */
 html[data-theme="paper"]{
-  --bg:#f3edde; --card:#fffdf6; --line:#e0d4bb; --text:#3a2e1c; --text2:#6b5a3d; --text3:#9c8c6d;
+  --bg:#f3edde; --card:#fffdf6; --line:#e0d4bb; --text:#3a2e1c; --text2:#6b5a3d; --text3:#7c6b4c;
   --primary:#7a5a2e; --accent:#9a7b3f; --accent-weak:#f0e7cf;
   --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
   --bad:#8c4a4a; --bad-weak:#f2e1e1; --violet:#6d5b7d; --violet-weak:#ebe5ef;
@@ -524,7 +524,7 @@ html[data-theme="paper"] .pair-tbl td{background:transparent}
 
 /* —— 主题三：极简灰（低饱和单色） —— */
 html[data-theme="gray"]{
-  --bg:#eceff2; --card:#ffffff; --line:#d8dde3; --text:#1d2733; --text2:#5d6a78; --text3:#93a0aa;
+  --bg:#eceff2; --card:#ffffff; --line:#d8dde3; --text:#1d2733; --text2:#5d6a78; --text3:#6f7b87;
   --primary:#4a5868; --accent:#5d6d7e; --accent-weak:#e9edf1;
   --ok:#5f7a6d; --ok-weak:#e6efe9; --warn:#9a7a4a; --warn-weak:#f2ecd9;
   --bad:#9a5560; --bad-weak:#f1e4e6; --violet:#6a6680; --violet-weak:#ebebf2;
@@ -549,7 +549,7 @@ html[data-theme="gray"] .nav .ico .nav-flag{border-color:#f6f7f9}
 
 /* —— 主题四：艺术装饰（Art Deco 金色几何 · 米白底） —— */
 html[data-theme="artdeco"]{
-  --bg:#f3ecd9; --card:#fbf6e8; --line:#e0d3ae; --text:#3a2f1e; --text2:#6b5d3f; --text3:#a4946f;
+  --bg:#f3ecd9; --card:#fbf6e8; --line:#e0d3ae; --text:#3a2f1e; --text2:#6b5d3f; --text3:#7a6a45;
   --primary:#8a6b2a; --accent:#c9a227; --accent-weak:#f2e8c8;
   --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
   --bad:#8c4a4a; --bad-weak:#f2e1e1; --violet:#6d5b7d; --violet-weak:#ebe5ef;
@@ -577,7 +577,7 @@ html[data-theme="artdeco"] .nav .ico .nav-flag{border-color:#142a22}
 
 /* —— 主题五：解密档案（牛皮纸卷宗 · 墨绿+朱印） —— */
 html[data-theme="archive"]{
-  --bg:#ece0c2; --card:#f8f0dc; --line:#dccca6; --text:#2e2a20; --text2:#5d5440; --text3:#97896c;
+  --bg:#ece0c2; --card:#f8f0dc; --line:#dccca6; --text:#2e2a20; --text2:#5d5440; --text3:#7c6b48;
   --primary:#2f4a3c; --accent:#a0312a; --accent-weak:#efe4cf;
   --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
   --bad:#8c4a4a; --bad-weak:#f2e1e1; --violet:#6d5b7d; --violet-weak:#ebe5ef;
@@ -663,8 +663,8 @@ html[data-theme="hud"] ::-webkit-scrollbar-thumb{background:#2f5240}
 
 /* —— 主题七：玻璃晨光（通透毛玻璃 · 明亮） —— */
 html[data-theme="glass"]{
-  --bg:#e9f1f8; --card:rgba(255,255,255,.62); --line:#d5e2ef; --text:#2c3a4a; --text2:#5d6f82; --text3:#93a5b8;
-  --primary:#4a86c8; --accent:#6ba3d9; --accent-weak:#e3eef9;
+  --bg:#e9f1f8; --card:rgba(255,255,255,.62); --line:#d5e2ef; --text:#2c3a4a; --text2:#5d6f82; --text3:#6f7b87;
+  --primary:#2f6bb0; --accent:#3577b5; --accent-weak:#e3eef9;
   --ok:#5f8a6d; --ok-weak:#e4f0e8; --warn:#c08a3a; --warn-weak:#f7ecd8;
   --bad:#b05a68; --bad-weak:#f5e4e7; --violet:#7a7aab; --violet-weak:#ececf5;
   --shadow:0 1px 4px rgba(90,120,160,.14);
@@ -681,7 +681,7 @@ html[data-theme="glass"] .side-foot{color:var(--text3);border-top:1px solid rgba
 html[data-theme="glass"] .mail-entry{background:rgba(255,255,255,.6);color:var(--text2)}
 html[data-theme="glass"] .mail-entry:hover{background:var(--card);color:var(--text)}
 html[data-theme="glass"] .brand-mark{background:linear-gradient(135deg,#8fc1ec,#4a86c8);color:#123a63;box-shadow:0 4px 14px rgba(90,140,200,.3)}
-html[data-theme="glass"] a{color:#4a86c8}
+html[data-theme="glass"] a{color:var(--primary)}
 html[data-theme="glass"] .seg button:hover{background:rgba(255,255,255,.8);color:var(--text)}
 html[data-theme="glass"] .art:hover{border-color:#bcd2ea}
 html[data-theme="glass"] .art-sum{background:var(--accent-weak);color:#3c5a78;border-left-color:var(--accent)}
@@ -690,7 +690,7 @@ html[data-theme="glass"] .nav .ico .nav-flag{border-color:rgba(255,255,255,.6)}
 
 /* 大报晨刊 · 编辑主义复古大报（备选接入） */
 html[data-theme="broadsheet"]{
-  --bg:#f6f1e2; --card:#fffdf7; --line:#d8cdb4; --text:#1a1a1a; --text2:#4a4a3a; --text3:#8a8a72;
+  --bg:#f6f1e2; --card:#fffdf7; --line:#d8cdb4; --text:#1a1a1a; --text2:#4a4a3a; --text3:#786e58;
   --primary:#1a1a1a; --accent:#b8322f; --accent-weak:#f3e2e0;
   --ok:#3f6b3a; --ok-weak:#e7f0e4; --warn:#b0752a; --warn-weak:#f7edd8;
   --bad:#9c2f2c; --bad-weak:#f4e2e1; --violet:#54486a; --violet-weak:#ebe7f1;
@@ -719,10 +719,10 @@ html[data-theme="artpop"] .kw-tag{background:var(--accent-weak);border-color:#f5
 /* 夜视迷彩 · 战术情报荧光（备选接入） */
 html[data-theme="nightcamo"]{
   --bg:#1f2b20; --card:#26352a; --line:#3c4f3c; --text:#dfe9dc; --text2:#b0c2ac; --text3:#9db49a;
-  --primary:#4b6e3a; --accent:#a9f37a; --accent-weak:#2e4030;
+  --primary:#8fc26a; --accent:#a9f37a; --accent-weak:#2e4030;
   --ok:#8fcf6a; --ok-weak:#263826; --warn:#cfa94a; --warn-weak:#35301f;
   --bad:#d67b6a; --bad-weak:#3a2422; --violet:#9a9ac8; --violet-weak:#26263a;
-  --on-primary:#fff; --on-accent:#14200f;
+  --on-primary:#14200f; --on-accent:#14200f;
   --shadow:0 1px 3px rgba(0,0,0,.4);
 }
 html[data-theme="nightcamo"] body{background:#1f2b20 url(../assets/themes/nightcamo/bg_1080w.jpg) center/cover fixed}
@@ -788,6 +788,7 @@ html[data-theme="artpop"]{
   --primary:#003049; --accent:#ff4d6d; --accent-weak:#ffe3e8;
   --ok:#2a8a52; --ok-weak:#e3f4ea; --warn:#d18a1f; --warn-weak:#fbeed4;
   --bad:#d63d5a; --bad-weak:#fbe1e6; --violet:#7a3d9c; --violet-weak:#f0e4f6;
+  --on-accent:#003049;
   --shadow:0 2px 0 rgba(0,0,0,.9);
 }
 html[data-theme="artpop"] body{background:#f8f4ec url(../assets/themes/artpop/bg_1080w.jpg) center/cover fixed}
@@ -869,7 +870,7 @@ html[data-theme="candle"] ::-webkit-scrollbar-thumb{background:#4a3c2c}
 
 /* 墨韵东方 · 米白宣纸+朱砂红+水墨（新 · 浅色） */
 html[data-theme="ink"]{
-  --bg:#f5efe2; --card:#faf5e9; --line:#ddd2b8; --text:#3a352d; --text2:#6b6252; --text3:#a89b82;
+  --bg:#f5efe2; --card:#faf5e9; --line:#ddd2b8; --text:#3a352d; --text2:#6b6252; --text3:#7a6a52;
   --primary:#2f2a24; --accent:#b03a2e; --accent-weak:#f2e4de;
   --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
   --bad:#9c3028; --bad-weak:#f2e1df; --violet:#6d5b7d; --violet-weak:#ebe5ef;
@@ -954,7 +955,7 @@ html[data-theme="astro"] ::-webkit-scrollbar-thumb{background:#3c5078}
 
 /* 铅字编辑部 · 浅暖灰+印刷红（新 · 浅色） */
 html[data-theme="letter"]{
-  --bg:#f2ead8; --card:#faf5e8; --line:#d9cdb2; --text:#2a2620; --text2:#5c5444; --text3:#9a8f76;
+  --bg:#f2ead8; --card:#faf5e8; --line:#d9cdb2; --text:#2a2620; --text2:#5c5444; --text3:#7a7056;
   --primary:#1a1a1a; --accent:#b02a26; --accent-weak:#f2e0dd;
   --ok:#3f6b3a; --ok-weak:#e7f0e4; --warn:#b0752a; --warn-weak:#f7edd8;
   --bad:#9c2f2c; --bad-weak:#f4e2e1; --violet:#54486a; --violet-weak:#ebe7f1;

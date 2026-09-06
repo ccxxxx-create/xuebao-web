@@ -56,8 +56,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.25.3",
-    versionCode: 71,
+    appVersion: "1.25.4",
+    versionCode: 72,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
