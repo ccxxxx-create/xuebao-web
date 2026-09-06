@@ -4,7 +4,7 @@
 
   var SETTINGS_KEY = "xuebao-settings-v1";
   var DB_NAME = "xuebao-db-v1";
-  var DB_VER = 1;
+  var DB_VER = 2;
 
   var DEFAULTS = {
     version: 1,
@@ -49,13 +49,15 @@
     manualPullCdMin: 10,       // 手动“立即更新”的冷却分钟数（防频繁拉取被源站限流）
     channelOns: {},            // 信源开关：{channelId:0}=本设备停用（保留历史数据，不再收录）
     signatureText: "（XX大学XX学院XXX  XX  供稿）",   // 供稿署名默认（范文同款占位，Word 里可改）
+    // 模型风格记忆（v1.25）：从正式存入稿件提炼的文风印象 + 用户手动规则，注入翻译/编译提示词
+    styleMemory: { traits: "", rules: [], autoExtract: false, lastExtractAt: 0 },
     journalTemplates: [],      // 学报模板（上传范文解构而来）：[{id,name,style,createdAt}]；内置版式不入库
     journalTemplateId: "builtin", // 生成学报使用的模板 id；"builtin"=内置规范版式
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.24.2",
-    versionCode: 67,
+    appVersion: "1.25.0",
+    versionCode: 68,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -119,6 +121,10 @@
         }
         if (!db.objectStoreNames.contains("terms")) {
           db.createObjectStore("terms", { keyPath: "term_en" });
+        }
+        // v1.25：出刊草稿（人工修改/建议返工的工作区，正式存入后转入 journals 并删除）
+        if (!db.objectStoreNames.contains("drafts")) {
+          db.createObjectStore("drafts", { keyPath: "id" });
         }
       };
       req.onsuccess = function () { resolve(req.result); };
@@ -375,6 +381,40 @@
     deleteJournal: function (id) {
       return this.db().then(function (db) {
         return tx(db, "journals", "readwrite", function (s) { return s.delete(id); });
+      });
+    },
+
+    /* 出刊草稿（v1.25：人工修改/建议返工的工作区，正式存入后转入 journals 并删除） */
+    putDraft: function (d) {
+      return this.db().then(function (db) {
+        return tx(db, "drafts", "readwrite", function (s) { return s.put(d); });
+      });
+    },
+    getDraft: function (id) {
+      return this.db().then(function (db) {
+        return tx(db, "drafts", "readonly", function (s) {
+          return new Promise(function (resolve, reject) {
+            var r = s.get(id);
+            r.onsuccess = function () { resolve(r.result || null); };
+            r.onerror = function () { reject(r.error); };
+          });
+        });
+      });
+    },
+    getAllDrafts: function () {
+      return this.db().then(function (db) {
+        return tx(db, "drafts", "readonly", function (s) {
+          return new Promise(function (resolve, reject) {
+            var r = s.getAll();
+            r.onsuccess = function () { resolve((r.result || []).sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); })); };
+            r.onerror = function () { reject(r.error); };
+          });
+        });
+      });
+    },
+    deleteDraft: function (id) {
+      return this.db().then(function (db) {
+        return tx(db, "drafts", "readwrite", function (s) { return s.delete(id); });
       });
     },
 

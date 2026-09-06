@@ -279,13 +279,46 @@
       '<div class="field"><label>供稿署名默认文案（生成进 docx 后可在 Word 修改）</label><input id="bfSign" value="' + H.esc(s.signatureText || "") + '"></div>';
   }
 
+  /* 各源状态表（v1.25 自 sources 页移植：信源功能统一收进设置） */
+  var SRC_CH = [
+    { id: "defensenews", name: "Defense News", note: "防务头条媒体，通常附全文" },
+    { id: "airandspaceforces", name: "Air & Space Forces", note: "权威防务杂志，通常附全文" },
+    { id: "govuk_mod", name: "英国国防部（gov.uk）", note: "英国国防部官方发布" },
+    { id: "afresearchlab", name: "美国空军研究实验室 AFRL", note: "官方研究实验室，更新较慢" },
+    { id: "westpoint", name: "美国西点军校", note: "官方动态；站点偶发拦截会自动重试" },
+    { id: "rand", name: "美国兰德公司 RAND", note: "研究报告与评论" },
+    { id: "us_dod", name: "美国国防部 defense.gov", note: "美国防部每日官方新闻" },
+    { id: "us_marines", name: "美国海军陆战队 marines.mil", note: "海军陆战队官方新闻" },
+    { id: "us_airforce", name: "美国空军 af.mil", note: "美国空军官方新闻" }
+  ];
+  function srcTableHtml(s) {
+    var meta = s.lastMirrorMeta || {};
+    return '<div class="tbl-wrap"><table class="data"><thead><tr><th>信源</th><th>云端状态</th><th>云端条数</th><th>本设备</th><th>备注</th></tr></thead><tbody>' +
+      SRC_CH.map(function (c) {
+        var m = meta[c.id];
+        var st = m ? (m.status === "ok" ? '<span class="badge state-ok">正常</span>' : '<span class="badge state-error">异常</span>') : '<span class="badge ghost">尚无记录</span>';
+        var on = Store.channelOn(c.id);
+        return "<tr><td><b>" + H.esc(c.name) + "</b></td>" +
+          "<td data-label=\"云端状态\">" + st + "</td><td data-label=\"云端条数\">" + (m && m.count != null ? m.count : "—") + "</td>" +
+          "<td data-label=\"本设备\">" + (on ? '<span class="badge state-ok">收录中</span>' : '<span class="badge ghost">已停用</span>') +
+          ' <button class="btn sm" data-ch="' + c.id + '">' + (on ? "停用" : "启用") + "</button></td>" +
+          "<td data-label='备注' class='muted' style='max-width:260px'>" + H.esc(c.note) + (m && m.error ? " · " + H.esc(m.error) : "") + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+
   function mirrorSectionHtml(s) {
-    return subHead("信源状态") + mirrorStatusHtml(s) +
+    return subHead("信源与更新") +
+      '<p class="muted">9 个官方信源每日定时汇集；可在此停用/启用单个信源（仅作用于本设备，历史数据保留）。</p>' +
+      srcTableHtml(s) +
+      '<div class="art-actions" style="margin-top:10px">' +
+      '<button class="btn primary" id="srcPull">↻ 立即更新</button>' +
+      (App.manualPullLeftMin && App.manualPullLeftMin() > 0 ? '<span class="muted">冷却中：' + App.manualPullLeftMin() + " 分钟</span>" : "") +
+      "</div>" +
+      subHead("信源状态") + mirrorStatusHtml(s) +
       '<div class="field"><label>信源汇集仓库（系统统一维护，请勿修改）</label>' +
       '<div class="mono">' + H.esc(s.mirrorRepo || "未配置") + "</div></div>" +
       '<div class="field"><label>更新通知仓库（只读）</label>' +
       '<div class="mono">' + H.esc(s.updateRepo || "未配置") + "</div></div>" +
-      '<p class="muted">官方信源每日定时汇集；本页仅展示状态，不可编辑。</p>' +
       '<div class="art-actions"><button class="btn" id="bfChkUpdate">检查更新</button></div>' +
       '<div id="bfRepoMsg" class="muted" style="margin-top:6px"></div>';
   }
@@ -568,6 +601,18 @@
           });
         }
         bindRw(root, s);
+        // 信源启停 + 立即更新（v1.25 自信源页移植）
+        root.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-ch]");
+          if (!btn) return;
+          var id = btn.dataset.ch;
+          var on = !Store.channelOn(id);
+          Store.setChannelOn(id, on);
+          App.toast(on ? "已启用该信源（下次拉取恢复收录）" : "已停用该信源（历史数据保留，不再收录）", "ok");
+          App.refresh();
+        });
+        var srcPull = root.querySelector("#srcPull");
+        if (srcPull) srcPull.addEventListener("click", function () { App.manualPull(); });
         // 清理
         root.querySelector("#clSave").addEventListener("click", function () {
           s.retentionDays = parseInt(root.querySelector("#clDays").value, 10) || 90;

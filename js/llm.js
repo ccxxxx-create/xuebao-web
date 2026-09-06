@@ -112,6 +112,17 @@
     return lines.join("；");
   }
 
+  /* 风格记忆注入文案（v1.25）：手动规则 + 从正式存入稿件提炼的文风印象，自读设置零传参 */
+  function styleLines() {
+    var m = (Store.settings && Store.settings.styleMemory) || {};
+    var rules = (m.rules || []).filter(function (r) { return r && String(r).trim(); });
+    var traits = String(m.traits || "").trim();
+    var parts = [];
+    if (rules.length) parts.push("写作规则（必须遵守）：" + rules.map(function (r) { return String(r).trim(); }).join("；"));
+    if (traits) parts.push("文风印象（尽量贴合）：" + traits);
+    return parts.join("\n");
+  }
+
   /* 整篇术语提取：从一篇文章里抽出核心军语/科技术语「英文 → 规范中文」，
      供「以文章为单位」的候选采集（用户按需触发，不烧存量）。 */
   function extractTerms(title, body) {
@@ -126,42 +137,50 @@
 
   /* 标题翻译 */
   function translateTitle(title, glossary) {
+    var style = styleLines();
     var sys = "你是军事新闻标题翻译。把英文标题译为准确、地道的简体中文军事新闻标题。" +
       "术语必须使用词表译法；专有名词与机构缩写首次出现可保留原文或括注。" +
       "只输出一行中文标题，不要任何解释。" +
-      (glossary ? "\n词表：" + glossary : "");
+      (glossary ? "\n词表：" + glossary : "") +
+      (style ? "\n" + style : "");
     return chatText([{ role: "system", content: sys }, { role: "user", content: title }], { maxTokens: 300, timeoutMs: 90000 });
   }
 
   /* 摘要生成（中+英可选）：严格三段输出，段首带【T】【Z】【E】前缀便于稳定解析与质量校验 */
   function translateTitleSummary(title, excerpt, glossary) {
+    var style = styleLines();
     var sys = "你是军事/防务新闻编译助手。根据英文标题与正文节选，严格输出三段，每段必须以前缀开头、段间换行：\n" +
       "【T】中文标题：准确、地道的军事新闻标题（术语按词表译法；专有名词与机构缩写首次出现可保留原文或括注）。\n" +
       "【Z】中文摘要：2~3 句、60~120 字，新闻式陈述。必须写清：国家/机构/主体、核心事件、关键信息（装备型号、数量、时间地点等）；只陈述原文出现的事实，禁止评价、禁止推测、禁止编造任何数据与型号。\n" +
       "【E】English Summary: 2-3 sentences, within 90 words, factual only, restating the same facts as the Chinese summary.\n" +
       "除以上三段外不要输出任何其它内容（不要标题名、不要解释、不要客套）。若节选信息不足，就基于已有事实如实概括，绝不臆造。" +
-      (glossary ? "\n术语词表：" + glossary : "");
+      (glossary ? "\n术语词表：" + glossary : "") +
+      (style ? "\n" + style : "");
     var userText = "英文标题：" + title + "\n\n正文节选：\n" + String(excerpt || "").slice(0, 2000);
     return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 1200, timeoutMs: 120000 });
   }
 
   /* 全文翻译（分块调用方负责拆分，本函数翻一段） */
   function translateChunk(text, glossary) {
+    var style = styleLines();
     var sys = "你是专业的军事/防务新闻英译中翻译。把用户给的英文段落译为准确、通顺、地道的简体中文。" +
       "术语使用词表译法；专有名词与机构缩写首次出现保留原文或括注；不添加原文没有的内容。" +
-      "只输出译文。" + (glossary ? "\n词表：" + glossary : "");
+      "只输出译文。" + (glossary ? "\n词表：" + glossary : "") +
+      (style ? "\n" + style : "");
     return chatText([{ role: "system", content: sys }, { role: "user", content: text }], { maxTokens: 4096, timeoutMs: 180000 });
   }
 
   /* 学报编译 */
   function compileJournal(payload, glossary) {
+    var style = styleLines();
     var sys = "你是军事类学报编译员。依据用户提供的英文原文，编译一条中文「学报条目」，写作要求：\n" +
       "1. 输出两行结构：第一行=中文标题；第二行起=正文。\n" +
       "2. 正文以「据" + payload.sourceZh + "网站" + payload.monthDay + "报道」起句，先一句话交代国家/机构/主体与核心事件，再用①…②…③…分点提炼技术特点、性能数据、部署要点；每点先给结论再给论据。\n" +
       "3. 遵循原文信息组织与军事新闻编译语气，不加入评价、不评论政策；原文没有的内容不要补写，原文缺失处以「[原文缺失]」占位。\n" +
       "4. 术语必须使用词表译法；专有名词与缩写首次出现保留原文或括注。" +
       (payload.sourceInfo ? "\n背景：本条目信息来源：" + payload.sourceInfo + "，发布日期：" + payload.pubDate + "。" : "") +
-      (glossary ? "\n词表：" + glossary : "");
+      (glossary ? "\n词表：" + glossary : "") +
+      (style ? "\n" + style : "");
     var max = 6000;
     var userText = "英文标题：" + payload.titleEn + "\n\n英文全文：\n" + (payload.body || "").slice(0, 14000);
     return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: max, timeoutMs: 300000 });
@@ -173,6 +192,29 @@
       { role: "system", content: "只回复两个字：正常" },
       { role: "user", content: "连通性测试" }
     ], { maxTokens: 64, timeoutMs: 30000 });
+  }
+
+  /* 草稿按建议返工（v1.25）：英文原稿 + 当前草稿 + 用户建议 → 修改后的编译稿（两行结构，同 compileJournal） */
+  function reworkJournalDraft(payload, glossary) {
+    var style = styleLines();
+    var sys = "你是军事类学报编译员，正在根据读者的修改建议修订一篇已编译好的中文「学报条目」。要求：\n" +
+      "1. 输出两行结构：第一行=中文标题；第二行起=正文，结构与原稿保持一致（「据XX网站X月X日报道」起句 + ①②③分点）。\n" +
+      "2. 严格落实读者的建议；建议未涉及的部分尽量保留原稿表述（读者可能已手动润色过，不要无谓改写）。\n" +
+      "3. 只依据英文原文与原稿写作，不新增原文没有的事实；术语使用词表译法。" +
+      (glossary ? "\n词表：" + glossary : "") +
+      (style ? "\n" + style : "");
+    var userText = "英文原稿：\n标题：" + (payload.titleEn || "") + "\n" + String(payload.bodyEn || "").slice(0, 12000) +
+      "\n\n当前中文稿：\n" + (payload.title || "") + "\n" + (payload.body || "") +
+      "\n\n读者建议：\n" + (payload.suggestion || "");
+    return chatText([{ role: "system", content: sys }, { role: "user", content: userText }], { maxTokens: 6000, timeoutMs: 300000 });
+  }
+
+  /* 从正式存入的稿件提炼文风印象（v1.25）：输入若干篇样例，输出一段可编辑的风格描述 */
+  function extractStyle(samples) {
+    var sys = "你是中文写作风格分析师。下面是若干篇已正式刊出的军事学报条目（人工审定过）。" +
+      "请归纳它们共同的中文写作风格特点，供以后翻译/编译时模仿。只输出一段 120 字以内的白描式总结，" +
+      "聚焦：句式与长度习惯、称谓与术语倾向、分点与标点习惯、语气（克制/生动等）。不要点评内容本身，不要列举文章，不要客套。";
+    return chatText([{ role: "system", content: sys }, { role: "user", content: samples }], { maxTokens: 800, timeoutMs: 120000 });
   }
 
   /* 简报 AI 增强：输入精选条目（每行【N】），输出全期综述 + 逐条点评 */
@@ -193,11 +235,14 @@
     configured: configured,
     chatText: chatText,
     glossaryLines: glossaryLines,
+    styleLines: styleLines,
     extractTerms: extractTerms,
     translateTitle: translateTitle,
     translateTitleSummary: translateTitleSummary,
     translateChunk: translateChunk,
     compileJournal: compileJournal,
+    reworkJournalDraft: reworkJournalDraft,
+    extractStyle: extractStyle,
     testConnection: testConnection,
     briefCommentary: briefCommentary
   };

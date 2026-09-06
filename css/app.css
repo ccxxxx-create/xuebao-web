@@ -1069,7 +1069,7 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
 }
 
 /* 移动端专属外壳（顶栏/底部导航/频道tab/阅读页底栏）：默认隐藏，仅手机(≤760px)显示 */
-.mobile-topbar,.bottom-nav,.mob-channels,.rd-mobilebar{display:none}
+.mobile-topbar,.bottom-nav,.rd-mobilebar{display:none}
 
 /* ============================================================
    移动端（安卓手机，≤760px）布局：底部导航 + 顶栏 + 频道 tab + 窄屏适配
@@ -1110,12 +1110,7 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   .bottom-nav .bn-item.active svg{stroke-width:2.2}
   .bottom-nav .bn-badge{position:absolute;top:4px;right:calc(50% - 16px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:10px;font-weight:700;font-style:normal;line-height:16px;text-align:center}
 
-  /* ===== 总览页频道 tab（榜单/学报/信源，横向可滑） ===== */
-  .mob-channels{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-  .mob-channels::-webkit-scrollbar{display:none;height:0}
-  .mob-channels button{flex:none;white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--text2);
-    border-radius:18px;padding:6px 14px;font-size:13px;cursor:pointer}
-  .mob-channels button.active{background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:600}
+  /* ===== 总览页频道 tab 已删除（v1.25：信源进设置，排行榜走今日榜「查看全部」） ===== */
 
   /* ===== 页面头部：标题与操作区上下堆叠；操作按钮换行、自然宽度可点 ===== */
   .view-head{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:12px}
@@ -1273,7 +1268,6 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
 
   /* ---- 全局按压反馈 ---- */
   .btn:active{transform:scale(.96)}
-  .mob-channels button:active{transform:scale(.94)}
   .m-stat:active{transform:scale(.97)}
   .m-today-item:active .m-today-title,.m-recent-item:active .m-recent-title{color:var(--primary)}
 
@@ -1414,7 +1408,7 @@ html[data-theme="hud"] .card{border:1px solid #24382c;border-radius:4px;
   box-shadow:0 0 0 1px rgba(125,249,164,.05),inset 0 0 26px rgba(125,249,164,.03)}
 html[data-theme="hud"] .view-title::before{content:"> ";color:var(--primary)}
 html[data-theme="hud"] .btn{border-radius:4px}
-html[data-theme="hud"] .detail-tabs button,html[data-theme="hud"] .mob-channels button{border-radius:4px}
+html[data-theme="hud"] .detail-tabs button{border-radius:4px}
 
 html[data-theme="astro"],html[data-theme="astro"] body{
   --font-head:Georgia,"Times New Roman","Microsoft YaHei",serif}
@@ -1440,7 +1434,7 @@ html[data-theme="artpop"],html[data-theme="artpop"] body{
 html[data-theme="artpop"] .card{border:2px solid #141414;border-radius:10px;box-shadow:4px 4px 0 #141414}
 html[data-theme="artpop"] .btn{border:2px solid #141414;border-radius:8px;box-shadow:2px 2px 0 #141414}
 html[data-theme="artpop"] .btn:active{transform:translate(2px,2px);box-shadow:none}
-html[data-theme="artpop"] .detail-tabs button.active,html[data-theme="artpop"] .mob-channels button.active{box-shadow:2px 2px 0 #141414}
+html[data-theme="artpop"] .detail-tabs button.active{box-shadow:2px 2px 0 #141414}
 
 html[data-theme="candle"],html[data-theme="candle"] body{
   --font-head:"KaiTi","STKaiti","楷体",serif}

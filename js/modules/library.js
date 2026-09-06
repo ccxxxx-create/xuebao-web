@@ -122,7 +122,7 @@
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
-          (!m && a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '" title="直接为这一篇生成学报 docx">直接出刊</button>' : "") +
+          (!m && a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '" title="模型先出草稿，人工修改或给建议返工，满意再正式存入">出草稿</button>' : "") +
           "</div>" +
           "</div>";
       }
@@ -151,7 +151,7 @@
           else if (act === "journal") {
             Store.getArticle(url).then(function (a) {
               if (!a.titleZh) { App.toast("标题尚未翻译，请稍候或先配置模型"); return; }
-              window.WB.modules.journal.generateOne(a);
+              window.WB.modules.journal.generateDraft(a);
             });
           }
         });

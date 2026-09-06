@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var ORDER = ["dashboard", "library", "favorites", "rankings", "journal", "sources", "terms", "prefs", "settings"];
+  var ORDER = ["dashboard", "library", "favorites", "rankings", "journal", "terms", "prefs", "settings"];
   var COLORS = { dashboard: "#2f7fd1", library: "#0f766e", favorites: "#b06a1b", rankings: "#0e7490", journal: "#b7791f", sources: "#5b4b8a", terms: "#a34f6d", prefs: "#d97706", settings: "#4a5568" };
   /* 模块图标（线性图形，替代单字缩写） */
   var ICO = {
@@ -30,19 +30,14 @@
     me: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
   };
   /* 「我的」页内入口见 modules/me.js 的 ENTRIES。出刊(journal)已从手机端移除，仅桌面/平板保留。 */
-  /* 总览页频道 tab（手机端）：出刊(journal)已移除，仅 总览/排行榜/信源 */
-  var CHANNEL_TABS = [
-    { key: "dashboard", label: "总览" },
-    { key: "rankings", label: "排行榜" },
-    { key: "sources", label: "信源" }
-  ];
+  /* v1.25：总览页频道 tab 行已移除（信源收进设置，排行榜走今日榜「查看全部」），总览页直接呈现内容 */
 
   var current = "dashboard";
   var pulling = false;
   var pullDoneOnce = false;
-  /* 移动端顶栏返回目标：记录当前从哪个主入口进入（rankings/sources→总览；terms/prefs/settings→我的） */
+  /* 移动端顶栏返回目标：记录当前从哪个主入口进入（rankings→总览；terms/prefs/settings→我的） */
   var lastRoot = "dashboard";
-  var keyDownFrom = { rankings: "dashboard", sources: "dashboard", terms: "me", prefs: "me", settings: "me" };
+  var keyDownFrom = { rankings: "dashboard", terms: "me", prefs: "me", settings: "me" };
   /* 主题的浏览器地址栏色：与各主题主色呼应 */
   var THEME_META = { "": "#0b3a6e", night: "#0e1622", paper: "#6d5230", gray: "#4a5868", artdeco: "#1f3a33", archive: "#2f4a3c", hud: "#0b120e", glass: "#dbe8f5", broadsheet: "#1a1a1a", nightcamo: "#20402a", artpop: "#ff4d6d", candle: "#1c1712", ink: "#f5efe2", astro: "#0f1a2e", letter: "#f2ead8" };
 
@@ -481,7 +476,6 @@
   function isMobile() { return window.matchMedia && window.matchMedia("(max-width:760px)").matches; }
 
   function renderMobile() {
-    renderChannels();
     var t = document.getElementById("mobileTopbar"), n = document.getElementById("bottomNav");
     if (!isMobile()) {
       // 桌面/平板：隐藏移动外壳
@@ -493,31 +487,18 @@
     renderTopBar();
   }
 
-  /* 频道 tab：仅在「总览/排行榜/信源」这组内容页出现（手机端），其余隐藏 */
-  function renderChannels() {
-    var wrap = document.getElementById("mobChannels");
-    if (!wrap) return;
-    var inGroup = ["dashboard", "rankings", "sources"].indexOf(current) >= 0;
-    if (!isMobile() || !inGroup) { wrap.innerHTML = ""; wrap.hidden = true; return; }
-    wrap.hidden = false;
-    wrap.innerHTML = CHANNEL_TABS.map(function (t) {
-      return '<button class="' + (current === t.key ? "active" : "") + '" data-v="' + t.key + '">' + t.label + "</button>";
-    }).join("");
-    wrap.querySelectorAll("button").forEach(function (b) {
-      b.addEventListener("click", function () { App.route("#/" + b.dataset.v); });
-    });
-  }
+  /* v1.25：频道 tab 行已删除，原 renderChannels 移除；总览页内容即导航（排行榜走今日榜「查看全部」） */
 
   function renderBottomNav() {
     var nav = document.getElementById("bottomNav");
     if (!nav) return;
     var inboxUn = Store.inboxUnread();
       // 所属底部导航项：子页高亮其父入口。
-      // rankings/sources 由总览频道tab进入→高亮总览；terms/prefs/settings 由「我的」进入→高亮我的；
+      // rankings 由总览今日榜进入→高亮总览；terms/prefs/settings 由「我的」进入→高亮我的；
       // brief/inbox 系→高亮收件箱；reader→按来源。出刊(journal)已从手机端移除。
       var groupOf = {
         inbox: "inbox", brief: "inbox",
-        rankings: "dashboard", sources: "dashboard",
+        rankings: "dashboard",
         terms: "me", prefs: "me", settings: "me",
         reader: (keyDownFrom[current] || lastRoot)
       };
@@ -585,6 +566,8 @@
       var key = pathParts[0] || "dashboard";
       var arg = pathParts[1] ? decodeURIComponent(pathParts[1]) : "";
       var q = parts[1] ? decodeURIComponent(parts[1].replace(/^q=/, "")) : "";
+      // 信源已收进设置（v1.25）：旧路由/书签兜底重定向（须在未知模块兜底之前）
+      if (key === "sources") key = "settings";
       if (!mod(key)) key = "dashboard";
       // 手机端已移除出刊功能：未配置入口或直接访问 #/journal 一律回「总览」；平板/电脑不受影响
       var blocked = false;
@@ -940,6 +923,7 @@
       var initial = location.hash;
       // 深链接（如 #/reader/<url>、#/brief/<id>）要按路由规则先取首段 key 再校验，
       // 直接整段喂给 mod() 会判为未知路由而被错误重置回总览
+      if (initial.indexOf("#/sources") === 0) initial = "#/settings";   // 信源已收进设置（v1.25）
       if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0].split("/")[0])) initial = "#/dashboard";
       App.route(initial);
       // 清理历史重复公告（同 kind+正文 只留最新一条），避免老用户看两条一样的

@@ -36,7 +36,7 @@
           '<button class="btn sm" data-act="sum" data-url="' + H.esc(a.url) + '" title="查看/自动生成摘要">摘要（中/英）</button>' +
           '<button class="btn sm" data-act="full" data-url="' + H.esc(a.url) + '"' + (run ? " disabled" : "") + ">" +
           (a.zhState === "ok" ? "重译全文" : (a.zhFull && a.zhState === "failed") ? "续译全文" : "全文翻译") + "</button>" +
-          (!m && a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '">生成学报 docx</button>' : "") +
+          (!m && a.titleZh ? '<button class="btn sm accent" data-act="journal" data-url="' + H.esc(a.url) + '">出学报草稿</button>' : "") +
           "</div>" +
           "</div>";
       }
@@ -63,7 +63,7 @@
             else if (act === "journal") {
               Store.getArticle(url).then(function (a) {
                 if (!a.titleZh) { App.toast("标题尚未翻译"); return; }
-                window.WB.modules.journal.generateOne(a);
+                window.WB.modules.journal.generateDraft(a);
               });
             }
           });
