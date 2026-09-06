@@ -1039,15 +1039,16 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
 .pet-nest .pet-badge{position:absolute;top:7px;right:16px;min-width:18px;height:18px;border-radius:10px;background:#e23b3b;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .pet-nest .pet-badge.err{background:#e5484d}
 .pet-nest .pet-badge.ok{background:#0f766e}
-/* 状态动效：挂在舞台层，宠物与干活配件一起动（配件联动） */
-.pet-stage-wrap.breathe{animation:petBreathe 2.6s ease-in-out infinite}
-.pet-stage-wrap.working{animation:petWork 2.6s ease-in-out infinite}
+/* 状态动效：挂在舞台层，宠物与干活配件一起动（配件联动）
+   —— 静止/工作态一律不循环动（用户两度反馈"一直抖"：无休止的缩放/浮动会被当成抖动），只在语义事件里短暂动：
+   完成=欢呼3跳、出错=轻微偏头2次、闲置小动作=轻摆1次、眨眼=快速换帧。 */
+.pet-stage-wrap.breathe{animation:none}
+.pet-stage-wrap.working{animation:none}
 .pet-stage-wrap.cheer{animation:petCheer .5s ease-in-out 3}
 .pet-stage-wrap.error{animation:petErr .7s ease-in-out 2}
 .pet-stage-wrap.wobble{animation:petSway .9s ease-in-out 1}
 @keyframes petBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
-/* 干活=专注的轻缓浮动：只做上下 2px 柔和浮动，去掉任何旋转/左右抖动。
-   早期/此前的 ±1°~±1.5° 旋转+位移会让用户觉得"一直在抖"（后台批量任务期间 working 态持续数分钟）。 */
+/* 干活=静止（专注），仅靠配件/角标提示；不再做任何位移/旋转/缩放（用户视其为"一直抖"）。 */
 @keyframes petWork{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes petCheer{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-9px) scale(1.05)}}
 /* 出错=轻轻偏头示意（有限 2 次，不循环抖动）；持续错误由右上"!"角标与皱眉神态提示 */
