@@ -1349,3 +1349,46 @@ html[data-theme="night"] .btn.primary{box-shadow:0 0 14px rgba(92,166,230,.18)}
   table.data td[data-label]::before{content:attr(data-label);display:block;font-size:11px;color:var(--text3);margin-bottom:3px;font-weight:600}
   table.data td[data-label]{padding-top:8px}
 }
+
+/* ============================================================
+   v1.23 手机端页头去重 + 背景可读性
+   ============================================================ */
+@media (max-width:760px){
+  /* 顶栏已显示页名，页面内不再重复大标题（阅读页除外：那里顶栏只显示"阅读"） */
+  .view-head > div > .view-title{display:none}
+  .reader-mode .view-head > div > .view-title{display:block;font-size:21px}
+  /* 副标题垫上半透明卡底，任何主题的背景图案下都可读 */
+  .view-head > div > .view-sub{
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    background:color-mix(in srgb,var(--card) 74%,transparent);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border:1px solid color-mix(in srgb,var(--line) 55%,transparent);
+    border-radius:12px;padding:7px 11px;margin-bottom:10px}
+  .view-head{margin-bottom:12px;gap:8px}
+  /* 分段器去重压（不受强主题黑边影响） */
+  .filters.seg button{border:0!important;box-shadow:none!important}
+}
+/* artpop：背景撞色压淡 + 黑边减重（三端，图案只做氛围不做主角） */
+html[data-theme="artpop"] body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 38%,transparent),color-mix(in srgb,var(--bg) 62%,transparent))}
+html[data-theme="artpop"] .card{box-shadow:3px 3px 0 #141414}
+html[data-theme="artpop"] .btn{box-shadow:2px 2px 0 #141414}
+
+/* 阅读正文：强图案主题下半透明卡底 + 模糊，保证可读性 */
+@media (max-width:760px){
+  .reader-mode .prose{
+    background:color-mix(in srgb,var(--card) 84%,transparent);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-radius:14px;padding:14px 15px 96px}
+  .reader-mode .pair-tbl tr{background:color-mix(in srgb,var(--card) 86%,transparent)}
+}
+
+/* 阅读页页头（标题/元信息）软底，强图案主题下保持可读 */
+@media (max-width:760px){
+  .reader-mode .view-head{
+    background:color-mix(in srgb,var(--card) 58%,transparent);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border:1px solid color-mix(in srgb,var(--line) 55%,transparent);
+    border-radius:16px;padding:12px 13px;margin-bottom:12px}
+}

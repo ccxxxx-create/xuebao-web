@@ -98,33 +98,52 @@
   }
 
   var BRIEF = {
-    /* 自动投递：周六/周日首次打开时调用（幂等，同一周只投一期；数据不足则静默跳过，下周六再试） */
+    _busy: false,   // 单飞锁：自动/手动共用，防止并发重复生成
+
+    /* 自动投递：周六/周日首次打开时调用。先占周标记再生成（失败回滚），
+       无论页面并发打开多少次、手动+自动怎么叠加，同一周最终只保留一期 */
     tryAuto: function () {
       var s = Store.settings;
       if (!s.weeklyBrief) return Promise.resolve(false);
       var d = new Date(), day = d.getDay();          // 0=周日 6=周六
       if (day !== 6 && day !== 0) return Promise.resolve(false);
       var wk = H.ymd(mondayOf(d));
-      if (s.lastBriefWeek === wk) return Promise.resolve(false);
+      if (s.lastBriefWeek === wk) {
+        Store.dedupeBriefsByWeek();                  // 兜底清理历史遗留的同周重复
+        return Promise.resolve(false);
+      }
+      if (this._busy) return Promise.resolve(false); // 已有一期在生成中
+      this._busy = true;
+      s.lastBriefWeek = wk;                          // 乐观占坑：并发调用在这里被挡住
+      Store.saveSettings();
       return this.make().then(function (r) {
-        if (!r.made) return false;                    // 本周暂无文章：不记周标，下周末再试
-        s.lastBriefWeek = wk;
-        Store.saveSettings();
+        if (!r.made) {
+          s.lastBriefWeek = "";                      // 本周暂无文章：回滚，下周末再试
+          Store.saveSettings();
+          return false;
+        }
         App.refreshMail();
         App.toast("本周简报已投递到收件箱 ✉", "ok");
         return true;
-      }).catch(function () { return false; });
+      }).catch(function () {
+        s.lastBriefWeek = "";                        // 失败回滚，下次打开重试
+        Store.saveSettings();
+        return false;
+      }).then(function (ok) { BRIEF._busy = false; return ok; });
     },
 
-    /* 手动“立即生成”（任意日期可，不写入每周自动名额） */
+    /* 手动“立即生成”（任意日期可）：同一周内重新生成会替换当期，不叠加；也不影响每周自动名额 */
     generateNow: function () {
+      if (this._busy) return Promise.resolve({ made: false, reason: "已有一期简报在生成中，请稍候" });
+      this._busy = true;
       return this.make().then(function (r) {
         if (r.made) {
           App.refreshMail();
-          App.toast("已生成周末简报并投递到收件箱 ✉", "ok");
+          App.toast("周末简报已生成并投递到收件箱 ✉（同周重新生成会替换当期）", "ok");
         }
         return r;
-      });
+      }).catch(function () { return { made: false }; })
+        .then(function (r) { BRIEF._busy = false; return r; });
     },
 
     /* 独立阅读页：收件箱简报卡片点「阅读完整简报」/「打开这篇原文」跳到这里，长文在这看 */
@@ -207,8 +226,9 @@
       var title = "SENTRA 述势 · 周末简报（覆盖本周 " + rangeTxt + "）";
       var sub = "覆盖本周 " + rangeTxt + " · 本周入库 " + r.weekN + " 篇，按「兴趣相关/新鲜度/来源权威/热度」精选 " + r.show.length + " 条（权重可在 设置 → 排序与喜好学习 调节）";
       var foot = "本期精选均为「本周一至今」入库文章，点各条「打开这篇原文」可在新标签打开原文网页阅读。设置 → 自动化与行为 可关闭本简报或 AI 点评。";
-      // 保存结构化全文，供独立「周末简报」阅读页使用（长文不再塞进收件箱小弹窗）
-      Store.addBrief({
+      // 保存结构化全文（按周替换：同周重新生成/自动补发都不会叠加旧期），
+      // 并清掉指向被替换简报的收件箱条目，供独立「周末简报」阅读页使用
+      Store.replaceBriefByWeek({
         id: briefId, title: title, sub: sub, foot: foot,
         week: H.ymd(r.mon), createdAt: Date.now(),
         overview: overview, count: r.show.length, weekN: r.weekN,

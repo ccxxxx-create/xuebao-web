@@ -54,8 +54,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.22.0",
-    versionCode: 63,
+    appVersion: "1.23.0",
+    versionCode: 64,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -245,6 +245,47 @@
       if (arr.length > 40) arr = arr.slice(0, 40);
       this.saveBriefs(arr);
       return rec;
+    },
+    /* 按周替换简报：同周重新生成/自动补发时不叠加，并清掉指向被替换简报的收件箱条目 */
+    replaceBriefByWeek: function (rec) {
+      var old = this.loadBriefs();
+      var removedIds = {};
+      old.forEach(function (b) { if (b.week === rec.week) removedIds[b.id] = 1; });
+      var arr = old.filter(function (b) { return b.week !== rec.week; });
+      arr.unshift(rec);
+      if (arr.length > 40) arr = arr.slice(0, 40);
+      this.saveBriefs(arr);
+      if (Object.keys(removedIds).length) {
+        var inbox = this.loadInbox().filter(function (x) {
+          return !(x.kind === "brief" && x.briefId && removedIds[x.briefId]);
+        });
+        this.saveInbox(inbox);
+      }
+      return rec;
+    },
+    /* 兜底清理：历史 bug 造成的同周多期简报——每周只留最新一期，
+       并把指向已不存在简报的收件箱条目一并清掉；返回清理条数 */
+    dedupeBriefsByWeek: function () {
+      var briefs = this.loadBriefs();
+      if (!briefs.length) return 0;
+      var keep = {}, newest = {};
+      briefs.forEach(function (b) {
+        var k = b.week || b.id;
+        if (!newest[k] || (b.createdAt || 0) > (newest[k].createdAt || 0)) newest[k] = b;
+      });
+      var out = briefs.filter(function (b) {
+        return newest[b.week || b.id] && newest[b.week || b.id].id === b.id;
+      });
+      var alive = {};
+      out.forEach(function (b) { alive[b.id] = 1; });
+      var inbox = this.loadInbox().filter(function (x) {
+        if (x.kind === "brief" && x.briefId && !alive[x.briefId]) return false;
+        return true;
+      });
+      var removed = (briefs.length - out.length) + (this.loadInbox().length - inbox.length);
+      if (out.length !== briefs.length) this.saveBriefs(out);
+      if (inbox.length !== this.loadInbox().length) this.saveInbox(inbox);
+      return removed;
     },
     getBrief: function (id) {
       if (!id) return null;
