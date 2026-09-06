@@ -1081,3 +1081,99 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   .me-txt small{font-size:11.5px;color:var(--text3)}
   .me-arrow{color:var(--text3);font-size:20px;line-height:1}
 }
+
+/* ============================================================
+   v1.20 移动端美化层 —— 阅读排版 / 毛玻璃底栏 / 微动效（仅 ≤760px）
+   注意：本块位于文件末尾，同名规则会覆盖上方旧移动端块；主题专用
+   背景均带 data-theme 作用域，不会污染多主题皮肤。
+   ============================================================ */
+@keyframes mIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+}
+@media (max-width:760px){
+  /* ---- 页面进场动效（模块每次渲染自动播放；固定定位元素自身动画不影响布局） ---- */
+  .content > *{animation:mIn .22s cubic-bezier(.2,.7,.3,1) both}
+  .modal{animation:mIn .2s ease both}
+
+  /* ---- 全局按压反馈 ---- */
+  .btn:active{transform:scale(.96)}
+  .mob-channels button:active{transform:scale(.94)}
+  .m-stat:active{transform:scale(.97)}
+  .m-today-item:active .m-today-title,.m-recent-item:active .m-recent-title{color:var(--primary)}
+
+  /* ---- 顶栏：标题更有存在感；默认/夜航/羊皮主题用半透明毛玻璃 ---- */
+  .mtb-title{font-size:17px;letter-spacing:.3px}
+  .mtb-mail,.mtb-back{transition:transform .12s,background .15s}
+  .mtb-mail:active,.mtb-back:active{transform:scale(.9)}
+  html:not([data-theme]) .mobile-topbar,html[data-theme=""] .mobile-topbar{
+    background:rgba(9,30,56,.86);
+    -webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
+    border-bottom:1px solid rgba(255,255,255,.07)}
+  html[data-theme="night"] .mobile-topbar{
+    background:rgba(14,22,34,.86);
+    -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3)}
+  html[data-theme="paper"] .mobile-topbar{
+    background:rgba(80,60,30,.88);
+    -webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2)}
+
+  /* ---- 底部导航：毛玻璃 + 活动胶囊指示 ---- */
+  .bottom-nav{
+    background:color-mix(in srgb,var(--card) 86%,transparent);
+    -webkit-backdrop-filter:blur(18px) saturate(1.35);backdrop-filter:blur(18px) saturate(1.35);
+    border-top:1px solid color-mix(in srgb,var(--line) 72%,transparent)}
+  html:not([data-theme]) .bottom-nav,html[data-theme=""] .bottom-nav{background:rgba(255,255,255,.86)}
+  html[data-theme="night"] .bottom-nav{background:rgba(24,37,52,.86)}
+  html[data-theme="paper"] .bottom-nav{background:rgba(255,253,246,.9)}
+  .bottom-nav .bn-item{padding-top:6px;transition:color .15s,transform .12s}
+  .bottom-nav .bn-item:active{transform:scale(.93)}
+  .bottom-nav .bn-item .bn-label{font-weight:500}
+  .bottom-nav .bn-item.active svg{
+    background:color-mix(in srgb,var(--primary) 13%,transparent);
+    border-radius:11px;padding:3px 13px;margin-bottom:-3px}
+  html[data-theme="night"] .bottom-nav .bn-item.active svg{background:rgba(124,192,255,.14)}
+
+  /* ---- 阅读页排版：原生文章质感 ---- */
+  .reader-mode .view-title{font-size:21px;line-height:1.4;letter-spacing:.2px}
+  .reader-mode .art-meta{margin-top:6px}
+  .reader-mode .detail-tabs{
+    background:color-mix(in srgb,var(--line) 42%,transparent);
+    padding:4px;border-radius:14px;gap:4px;margin-bottom:14px}
+  .reader-mode .detail-tabs button{
+    border:0;background:transparent;border-radius:11px;padding:8px 4px;
+    color:var(--text2);transition:background .18s,color .18s,box-shadow .18s}
+  .reader-mode .detail-tabs button.active{
+    background:var(--card);color:var(--primary);
+    box-shadow:0 2px 8px rgba(15,30,50,.16);border-color:transparent}
+  .reader-mode .prose,.reader-mode .prose{
+    font-size:16px;line-height:1.95;letter-spacing:.2px;
+    background:transparent;border:0;border-radius:0;padding:2px 2px 96px}
+  .reader-mode .pair-tbl{padding-bottom:96px;border:0}
+  .reader-mode .pair-tbl tr{border-radius:12px}
+
+  /* ---- 阅读底栏：悬浮毛玻璃工具条 ---- */
+  .reader-mode .rd-mobilebar{
+    background:color-mix(in srgb,var(--card) 90%,transparent);
+    -webkit-backdrop-filter:blur(18px) saturate(1.35);backdrop-filter:blur(18px) saturate(1.35);
+    border:0;border-radius:18px;box-shadow:0 10px 28px rgba(8,22,40,.24)}
+  html:not([data-theme]) .reader-mode .rd-mobilebar,html[data-theme=""] .reader-mode .rd-mobilebar{background:rgba(255,255,255,.9)}
+  html[data-theme="night"] .reader-mode .rd-mobilebar{background:rgba(24,37,52,.9)}
+  html[data-theme="paper"] .reader-mode .rd-mobilebar{background:rgba(255,253,246,.92)}
+  .reader-mode .rd-mobilebar .btn{background:transparent;border:0;color:var(--text2)}
+  .reader-mode .rd-mobilebar .btn:active{transform:scale(.9)}
+  .reader-mode .rd-mobilebar .btn.primary{color:var(--primary);background:color-mix(in srgb,var(--primary) 11%,transparent)}
+  .reader-mode .rd-mobilebar .btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* ---- 总览：卡片与层次精修 ---- */
+  .card{border-radius:16px}
+  .m-card-today .m-today-item{padding:10px 0}
+  .m-today-title{font-size:14.5px}
+  .m-rank{width:25px;height:25px;border-radius:8px}
+  .m-stat{border-radius:14px;transition:transform .12s}
+  .m-stat-num{font-size:24px;letter-spacing:.3px}
+  .m-refresh .btn{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+
+  /* ---- toast 上移到底栏上方，不再顶在屏幕顶端 ---- */
+  .toast-wrap{top:auto;bottom:calc(78px + env(safe-area-inset-bottom,0px));flex-direction:column-reverse}
+  .toast{animation:mIn .2s ease}
+}
