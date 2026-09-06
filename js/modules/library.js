@@ -132,29 +132,29 @@
         root.querySelector("#fCh").addEventListener("change", function (e) { state.channel = e.target.value; state.page = 1; App.refresh(); });
         root.querySelector("#fTr").addEventListener("change", function (e) { state.trans = e.target.value; state.page = 1; App.refresh(); });
         root.querySelector("#fSort").addEventListener("change", function (e) { state.sort = e.target.value; App.refresh(); });
+        root.querySelector("#fFrom").addEventListener("change", function (e) { state.from = e.target.value; state.page = 1; App.refresh(); });
         root.querySelector("#fTo").addEventListener("change", function (e) { state.to = e.target.value; state.page = 1; App.refresh(); });
-        if (!root.__lb) {
-          root.__lb = true;
-          root.addEventListener("click", function (e) {
-            var title = e.target.closest(".art-title[data-url]");
-            if (title) { UI.openArticle(title.dataset.url, "library"); return; }
-            var btn = e.target.closest("[data-act]");
-            if (!btn) return;
-            var act = btn.dataset.act, url = btn.dataset.url;
-            if (act === "pg") { var p = parseInt(btn.dataset.pg, 10); if (p >= 1) { state.page = p; App.refresh(); } }
-            else if (act === "fav") doFav(url);
-            else if (act === "sel") doSel(url);
-            else if (act === "titles") doTitles();
-            else if (act === "sum") window.UI.summaryModal(url);
-            else if (act === "full") doFull(url);
-            else if (act === "journal") {
-              Store.getArticle(url).then(function (a) {
-                if (!a.titleZh) { App.toast("标题尚未翻译，请稍候或先配置模型"); return; }
-                window.WB.modules.journal.generateOne(a);
-              });
-            }
-          });
-        }
+        // 委托监听挂在本轮新建的 #lbList 上（每次渲染重建，闭包取到的是当前 arts，
+        // 避免「译本页标题」等按钮在重渲染后仍作用于第一次渲染的旧列表）
+        root.querySelector("#lbList").addEventListener("click", function (e) {
+          var title = e.target.closest(".art-title[data-url]");
+          if (title) { UI.openArticle(title.dataset.url, "library"); return; }
+          var btn = e.target.closest("[data-act]");
+          if (!btn) return;
+          var act = btn.dataset.act, url = btn.dataset.url;
+          if (act === "pg") { var p = parseInt(btn.dataset.pg, 10); if (p >= 1) { state.page = p; App.refresh(); } }
+          else if (act === "fav") doFav(url);
+          else if (act === "sel") doSel(url);
+          else if (act === "titles") doTitles();
+          else if (act === "sum") window.UI.summaryModal(url);
+          else if (act === "full") doFull(url);
+          else if (act === "journal") {
+            Store.getArticle(url).then(function (a) {
+              if (!a.titleZh) { App.toast("标题尚未翻译，请稍候或先配置模型"); return; }
+              window.WB.modules.journal.generateOne(a);
+            });
+          }
+        });
       }
       function doFav(url) {
         Store.getArticle(url).then(function (a) {

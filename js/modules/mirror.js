@@ -112,7 +112,9 @@
   };
 
   function normTitle(t) {
-    return String(t || "").toLowerCase().replace(/[\W_]+/g, "");
+    // 去图集后缀（DVIDS 老数据同活动按镜头拆成 [Image 1 of 5]…多条），再规范化，用于同题去重
+    return String(t || "").replace(/\s*[\[(]\s*Image\s+\d+\s+of\s+\d+\s*[\])]\s*/i, "")
+      .toLowerCase().replace(/[\W_]+/g, "");
   }
 
   function mirrorUrls(repo) {
@@ -159,8 +161,9 @@
 
   /* 合并镜像条目进本设备资料库（按 url + 规范化标题双重去重，防跨源同题重复）。
      新增：本机无此文章时入库；回填：本机已有但正文为空、镜像有正文时补全（修复“有链接可见原文但系统内暂无正文”）。 */
-  /* 正文里的"页面皮肤"垃圾特征（DVIDS 导航/嵌入代码说明/照片说明、gov.uk cookie 等）：命中即判定为未筛选正文，需用镜像干净正文刷新 */
-  var BODY_JUNK_RE = /(add the following css|hometown news|content images video|combatant commands|view image page|webcasts|\bread more\b|\bsee less\b|advanced-embed-options)/i;
+  /* 正文里的"页面皮肤"垃圾特征（DVIDS 导航/嵌入代码说明/照片说明/元信息表、gov.uk cookie 等）：
+     命中即判定为未筛选正文，需用镜像干净正文刷新 */
+  var BODY_JUNK_RE = /(add the following css|hometown news|content images video|combatant commands|view image page|webcasts|\bread more\b|\bsee less\b|advanced-embed-options|(?:IMAGE|AUDIO|VIDEO) INFO|VIRIN|Photo ID:|Date (?:Taken|Posted):|Web Views:|PUBLIC DOMAIN|Register\/Login to Download|MORE LIKE THIS|CONTROLLED VOCABULARY KEYWORDS|must comply with the restrictions)/i;
   function merge(json) {
     return Store.getAllArticles().then(function (existing) {
       var byUrl = {};
@@ -238,7 +241,8 @@
         function score(x) {
           return (x.fav ? 100 : 0) + (x.selected ? 80 : 0) + (x.journalMade ? 60 : 0) +
             (x.titleZh ? 40 : 0) + (x.zhState === "ok" ? 30 : 0) +
-            ((x.zhFull || "").length ? 20 : 0) + ((x.body || "").length ? 15 : 0);
+            ((x.zhFull || "").length ? 20 : 0) + ((x.body || "").length ? 15 : 0) +
+            (BODY_JUNK_RE.test(x.body || "") ? -50 : 0); // 带页面皮肤的旧正文靠边站，保干净那篇
         }
         arr.sort(function (a, b) {
           return (score(b) - score(a)) || String(a.fetchedAt || "").localeCompare(String(b.fetchedAt || ""));
@@ -466,8 +470,9 @@
         fn: function (task, cancel) {
           return Store.getArticle(art.url).then(function (cur) {
             cur = cur || art;
-            // 断点续传：仅当已有逐段数据且段数一致才从上次进度继续；否则从头重译
-            var resume = cur.zhState === "running" && cur.zhDone > 0 &&
+            // 断点续传：已有逐段数据且段数一致才从上次进度继续（running 中断与 failed 均可续，
+            // 对应界面「续译全文」按钮语义）；否则从头重译
+            var resume = (cur.zhState === "running" || cur.zhState === "failed") && cur.zhDone > 0 &&
               Array.isArray(cur.zhParas) && cur.zhParas.length === paras.length;
             var from = resume ? (cur.zhDone || 0) : 0;
             var acc = [];

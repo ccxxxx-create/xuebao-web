@@ -49,11 +49,13 @@
     manualPullCdMin: 10,       // 手动“立即更新”的冷却分钟数（防频繁拉取被源站限流）
     channelOns: {},            // 信源开关：{channelId:0}=本设备停用（保留历史数据，不再收录）
     signatureText: "（XX大学XX学院XXX  XX  供稿）",   // 供稿署名默认（范文同款占位，Word 里可改）
+    journalTemplates: [],      // 学报模板（上传范文解构而来）：[{id,name,style,createdAt}]；内置版式不入库
+    journalTemplateId: "builtin", // 生成学报使用的模板 id；"builtin"=内置规范版式
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.17.0",
-    versionCode: 58,
+    appVersion: "1.18.0",
+    versionCode: 59,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,

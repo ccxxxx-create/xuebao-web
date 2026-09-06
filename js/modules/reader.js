@@ -180,13 +180,14 @@
   }
 
   /* —— 导出：把当前视图存成 图片PNG / PDF ——（非网页链接形式分享详情页界面） */
-  /* PNG 采用 canvas 自绘，按当前 tab 渲染标题栏 + 元信息 + 正文（对照/原文/中文），
-     中文/英文混排按字符与占位折行，输出一张纵向长图 */
-  function expPNG(a) {
+  var EXP_W = 1080, EXP_ML = 46, EXP_MR = 46;
+
+  /* 导出排版：按当前 tab 计算标题栏 + 元信息 + 正文，产出逐行 plan（每行独立 y 坐标）。
+     PNG 长图与 PDF 分页共用同一布局，保证两个导出内容一致。 */
+  function buildExportPlan(a) {
     var c = document.createElement("canvas");
     var ctx = c.getContext("2d");
-    var W = 1080, ML = 46, MR = 46;
-    var bodyW = W - ML - MR;
+    var bodyW = EXP_W - EXP_ML - EXP_MR;
     var tab = state.tab;
     var enP = paras(a.body);
     var zhP = Array.isArray(a.zhParas) ? a.zhParas : paras(a.zhFull);
@@ -223,93 +224,193 @@
       return out;
     }
 
-    var plan = [], y = 72; // 顶部留出品牌带
-    function text(font, lh, str, maxW, color, dy) { dy = dy || 0; var ls = wrap(str, maxW, font); plan.push({ t: "text", ls: ls, lh: lh, font: font, color: color, y: y + dy }); y += ls.length * lh + dy; return ls.length; }
+    var lines = [], y = 72; // 顶部留出品牌带
+    function text(font, lh, str, maxW, color, dy) {
+      dy = dy || 0;
+      var ls = wrap(str, maxW, font);
+      ls.forEach(function (ln, k) { lines.push({ y: y + dy + (k + 1) * lh, font: font, color: color, x: EXP_ML, w: maxW, text: ln }); });
+      y += ls.length * lh + dy;
+    }
     text(titleFont, titleH, title || "(无标题)", bodyW, "#0b3a6e", 8);
     text(metaFont, metaH, meta || a.url || "", bodyW, "#5d6a78", 2);
-    y += 6; plan.push({ t: "rule", y: y }); y += 10;
+    y += 6; lines.push({ rule: true, y: y }); y += 10;
 
     if (tab === "pair") {
       var colW = (bodyW - 26) / 2, n = Math.max(enP.length, zhP.length);
       for (var i = 0; i < n; i++) {
         var el = wrap(enP[i] || "", colW, pairFont), zl = wrap(zhP[i] || "", colW, pairFont);
-        var rc = Math.max(el.length, zl.length);
-        plan.push({ t: "pair", en: el, zh: zl, lh: pairH, font: pairFont, y: y });
-        y += rc * pairH + 3;
+        el.forEach(function (ln, k) { lines.push({ y: y + (k + 1) * pairH, font: pairFont, color: "#1c4d8a", x: EXP_ML, w: colW, text: ln }); });
+        zl.forEach(function (ln, k) { lines.push({ y: y + (k + 1) * pairH, font: pairFont, color: "#222b35", x: EXP_ML + colW + 26, w: colW, text: ln }); });
+        y += Math.max(el.length, zl.length) * pairH + 3;
       }
     } else {
       var list = tab === "zh" ? zhP : enP;
       (list.length ? list : ["(正文缺失)"]).forEach(function (p) { text(bodyFont, bodyH, p, bodyW, "#222b35"); });
     }
     y += 8;
+    return { lines: lines, total: Math.max(140, Math.ceil(y)), tab: tab };
+  }
 
-    var H = Math.max(140, Math.ceil(y));
-    c.width = W; c.height = H;
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
-    // 品牌带
-    var g = ctx.createLinearGradient(0, 0, W, 0);
+  /* 在画布上绘制（长图整幅或 PDF 某一页），ctx 已按页顶平移，clip 负责裁掉出界内容 */
+  function paintExport(ctx, plan, modeLabel) {
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, EXP_W, plan.total);
+    // 品牌带（长图/PDF 首页可见）
+    var g = ctx.createLinearGradient(0, 0, EXP_W, 0);
     g.addColorStop(0, "#0b3a6e"); g.addColorStop(1, "#2f7fd1");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 72);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, EXP_W, 72);
     ctx.fillStyle = "#fff"; ctx.font = '700 24px -apple-system,"Microsoft YaHei",sans-serif';
-    ctx.fillText("SENTRA 述势 · English Insights", ML, 32);
+    ctx.fillText("SENTRA 述势 · English Insights", EXP_ML, 32);
     ctx.font = '16px -apple-system,"Microsoft YaHei",sans-serif';
     ctx.fillStyle = "rgba(255,255,255,.85)";
-    var modeLabel = { en: "English 原文", zh: "中文全文", pair: "中英对照" }[tab] || "";
-    ctx.fillText("导出 · " + modeLabel, ML, 56);
+    ctx.fillText("导出 · " + modeLabel, EXP_ML, 56);
     ctx.textAlign = "right";
-    ctx.fillText(H.ymd && H.ymd() ? H.ymd() : "", W - MR, 40);
+    ctx.fillText(H.ymd && H.ymd() ? H.ymd() : "", EXP_W - EXP_MR, 40);
     ctx.textAlign = "left";
-
-    plan.forEach(function (p) {
-      if (p.t === "rule") { ctx.fillStyle = "#e2e6ea"; ctx.fillRect(ML, p.y, bodyW, 2); return; }
-      function line(yy, str, x, maxW, color) {
-        ctx.fillStyle = color; ctx.font = p.font;
-        ctx.fillText(str, x, yy);
-      }
-      if (p.t === "pair") {
-        p.en.forEach(function (ln, k) { line(p.y + (k + 1) * p.lh, ln, ML, colW, "#1c4d8a"); });
-        p.zh.forEach(function (ln, k) { line(p.y + (k + 1) * p.lh, ln, ML + colW + 26, colW, "#222b35"); });
-      } else if (p.t === "text") {
-        p.ls.forEach(function (ln, k) { line(p.y + (k + 1) * p.lh, ln, ML, bodyW, p.color); });
-      }
+    plan.lines.forEach(function (p) {
+      if (p.rule) { ctx.fillStyle = "#e2e6ea"; ctx.fillRect(EXP_ML, p.y, EXP_W - EXP_ML - EXP_MR, 2); return; }
+      ctx.fillStyle = p.color; ctx.font = p.font;
+      ctx.fillText(p.text, p.x, p.y);
     });
-    // 下载 / 移动端系统分享
-    var name = (a.titleZh ? a.titleZh : a.title).replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 40) + "_" + modeLabel + ".png";
-    var dataUrl = c.toDataURL("image/png");
-    function dataUrlToBlob(u) {
-      var parts = u.split(",");
-      var mime = (parts[0].match(/data:([^;]+)/) || [])[1] || "image/png";
-      var bin = atob(parts[1]);
-      var arr = new Uint8Array(bin.length);
-      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-      return new Blob([arr], { type: mime });
-    }
-    var blob = dataUrlToBlob(dataUrl);
+  }
+
+  function modeLabelOf(tab) {
+    return { en: "English 原文", zh: "中文全文", pair: "中英对照" }[tab] || "";
+  }
+  function expFileName(a, ext) {
+    return (a.titleZh ? a.titleZh : a.title).replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 40) + "_" + modeLabelOf(state.tab) + "." + ext;
+  }
+  function dataUrlToBlob(u) {
+    var parts = u.split(",");
+    var mime = (parts[0].match(/data:([^;]+)/) || [])[1] || "application/octet-stream";
+    var bin = atob(parts[1]);
+    var arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+  /* 统一投递：移动端优先系统分享（可存相册/文件），取消不打扰，失败或不可用回退下载。
+     File 构造在部分安卓 WebView 缺失，整体包 try 兜底。 */
+  function deliverFile(blob, name, okMsg, mime) {
     function tryDownload() {
       var link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = name;
       document.body.appendChild(link); link.click();
       setTimeout(function () { URL.revokeObjectURL(link.href); link.remove(); }, 800);
-      App.toast("图片已保存（PNG）", "ok");
+      App.toast(okMsg, "ok");
     }
-    var file = new File([blob], name, { type: "image/png" });
-    // 移动端优先走系统“保存/分享图片”，实现存相册；不支持或取消时回退下载
-    if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: name, text: (a.titleZh || a.title || "") }).then(function () {
-        App.toast("已通过系统分享图片", "ok");
-      }).catch(function (e) {
-        if (e && e.name === "AbortError") return; // 用户主动取消，不打扰
-        tryDownload();
-      });
-    } else {
+    try {
+      if (navigator.canShare && navigator.share && window.File) {
+        var file = new File([blob], name, { type: mime || blob.type || "application/octet-stream" });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: name }).then(function () {
+            App.toast("已通过系统分享保存", "ok");
+          }).catch(function (e) {
+            if (e && e.name === "AbortError") return; // 用户主动取消，不打扰
+            tryDownload();
+          });
+          return;
+        }
+      }
+      tryDownload();
+    } catch (e) {
       tryDownload();
     }
   }
 
-  /* PDF：交给浏览器原生打印（当前视图内容保留，只打印正文区），无第三方依赖、可离线 */
+  function expPNG(a) {
+    var plan = buildExportPlan(a);
+    var c = document.createElement("canvas");
+    c.width = EXP_W; c.height = plan.total;
+    paintExport(c.getContext("2d"), plan, modeLabelOf(state.tab));
+    var name = expFileName(a, "png");
+    var blob = dataUrlToBlob(c.toDataURL("image/png"));
+    deliverFile(blob, name, "图片已保存（PNG）", "image/png");
+  }
+
+  /* PDF（移动端）：window.print 在多数手机浏览器无效果，这里真实生成 .pdf 文件——
+     正文按 A4 比例分页绘制成图页，再打包为最小 PDF（JPEG/DCTDecode），无第三方依赖、可离线。 */
+  function buildPdf(pagesJpeg, imgW, imgH) {
+    var wPt = 595.28, hPt = 841.89; // A4
+    var enc = new TextEncoder();
+    function s8(s) { return enc.encode(s); }
+    function b64u8(b64) {
+      var bin = atob(b64);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return arr;
+    }
+    var chunks = [], offsets = [], pos = 0;
+    function push(u8) { chunks.push(u8); pos += u8.length; }
+    /* 流对象：编号取自当前 offsets 长度（1 起算），紧随 push 顺序分配 */
+    function streamObj(bodyArr, dict) {
+      offsets.push(pos);
+      push(s8((offsets.length) + " 0 obj\n" + dict + "\nstream\n"));
+      push(bodyArr);
+      push(s8("\nendstream\nendobj\n"));
+    }
+    push(s8("%PDF-1.4\n"));
+    var n = pagesJpeg.length;
+    var kids = [];
+    for (var i = 0; i < n; i++) kids.push((3 + i * 3) + " 0 R");
+    // 1 Catalog, 2 Pages，其后每页 3 个对象：Page / Image / Contents
+    offsets.push(pos); push(s8("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"));
+    offsets.push(pos); push(s8("2 0 obj\n<< /Type /Pages /Kids [" + kids.join(" ") + "] /Count " + n + " >>\nendobj\n"));
+    for (var p = 0; p < n; p++) {
+      var pageNo = 3 + p * 3, imgNo = pageNo + 1, cntNo = pageNo + 2;
+      var imgName = "Im" + p;
+      var imgBytes = b64u8(pagesJpeg[p]);
+      offsets.push(pos);
+      push(s8(pageNo + " 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + wPt + " " + hPt +
+        "] /Resources << /XObject << /" + imgName + " " + imgNo + " 0 R >> /ProcSet [/PDF /ImageC] >> /Contents " + cntNo + " 0 R >>\nendobj\n"));
+      streamObj(imgBytes, "<< /Type /XObject /Subtype /Image /Width " + imgW + " /Height " + imgH +
+        " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + imgBytes.length + " >>");
+      var stream = s8("q " + wPt + " 0 0 " + hPt + " 0 0 cm /" + imgName + " Do Q");
+      offsets.push(pos);
+      push(s8(cntNo + " 0 obj\n<< /Length " + stream.length + " >>\nstream\n"));
+      push(stream);
+      push(s8("\nendstream\nendobj\n"));
+    }
+    var xrefPos = pos;
+    var cnt = offsets.length + 1;
+    var xref = "xref\n0 " + cnt + "\n0000000000 65535 f \n";
+    offsets.forEach(function (o) { xref += ("0000000000" + o).slice(-10) + " 00000 n \n"; });
+    xref += "trailer\n<< /Size " + cnt + " /Root 1 0 R >>\nstartxref\n" + xrefPos + "\n%%EOF";
+    push(s8(xref));
+    var total = chunks.reduce(function (s2, c2) { return s2 + c2.length; }, 0);
+    var out = new Uint8Array(total);
+    var off = 0;
+    chunks.forEach(function (c2) { out.set(c2, off); off += c2.length; });
+    return out;
+  }
+
+  function expPDFFile(a) {
+    var plan = buildExportPlan(a);
+    var pageH = Math.round(EXP_W * 297 / 210); // A4 纵向比例
+    var pageCount = Math.max(1, Math.ceil(plan.total / pageH));
+    var jpegs = [];
+    for (var i = 0; i < pageCount; i++) {
+      var c = document.createElement("canvas");
+      c.width = EXP_W; c.height = pageH;
+      var ctx = c.getContext("2d");
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, EXP_W, pageH); ctx.clip();
+      ctx.translate(0, -i * pageH);
+      paintExport(ctx, plan, modeLabelOf(state.tab));
+      ctx.restore();
+      jpegs.push(c.toDataURL("image/jpeg", 0.92).split(",")[1]);
+    }
+    var u8 = buildPdf(jpegs, EXP_W, pageH);
+    var name = expFileName(a, "pdf");
+    deliverFile(new Blob([u8], { type: "application/pdf" }), name, "PDF 已保存", "application/pdf");
+  }
+
+  /* PDF：桌面/平板用浏览器原生打印（文本可选、无第三方依赖）；手机端生成真实 PDF 文件 */
   function expPrint() {
     window.print();
+  }
+  function expPDF(a) {
+    if (H.isMobile() || !window.print) expPDFFile(a);
+    else expPrint();
   }
 
   /* 分享/导出菜单：复制链接 / PNG 图片 / PDF */
@@ -325,9 +426,16 @@
       "</div>"
     );
     var box = document.getElementById("modalBox");
+    function safe(fn) {
+      return function () {
+        try { fn(); } catch (e) {
+          App.toast("导出失败：" + (e && e.message ? e.message : "当前浏览器不支持，请换系统浏览器尝试"), "err");
+        }
+      };
+    }
     box.querySelector("#exLink").addEventListener("click", function () { shareArticle(a); });
-    box.querySelector("#exPng").addEventListener("click", function () { App.closeModal(); setTimeout(function () { expPNG(a); }, 50); });
-    box.querySelector("#exPdf").addEventListener("click", function () { App.closeModal(); setTimeout(function () { expPrint(); }, 50); });
+    box.querySelector("#exPng").addEventListener("click", safe(function () { App.closeModal(); setTimeout(function () { expPNG(a); }, 50); }));
+    box.querySelector("#exPdf").addEventListener("click", safe(function () { App.closeModal(); setTimeout(function () { expPDF(a); }, 50); }));
   }
 
   var M = {

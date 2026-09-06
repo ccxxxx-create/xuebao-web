@@ -408,7 +408,7 @@ html[data-theme="night"] .brief-item-cm{background:#172a3a;color:#8fc2ec}
 .theme-pick.on{border-color:var(--primary);box-shadow:0 0 0 2px var(--accent-weak)}
 
 /* 阅读宠物选择（设置页）：卡片预览图 + 名称 + 使用中标 */
-.pet-set{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.pet-set{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;max-width:700px}
 .pet-pick{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px;cursor:pointer;transition:.15s;text-align:left}
 .pet-pick:hover{border-color:#9cc0e0}
 .pet-pick.on{border-color:var(--primary);box-shadow:0 0 0 2px var(--accent-weak)}
@@ -537,6 +537,287 @@ html[data-theme="gray"] .art:hover{border-color:#c2c9d1}
 html[data-theme="gray"] .art-sum{background:var(--accent-weak);color:#3c4a57;border-left-color:var(--accent)}
 html[data-theme="gray"] .kw-tag{background:var(--accent-weak);border-color:#cfd6dd;color:#3c4a57}
 html[data-theme="gray"] .nav .ico .nav-flag{border-color:#f6f7f9}
+
+/* —— 主题四：艺术装饰（Art Deco 金色几何 · 米白底） —— */
+html[data-theme="artdeco"]{
+  --bg:#f3ecd9; --card:#fbf6e8; --line:#e0d3ae; --text:#3a2f1e; --text2:#6b5d3f; --text3:#a4946f;
+  --primary:#8a6b2a; --accent:#c9a227; --accent-weak:#f2e8c8;
+  --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
+  --bad:#8c4a4a; --bad-weak:#f2e1e1; --violet:#6d5b7d; --violet-weak:#ebe5ef;
+  --shadow:0 1px 3px rgba(90,72,40,.10);
+}
+html[data-theme="artdeco"] body{background:#f3ecd9 url(../assets/themes/artdeco/bg_1080w.jpg) center/cover fixed}
+html[data-theme="artdeco"] .sidebar{background:linear-gradient(180deg,#23463c,#142a22);border-right:1px solid rgba(201,162,39,.35)}
+html[data-theme="artdeco"] .brand-text b{color:#fff}
+html[data-theme="artdeco"] .brand-text span{color:#cdbd8a}
+html[data-theme="artdeco"] .nav button{color:#e9dcb6}
+html[data-theme="artdeco"] .nav button:hover{background:rgba(201,162,39,.16);color:#fff}
+html[data-theme="artdeco"] .nav button.active{background:#182f27;color:#f5ecd7;box-shadow:inset 3px 0 0 #c9a227}
+html[data-theme="artdeco"] .side-foot{color:#b5a67c;border-top:1px solid rgba(201,162,39,.28)}
+html[data-theme="artdeco"] .mail-entry{background:rgba(201,162,39,.12);color:#e4d9b4}
+html[data-theme="artdeco"] .mail-entry:hover{background:rgba(201,162,39,.22);color:#fff}
+html[data-theme="artdeco"] a{color:#8a6b2a}
+html[data-theme="artdeco"] .brand-mark{background:linear-gradient(135deg,#d4af37,#8a6b2a);box-shadow:0 2px 8px rgba(90,72,35,.35)}
+html[data-theme="artdeco"] .card,html[data-theme="artdeco"] .stat{border-color:#e2d4ab;box-shadow:0 1px 4px rgba(90,72,40,.10)}
+html[data-theme="artdeco"] .art:hover{border-color:#c6b06f}
+html[data-theme="artdeco"] .art-sum{background:var(--accent-weak);color:#6b542e;border-left-color:var(--accent)}
+html[data-theme="artdeco"] .kw-tag{background:var(--accent-weak);border-color:#d8c79a;color:#6b542e}
+html[data-theme="artdeco"] .seg button:hover{background:#efe6cc;color:var(--text)}
+html[data-theme="artdeco"] .nav .ico .nav-flag{border-color:#142a22}
+
+/* —— 主题五：解密档案（牛皮纸卷宗 · 墨绿+朱印） —— */
+html[data-theme="archive"]{
+  --bg:#ece0c2; --card:#f8f0dc; --line:#dccca6; --text:#2e2a20; --text2:#5d5440; --text3:#97896c;
+  --primary:#2f4a3c; --accent:#a0312a; --accent-weak:#efe4cf;
+  --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
+  --bad:#8c4a4a; --bad-weak:#f2e1e1; --violet:#6d5b7d; --violet-weak:#ebe5ef;
+  --shadow:0 1px 3px rgba(70,55,30,.10);
+}
+html[data-theme="archive"] body{background:#ece0c2 url(../assets/themes/archive/bg_1080w.jpg) center/cover fixed}
+html[data-theme="archive"] .sidebar{background:linear-gradient(180deg,#3a5546,#24382e);border-right:0}
+html[data-theme="archive"] .brand-text b{color:#fff}
+html[data-theme="archive"] .brand-text span{color:#cdbf96}
+html[data-theme="archive"] .nav button{color:#e2d7b8}
+html[data-theme="archive"] .nav button:hover{background:rgba(255,255,255,.10);color:#fff}
+html[data-theme="archive"] .nav button.active{background:rgba(160,49,42,.55);color:#fff}
+html[data-theme="archive"] .side-foot{color:#b9ab82;border-top:1px solid rgba(255,255,255,.16)}
+html[data-theme="archive"] .mail-entry{background:rgba(255,255,255,.12);color:#ece1c2}
+html[data-theme="archive"] .mail-entry:hover{background:rgba(255,255,255,.22);color:#fff}
+html[data-theme="archive"] a{color:#3c5a48}
+html[data-theme="archive"] .brand-mark{background:linear-gradient(135deg,#5f7d4d,#2f4a3c);box-shadow:0 2px 8px rgba(40,60,45,.35)}
+html[data-theme="archive"] .card,html[data-theme="archive"] .stat{border-color:#d8c49b}
+html[data-theme="archive"] .art:hover{border-color:#c3ae85}
+html[data-theme="archive"] .art-sum{background:var(--accent-weak);color:#6b542e;border-left-color:var(--accent)}
+html[data-theme="archive"] .kw-tag{background:var(--accent-weak);border-color:#cfbd92;color:#6b542e}
+html[data-theme="archive"] .seg button:hover{background:#efe3c6;color:var(--text)}
+html[data-theme="archive"] .nav .ico .nav-flag{border-color:#24382e}
+
+/* —— 主题六：终端（战术 HUD · 荧光绿暗色） —— */
+html[data-theme="hud"]{
+  --bg:#0b120e; --card:#13231b; --line:#24382c; --text:#d7f5e0; --text2:#8fb8a0; --text3:#56705f;
+  --primary:#7df9a4; --accent:#a4f5c0; --accent-weak:#143126;
+  --ok:#7df9a4; --ok-weak:#143126; --warn:#ffb347; --warn-weak:#3a2c14;
+  --bad:#ff7d8a; --bad-weak:#3a1c24; --violet:#a794d8; --violet-weak:#2f2949;
+  --shadow:0 1px 4px rgba(0,0,0,.5);
+}
+html[data-theme="hud"] body{background:#0b120e url(../assets/themes/hud/bg_1080w.jpg) center/cover fixed}
+html[data-theme="hud"] .sidebar{background:linear-gradient(180deg,#0c1912,#09100b);border-right:1px solid var(--line)}
+html[data-theme="hud"] .brand-text b{color:#d7f5e0}
+html[data-theme="hud"] .brand-text span{color:#56705f}
+html[data-theme="hud"] .nav button{color:#8fb8a0}
+html[data-theme="hud"] .nav button:hover{background:#14291d;color:#fff}
+html[data-theme="hud"] .nav button.active{background:#143126;color:#d7f5e0}
+html[data-theme="hud"] .side-foot{color:#56705f;border-top:1px solid var(--line)}
+html[data-theme="hud"] .mail-entry{background:#14291d;color:#bfe8cd}
+html[data-theme="hud"] .mail-entry:hover{background:#1d3a28;color:#fff}
+html[data-theme="hud"] a{color:#7df9a4}
+html[data-theme="hud"] .brand-mark{background:linear-gradient(135deg,#a4f5c0,#2f7d4f);box-shadow:0 0 10px rgba(125,249,164,.35)}
+html[data-theme="hud"] .card,html[data-theme="hud"] .stat{box-shadow:0 1px 4px rgba(0,0,0,.5)}
+html[data-theme="hud"] .prose{background:#0f1d15;border-color:var(--line)}
+html[data-theme="hud"] table.data{background:var(--card)}
+html[data-theme="hud"] table.data th{background:#143126;color:#bfe8cd}
+html[data-theme="hud"] .mono{background:#0f1d15;border-color:var(--line)}
+html[data-theme="hud"] .pair-tbl{background:var(--card)}
+html[data-theme="hud"] .pair-tbl th{background:#143126;color:#bfe8cd}
+html[data-theme="hud"] .pair-tbl .pair-en{background:#0f1d15}
+html[data-theme="hud"] .pair-tbl .pair-zh{background:#1a2a1e}
+html[data-theme="hud"] .b-grp{background:var(--card)}
+html[data-theme="hud"] .bg-head{background:#143126;color:#d7f5e0}
+html[data-theme="hud"] .bg-head:hover{background:#1d3a28}
+html[data-theme="hud"] .seg{background:var(--card)}
+html[data-theme="hud"] .seg button:hover{background:#14291d;color:#fff}
+html[data-theme="hud"] .fz-preview{background:var(--card)}
+html[data-theme="hud"] .btn{background:var(--card);border-color:var(--line)}
+html[data-theme="hud"] .btn:hover{border-color:#3b5068}
+html[data-theme="hud"] .btn.danger{border-color:#6b3a46}
+html[data-theme="hud"] .detail-tabs button{background:var(--card);border-color:var(--line)}
+html[data-theme="hud"] .art{box-shadow:0 1px 3px rgba(0,0,0,.3)}
+html[data-theme="hud"] .art:hover{border-color:#2f5240}
+html[data-theme="hud"] .art-title{color:#f0f5fa}
+html[data-theme="hud"] .art-title-en{color:#8fb8a0}
+html[data-theme="hud"] .art-sum{background:var(--accent-weak);color:#c9f2d6;border-left-color:var(--accent)}
+html[data-theme="hud"] .kw-tag{background:var(--accent-weak);border-color:#2f5240;color:#a5e8bd}
+html[data-theme="hud"] .time-chip{background:var(--card)}
+html[data-theme="hud"] .time-chip.on{background:var(--primary);color:#0b120e}
+html[data-theme="hud"] .filters input,html[data-theme="hud"] .filters select,
+html[data-theme="hud"] .field input,html[data-theme="hud"] .field select,html[data-theme="hud"] .field textarea{background:var(--card);color:var(--text)}
+html[data-theme="hud"] .note{background:var(--warn-weak);color:#ffd9a0;border-color:#7a5c2a}
+html[data-theme="hud"] .ok-line{background:var(--ok-weak);color:#a5e8bd;border-color:#2b5a4c}
+html[data-theme="hud"] .chip{background:#14291d;color:#8fb8a0}
+html[data-theme="hud"] .modal{background:var(--card)}
+html[data-theme="hud"] .modal-head{background:var(--card);border-bottom:1px solid var(--line)}
+html[data-theme="hud"] .pair-tbl td{background:transparent}
+html[data-theme="hud"] .nav .ico .nav-flag{border-color:#09100b}
+html[data-theme="hud"] ::-webkit-scrollbar-thumb{background:#2f5240}
+
+/* —— 主题七：玻璃晨光（通透毛玻璃 · 明亮） —— */
+html[data-theme="glass"]{
+  --bg:#e9f1f8; --card:rgba(255,255,255,.62); --line:#d5e2ef; --text:#2c3a4a; --text2:#5d6f82; --text3:#93a5b8;
+  --primary:#4a86c8; --accent:#6ba3d9; --accent-weak:#e3eef9;
+  --ok:#5f8a6d; --ok-weak:#e4f0e8; --warn:#c08a3a; --warn-weak:#f7ecd8;
+  --bad:#b05a68; --bad-weak:#f5e4e7; --violet:#7a7aab; --violet-weak:#ececf5;
+  --shadow:0 1px 4px rgba(90,120,160,.14);
+}
+html[data-theme="glass"] body{background:#e9f1f8 url(../assets/themes/glass/bg_1080w.jpg) center/cover fixed}
+html[data-theme="glass"] .card,html[data-theme="glass"] .stat{background:rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.7);box-shadow:0 4px 18px rgba(120,150,190,.16)}
+html[data-theme="glass"] .sidebar{background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.45));border-right:1px solid rgba(255,255,255,.6)}
+html[data-theme="glass"] .brand-text b{color:var(--text)}
+html[data-theme="glass"] .brand-text span{color:var(--text3)}
+html[data-theme="glass"] .nav button{color:var(--text2)}
+html[data-theme="glass"] .nav button:hover{background:rgba(255,255,255,.75);color:var(--text)}
+html[data-theme="glass"] .nav button.active{background:#fff;color:var(--primary)}
+html[data-theme="glass"] .side-foot{color:var(--text3);border-top:1px solid rgba(255,255,255,.65)}
+html[data-theme="glass"] .mail-entry{background:rgba(255,255,255,.6);color:var(--text2)}
+html[data-theme="glass"] .mail-entry:hover{background:#fff;color:var(--text)}
+html[data-theme="glass"] .brand-mark{background:linear-gradient(135deg,#8fc1ec,#4a86c8);box-shadow:0 4px 14px rgba(90,140,200,.3)}
+html[data-theme="glass"] a{color:#4a86c8}
+html[data-theme="glass"] .seg button:hover{background:rgba(255,255,255,.8);color:var(--text)}
+html[data-theme="glass"] .art:hover{border-color:#bcd2ea}
+html[data-theme="glass"] .art-sum{background:var(--accent-weak);color:#3c5a78;border-left-color:var(--accent)}
+html[data-theme="glass"] .kw-tag{background:var(--accent-weak);border-color:#c3d8ee;color:#3c5a78}
+html[data-theme="glass"] .nav .ico .nav-flag{border-color:rgba(255,255,255,.6)}
+
+/* 大报晨刊 · 编辑主义复古大报（备选接入） */
+html[data-theme="broadsheet"]{
+  --bg:#f6f1e2; --card:#fffdf7; --line:#d8cdb4; --text:#1a1a1a; --text2:#4a4a3a; --text3:#8a8a72;
+  --primary:#1a1a1a; --accent:#b8322f; --accent-weak:#f3e2e0;
+  --ok:#3f6b3a; --ok-weak:#e7f0e4; --warn:#b0752a; --warn-weak:#f7edd8;
+  --bad:#9c2f2c; --bad-weak:#f4e2e1; --violet:#54486a; --violet-weak:#ebe7f1;
+  --shadow:0 1px 3px rgba(60,50,30,.12);
+}
+html[data-theme="broadsheet"] body{background:#f6f1e2 url(../assets/themes/broadsheet/bg_1080w.jpg) center/cover fixed}
+html[data-theme="broadsheet"] .sidebar{background:linear-gradient(180deg,#22242a,#141519);border-right:1px solid #b8322f}
+html[data-theme="broadsheet"] .brand-text b{color:#fff}
+html[data-theme="broadsheet"] .brand-text span{color:#c9c2ad}
+html[data-theme="broadsheet"] .nav button{color:#d8d2c0}
+html[data-theme="broadsheet"] .nav button:hover{background:rgba(184,50,47,.18);color:#fff}
+html[data-theme="broadsheet"] .nav button.active{background:rgba(184,50,47,.32);color:#fff}
+html[data-theme="broadsheet"] .side-foot{color:#a8a291;border-top:1px solid rgba(255,255,255,.14)}
+html[data-theme="broadsheet"] .mail-entry{background:rgba(184,50,47,.16);color:#f0d9d3}
+html[data-theme="broadsheet"] .mail-entry:hover{background:rgba(184,50,47,.28);color:#fff}
+html[data-theme="broadsheet"] a{color:#b8322f}
+
+/* 夜视迷彩 · 战术情报荧光（备选接入） */
+html[data-theme="nightcamo"]{
+  --bg:#1f2b20; --card:#26352a; --line:#3c4f3c; --text:#dfe9dc; --text2:#b0c2ac; --text3:#7d947a;
+  --primary:#4b6e3a; --accent:#a9f37a; --accent-weak:#2e4030;
+  --ok:#8fcf6a; --ok-weak:#263826; --warn:#cfa94a; --warn-weak:#35301f;
+  --bad:#d67b6a; --bad-weak:#3a2422; --violet:#9a9ac8; --violet-weak:#26263a;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+html[data-theme="nightcamo"] body{background:#1f2b20 url(../assets/themes/nightcamo/bg_1080w.jpg) center/cover fixed}
+html[data-theme="nightcamo"] .sidebar{background:linear-gradient(180deg,#141d14,#0e140e);border-right:1px solid rgba(169,243,122,.28)}
+html[data-theme="nightcamo"] .brand-text b{color:#fff}
+html[data-theme="nightcamo"] .brand-text span{color:#a9f37a}
+html[data-theme="nightcamo"] .nav button{color:#c2e0b4}
+html[data-theme="nightcamo"] .nav button:hover{background:rgba(169,243,122,.12);color:#fff}
+html[data-theme="nightcamo"] .nav button.active{background:rgba(169,243,122,.2);color:#fff}
+html[data-theme="nightcamo"] .side-foot{color:#8fa886;border-top:1px solid rgba(169,243,122,.18)}
+html[data-theme="nightcamo"] .mail-entry{background:rgba(169,243,122,.1);color:#cfe8b8}
+html[data-theme="nightcamo"] .mail-entry:hover{background:rgba(169,243,122,.2);color:#fff}
+html[data-theme="nightcamo"] a{color:#a9f37a}
+
+/* 艺术号外 · 波普高饱和（备选接入） */
+html[data-theme="artpop"]{
+  --bg:#f8f4ec; --card:#ffffff; --line:#1c1c1c; --text:#141414; --text2:#3a3a3a; --text3:#6b6b6b;
+  --primary:#003049; --accent:#ff4d6d; --accent-weak:#ffe3e8;
+  --ok:#2a8a52; --ok-weak:#e3f4ea; --warn:#d18a1f; --warn-weak:#fbeed4;
+  --bad:#d63d5a; --bad-weak:#fbe1e6; --violet:#7a3d9c; --violet-weak:#f0e4f6;
+  --shadow:0 2px 0 rgba(0,0,0,.9);
+}
+html[data-theme="artpop"] body{background:#f8f4ec url(../assets/themes/artpop/bg_1080w.jpg) center/cover fixed}
+html[data-theme="artpop"] .sidebar{background:linear-gradient(180deg,#003049,#002133);border-right:2px solid #ffd23f}
+html[data-theme="artpop"] .brand-text b{color:#ffd23f}
+html[data-theme="artpop"] .brand-text span{color:#f5b0bf}
+html[data-theme="artpop"] .nav button{color:#e8e2d8}
+html[data-theme="artpop"] .nav button:hover{background:#ff4d6d;color:#fff}
+html[data-theme="artpop"] .nav button.active{background:#ff4d6d;color:#fff;box-shadow:inset 3px 0 0 #ffd23f}
+html[data-theme="artpop"] .side-foot{color:#b7a99a;border-top:1px solid rgba(255,210,63,.3)}
+html[data-theme="artpop"] .mail-entry{background:rgba(255,77,109,.16);color:#ffd0d8}
+html[data-theme="artpop"] .mail-entry:hover{background:rgba(255,77,109,.3);color:#fff}
+html[data-theme="artpop"] a{color:#003049}
+
+/* 烛光夜读 · 暖炭黑+琥珀金（新） */
+html[data-theme="candle"]{
+  --bg:#1c1712; --card:#2a221a; --line:#4a3c2c; --text:#f2e3c8; --text2:#cdb88f; --text3:#9a8760;
+  --primary:#e8a94e; --accent:#f4c37a; --accent-weak:#3a2f20;
+  --ok:#a9c98a; --ok-weak:#2d3726; --warn:#e0a94f; --warn-weak:#3a2e1a;
+  --bad:#d8827a; --bad-weak:#3a2422; --violet:#b39ad8; --violet-weak:#2a243a;
+  --shadow:0 1px 4px rgba(0,0,0,.5);
+}
+html[data-theme="candle"] body{background:#1c1712 url(../assets/themes/candle/bg_1080w.jpg) center/cover fixed}
+html[data-theme="candle"] .sidebar{background:linear-gradient(180deg,#241c14,#140f0a);border-right:1px solid rgba(232,169,78,.3)}
+html[data-theme="candle"] .brand-text b{color:#fdf0dc}
+html[data-theme="candle"] .brand-text span{color:#d9a95e}
+html[data-theme="candle"] .nav button{color:#e9d3a8}
+html[data-theme="candle"] .nav button:hover{background:rgba(232,169,78,.14);color:#fff}
+html[data-theme="candle"] .nav button.active{background:rgba(232,169,78,.24);color:#fff}
+html[data-theme="candle"] .side-foot{color:#a89066;border-top:1px solid rgba(232,169,78,.22)}
+html[data-theme="candle"] .mail-entry{background:rgba(232,169,78,.12);color:#eccf9c}
+html[data-theme="candle"] .mail-entry:hover{background:rgba(232,169,78,.22);color:#fff}
+html[data-theme="candle"] a{color:#e8a94e}
+
+/* 墨韵东方 · 米白宣纸+朱砂红+水墨（新 · 浅色） */
+html[data-theme="ink"]{
+  --bg:#f5efe2; --card:#faf5e9; --line:#ddd2b8; --text:#3a352d; --text2:#6b6252; --text3:#a89b82;
+  --primary:#2f2a24; --accent:#b03a2e; --accent-weak:#f2e4de;
+  --ok:#5f7d4d; --ok-weak:#e7efd9; --warn:#a1721f; --warn-weak:#f6ecd0;
+  --bad:#9c3028; --bad-weak:#f2e1df; --violet:#6d5b7d; --violet-weak:#ebe5ef;
+  --shadow:0 1px 3px rgba(80,70,50,.12);
+}
+html[data-theme="ink"] body{background:#f5efe2 url(../assets/themes/ink/bg_1080w.jpg) center/cover fixed}
+html[data-theme="ink"] .sidebar{background:linear-gradient(180deg,#3b352c,#262119);border-right:1px solid rgba(176,58,46,.4)}
+html[data-theme="ink"] .brand-text b{color:#fbf4e4}
+html[data-theme="ink"] .brand-text span{color:#d8b98a}
+html[data-theme="ink"] .nav button{color:#e6dcc4}
+html[data-theme="ink"] .nav button:hover{background:rgba(176,58,46,.2);color:#fff}
+html[data-theme="ink"] .nav button.active{background:rgba(176,58,46,.34);color:#fff;box-shadow:inset 3px 0 0 #b03a2e}
+html[data-theme="ink"] .side-foot{color:#b7a98c;border-top:1px solid rgba(176,58,46,.28)}
+html[data-theme="ink"] .mail-entry{background:rgba(176,58,46,.16);color:#edcdc6}
+html[data-theme="ink"] .mail-entry:hover{background:rgba(176,58,46,.28);color:#fff}
+html[data-theme="ink"] a{color:#b03a2e}
+
+/* 星图罗盘 · 藏青+黄铜金（新 · 暗色） */
+html[data-theme="astro"]{
+  --bg:#0f1a2e; --card:#16233c; --line:#2c3d5c; --text:#e6ecf7; --text2:#b9c6dc; --text3:#8494b0;
+  --primary:#d8b45a; --accent:#e6c986; --accent-weak:#2b3a54;
+  --ok:#a9c98a; --ok-weak:#26361f; --warn:#e0b54f; --warn-weak:#3a3118;
+  --bad:#d88a8a; --bad-weak:#3a2424; --violet:#c0a8e0; --violet-weak:#2a2438;
+  --shadow:0 1px 4px rgba(0,0,0,.45);
+}
+html[data-theme="astro"] body{background:#0f1a2e url(../assets/themes/astro/bg_1080w.jpg) center/cover fixed}
+html[data-theme="astro"] .sidebar{background:linear-gradient(180deg,#101b31,#080f1e);border-right:1px solid rgba(216,180,90,.3)}
+html[data-theme="astro"] .brand-text b{color:#fdf3d8}
+html[data-theme="astro"] .brand-text span{color:#cdb06a}
+html[data-theme="astro"] .nav button{color:#d8c9a0}
+html[data-theme="astro"] .nav button:hover{background:rgba(216,180,90,.14);color:#fff}
+html[data-theme="astro"] .nav button.active{background:rgba(216,180,90,.26);color:#fff}
+html[data-theme="astro"] .side-foot{color:#9ca8c0;border-top:1px solid rgba(216,180,90,.22)}
+html[data-theme="astro"] .mail-entry{background:rgba(216,180,90,.12);color:#e3d2a4}
+html[data-theme="astro"] .mail-entry:hover{background:rgba(216,180,90,.22);color:#fff}
+html[data-theme="astro"] a{color:#d8b45a}
+
+/* 铅字编辑部 · 浅暖灰+印刷红（新 · 浅色） */
+html[data-theme="letter"]{
+  --bg:#f2ead8; --card:#faf5e8; --line:#d9cdb2; --text:#2a2620; --text2:#5c5444; --text3:#9a8f76;
+  --primary:#1a1a1a; --accent:#b02a26; --accent-weak:#f2e0dd;
+  --ok:#3f6b3a; --ok-weak:#e7f0e4; --warn:#b0752a; --warn-weak:#f7edd8;
+  --bad:#9c2f2c; --bad-weak:#f4e2e1; --violet:#54486a; --violet-weak:#ebe7f1;
+  --shadow:0 1px 3px rgba(60,50,30,.12);
+}
+html[data-theme="letter"] body{background:#f2ead8 url(../assets/themes/letter/bg_1080w.jpg) center/cover fixed}
+html[data-theme="letter"] .sidebar{background:linear-gradient(180deg,#24211c,#141310);border-right:1px solid rgba(176,42,38,.4)}
+html[data-theme="letter"] .brand-text b{color:#fbf7ec}
+html[data-theme="letter"] .brand-text span{color:#c9b98a}
+html[data-theme="letter"] .nav button{color:#e0d8c4}
+html[data-theme="letter"] .nav button:hover{background:rgba(176,42,38,.2);color:#fff}
+html[data-theme="letter"] .nav button.active{background:rgba(176,42,38,.34);color:#fff;box-shadow:inset 3px 0 0 #b02a26}
+html[data-theme="letter"] .side-foot{color:#a89e84;border-top:1px solid rgba(176,42,38,.26)}
+html[data-theme="letter"] .mail-entry{background:rgba(176,42,38,.15);color:#eccfc9}
+html[data-theme="letter"] .mail-entry:hover{background:rgba(176,42,38,.27);color:#fff}
+html[data-theme="letter"] a{color:#b02a26}
+
+
 
 /* —— 翻译进度条 —— */
 .tf-msg{font-size:.95rem;margin-bottom:8px}

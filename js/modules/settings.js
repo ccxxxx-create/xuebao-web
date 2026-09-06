@@ -13,12 +13,15 @@
   }
 
   function mirrorStatusHtml(s) {
+    // lastMirrorMeta 结构为扁平的 { channelId: {status, count, error, fetchedAt} }（与镜像 latest.json 的 meta 一致）
     var m = s.lastMirrorMeta || {};
-    var ch = m.channels || m.meta || {};
-    var keys = Object.keys(ch);
+    var keys = Object.keys(m);
     var rows = keys.length
       ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">' + keys.map(function (k) {
-          return '<span class="badge ghost">' + H.esc(LLM.CHANNEL_ZH[k] || k) + " " + ch[k] + "</span>";
+          var c = m[k] || {};
+          var cnt = (c && c.count != null) ? c.count : "—";
+          var cls = c && c.status === "ok" ? "" : " state-error";
+          return '<span class="badge ghost' + cls + '">' + H.esc(LLM.CHANNEL_ZH[k] || k) + " " + H.esc(String(cnt)) + "</span>";
         }).join("") + "</div>"
       : '<div class="muted" style="margin-top:4px">（尚无明细，拉取一次镜像后显示各源条数）</div>';
     return '<p class="muted">上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) + "（" + H.ago(s.lastPullAt) + "）" : "从未") +
@@ -91,11 +94,22 @@
       "</div>";
   }
 
-  /* 主题外观（多主题系统：蓝天/深空夜航/纸面学报/极简灰） */
+  /* 主题外观（多主题系统：蓝天/深空夜航/纸面学报/极简灰/艺术装饰/解密档案/终端/玻璃晨光） */
   var THEMES = [["", "蓝天 · 深邃", "linear-gradient(135deg,#2f7fd1,#0b4f8f)"],
                 ["night", "深空夜航", "linear-gradient(135deg,#2a3d54,#0e1622)"],
                 ["paper", "纸面学报", "linear-gradient(135deg,#a98a52,#6d5230)"],
-                ["gray", "极简灰", "linear-gradient(135deg,#7d8a97,#4a5868)"]];
+                ["gray", "极简灰", "linear-gradient(135deg,#7d8a97,#4a5868)"],
+                ["artdeco", "艺术装饰", "linear-gradient(135deg,#f3e9cf,#1f3a33)"],
+                ["archive", "解密档案", "linear-gradient(135deg,#e9dcc0,#2f4a3c)"],
+                ["hud", "终端", "linear-gradient(135deg,#12251a,#7df9a4)"],
+                ["glass", "玻璃晨光", "linear-gradient(135deg,#fdf6ef,#7da8d9)"],
+                ["broadsheet", "大报晨刊", "linear-gradient(135deg,#f6f1e2,#b8322f)"],
+                ["nightcamo", "夜视迷彩", "linear-gradient(135deg,#1f2b20,#a9f37a)"],
+                ["artpop", "艺术号外", "linear-gradient(135deg,#ffd23f,#ff4d6d)"],
+                ["candle", "烛光夜读", "linear-gradient(135deg,#1c1712,#e8a94e)"],
+                ["ink", "墨韵东方", "linear-gradient(135deg,#f5efe2,#b03a2e)"],
+                ["astro", "星图罗盘", "linear-gradient(135deg,#0f1a2e,#d8b45a)"],
+                ["letter", "铅字编辑部", "linear-gradient(135deg,#f2ead8,#b02a26)"]];
   function themeSectionHtml(s) {
     return '<div class="card"><h3>主题外观</h3>' +
       '<p class="muted" style="margin:2px 0 10px">一键切换整套配色，选择后即时生效并保存到本机。</p>' +
@@ -109,8 +123,8 @@
       }).join("") + "</div></div>";
   }
 
-  /* 阅读宠物（试点）：空白=关闭；xiaoyi=小翼（卡通战机） */
-  var PETS = [["", "关闭"], ["xiaoyi", "小翼 · 卡通战机"]];
+  /* 阅读宠物：空白=关闭；xiaoyi=小翼 / xinshi=信使 / jiaoguan=教官 / dida=滴答 */
+  var PETS = [["", "关闭"], ["xiaoyi", "小翼 · 卡通战机"], ["xinshi", "信使 · 机械信鸽"], ["jiaoguan", "教官 · 情报猫头鹰"], ["dida", "滴答 · 电报机"], ["haowang", "好望 · 老飞艇"], ["moling", "墨翎 · 胖钢笔"], ["xiazi", "匣子 · 老收音机"], ["chuchu", "戳戳 · 朱泥图章"], ["sinan", "斗勺 · 司南"]];
   function petSectionHtml(s) {
     return '<div class="card"><h3>阅读宠物</h3>' +
       '<p class="muted" style="margin:2px 0 10px">宠物会作为后台翻译/摘要/简报任务的「看得见的陪伴」，随任务状态切换表情、统计进行中数量；点击窝位可展开任务面板。</p>' +
@@ -118,7 +132,7 @@
       PETS.map(function (p) {
         var on = (s.pet || "") === p[0];
         var prev = p[0]
-          ? '<img class="pet-prev" src="assets/pet/xiaoyi/pet_xiaoyi_front_idle@64@1x.png" alt="">'
+          ? '<img class="pet-prev" src="assets/pet/' + p[0] + '/pet_' + p[0] + '_front_idle@64@1x.png" alt="">'
           : '<span class="pet-prev none">—</span>';
         return '<button type="button" class="pet-pick' + (on ? " on" : "") + '" data-pet="' + p[0] + '" title="' + H.esc(p[1]) + '">' +
           prev + '<span class="pet-pn">' + H.esc(p[1]) + "</span>" +
@@ -429,7 +443,8 @@
             s.pet = b.dataset.pet || "";
             Store.saveSettings();
             refreshPet();
-            App.toast(s.pet ? "已启用宠物：小翼" : "已关闭阅读宠物", "ok");
+            var pname = s.pet ? (PETS.filter(function (p) { return p[0] === s.pet; })[0] || [s.pet])[1] : "";
+            App.toast(s.pet ? "已启用宠物：" + pname : "已关闭阅读宠物", "ok");
             if (App.updatePet) App.updatePet();
           });
         }

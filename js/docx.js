@@ -1,4 +1,5 @@
-/* docx.js —— 浏览器端按范文版式生成 .docx（纯前端最小 ZIP 写入 + 校验） */
+/* docx.js —— 浏览器端按范文版式生成 .docx（纯前端最小 ZIP 写入 + 校验）。
+   版式（STYLE）支持多模板：内置规范版式 + 用户上传范文 .docx 自动解构（电脑端）。 */
 (function () {
   "use strict";
 
@@ -84,6 +85,12 @@
     sign:   { ascii: "楷体_GB2312", eastAsia: "楷体_GB2312", hAnsi: "黑体", cs: "Times New Roman", sz: 32 }
   };
 
+  /* 生成/校验时使用哪个版式：style 缺省 = 内置规范版式 */
+  function pickStyle(style) {
+    if (!style || !style.pgSz || !style.pgMar || !style.title || !style.body) return STYLE;
+    return style;
+  }
+
   function xmlEsc(s) {
     return String(s == null ? "" : s)
       .replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD]/g, "")
@@ -92,35 +99,36 @@
   }
 
   function runXml(fonts, text) {
-    return '<w:r><w:rPr><w:rFonts w:ascii="' + fonts.ascii + '" w:eastAsia="' + fonts.eastAsia +
-      '" w:hAnsi="' + fonts.hAnsi + '" w:cs="' + fonts.cs + '" w:hint="eastAsia"/>' +
+    return '<w:r><w:rPr><w:rFonts w:ascii="' + xmlEsc(fonts.ascii) + '" w:eastAsia="' + xmlEsc(fonts.eastAsia) +
+      '" w:hAnsi="' + xmlEsc(fonts.hAnsi) + '" w:cs="' + xmlEsc(fonts.cs) + '" w:hint="eastAsia"/>' +
       '<w:sz w:val="' + fonts.sz + '"/><w:szCs w:val="' + fonts.sz + '"/></w:rPr>' +
       '<w:t xml:space="preserve">' + xmlEsc(text) + "</w:t></w:r>";
   }
 
-  function buildDocumentXml(segs) {
+  function buildDocumentXml(segs, style) {
+    var st = pickStyle(style);
     var runs = "";
-    if (segs.title) runs += runXml(STYLE.title, segs.title + " ");
-    if (segs.body) runs += runXml(STYLE.body, segs.body);
-    if (segs.sign) runs += runXml(STYLE.sign, segs.sign);
-    var ind = STYLE.indent;
-    var m = STYLE.pgMar, sz = STYLE.pgSz;
+    if (segs.title) runs += runXml(st.title, segs.title + " ");
+    if (segs.body) runs += runXml(st.body, segs.body);
+    if (segs.sign) runs += runXml(st.sign, segs.sign);
+    var ind = st.indent || STYLE.indent;
+    var m = st.pgMar, sz = st.pgSz;
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' +
-      '<w:p><w:pPr><w:ind w:leftChars="' + ind.leftChars + '" w:left="' + ind.left +
-      '" w:firstLineChars="' + ind.firstLineChars + '" w:firstLine="' + ind.firstLine + '"/></w:pPr>' +
+      '<w:p><w:pPr><w:ind w:leftChars="' + (ind.leftChars | 0) + '" w:left="' + (ind.left | 0) +
+      '" w:firstLineChars="' + (ind.firstLineChars | 0) + '" w:firstLine="' + (ind.firstLine | 0) + '"/></w:pPr>' +
       runs + "</w:p>" +
       "<w:p/>" +
-      '<w:sectPr><w:pgSz w:w="' + sz.w + '" w:h="' + sz.h + '"/>' +
-      '<w:pgMar w:top="' + m.top + '" w:right="' + m.right + '" w:bottom="' + m.bottom +
-      '" w:left="' + m.left + '" w:header="' + m.header + '" w:footer="' + m.footer +
-      '" w:gutter="' + m.gutter + '"/></w:sectPr>' +
+      '<w:sectPr><w:pgSz w:w="' + (sz.w | 0) + '" w:h="' + (sz.h | 0) + '"/>' +
+      '<w:pgMar w:top="' + (m.top | 0) + '" w:right="' + (m.right | 0) + '" w:bottom="' + (m.bottom | 0) +
+      '" w:left="' + (m.left | 0) + '" w:header="' + ((m.header | 0) || 851) + '" w:footer="' + ((m.footer | 0) || 992) +
+      '" w:gutter="' + ((m.gutter | 0) || 0) + '"/></w:sectPr>' +
       "</w:body></w:document>";
   }
 
-  function buildDocx(segs) {
+  function buildDocx(segs, style) {
     var enc = new TextEncoder();
-    var docXml = buildDocumentXml(segs);
+    var docXml = buildDocumentXml(segs, style);
     var contentType = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
       '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
@@ -138,8 +146,8 @@
     ]);
   }
 
-  /* ---------- 校验：解回 document.xml 逐项比对版式 ---------- */
-  function readZipEntry(blob, target) {
+  /* ---------- ZIP 读取：支持 STORE(0) 与 DEFLATE(8，浏览器原生 DecompressionStream) ---------- */
+  function zipRead(blob, target) {
     return blob.arrayBuffer().then(function (ab) {
       var u8 = new Uint8Array(ab);
       var view = new DataView(ab);
@@ -147,14 +155,13 @@
       for (var i = u8.length - 22; i >= 0; i--) {
         if (view.getUint32(i, true) === 0x06054b50) { eocdPos = i; break; }
       }
-      if (eocdPos < 0) throw new Error("非 zip 文件");
+      if (eocdPos < 0) throw new Error("非 zip/docx 文件");
       var count = view.getUint16(eocdPos + 10, true);
       var cdPos = view.getUint32(eocdPos + 16, true);
       var enc = new TextDecoder();
       for (var n = 0; n < count; n++) {
         var p = cdPos;
-        var sig = view.getUint32(p, true);
-        if (sig !== 0x02014b50) continue;
+        if (view.getUint32(p, true) !== 0x02014b50) break;
         var method = view.getUint16(p + 10, true);
         var csize = view.getUint32(p + 20, true);
         var nlen = view.getUint16(p + 28, true);
@@ -164,29 +171,160 @@
         var lho = view.getUint32(p + 42, true);
         if (name === target) {
           var dataStart = lho + 30 + view.getUint16(lho + 26, true) + view.getUint16(lho + 28, true);
-          return enc.decode(u8.subarray(dataStart, dataStart + csize));
+          var raw = u8.subarray(dataStart, dataStart + csize);
+          if (method === 0) return raw;
+          if (method === 8) {
+            if (typeof DecompressionStream === "undefined") {
+              throw new Error("当前浏览器不支持解压该 docx，请使用较新的电脑端浏览器");
+            }
+            return new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw")))
+              .arrayBuffer().then(function (ab2) { return new Uint8Array(ab2); });
+          }
+          throw new Error("不支持的压缩方式：" + method);
         }
         cdPos = p + 46 + nlen + elen + clen;
       }
-      throw new Error("zip 内找不到 " + target);
+      throw new Error("docx 内找不到 " + target);
     });
   }
 
-  function verifyDocx(blob, expectSign) {
+  function readZipEntry(blob, target) {
+    return zipRead(blob, target).then(function (u8) {
+      return new TextDecoder().decode(u8);
+    });
+  }
+
+  /* ---------- 校验：解回 document.xml 逐项比对版式（按传入版式核对） ---------- */
+  function verifyDocx(blob, expectSign, style) {
+    var st = pickStyle(style);
     return readZipEntry(blob, "word/document.xml").then(function (xml) {
       var items = [], ok = true;
       function chk(name, pass, detail) {
         items.push({ name: name, pass: !!pass, detail: detail });
         if (!pass) ok = false;
       }
-      chk("A4 页面 11906×16838", /<w:pgSz w:w="11906" w:h="16838"\/>/.test(xml));
-      chk("页边距 上1440/下1440/左1800/右1800", /<w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"\/>/.test(xml));
-      chk("首行缩进 1.5 字符/540tw & 左缩进 leftChars=50", /w:leftChars="50" w:left="105" w:firstLineChars="150" w:firstLine="540"/.test(xml));
-      chk("标题字体：黑体 18pt（sz=36）", /w:eastAsia="黑体"[^>]*\/><w:sz w:val="36"/.test(xml));
-      chk("正文字体：仿宋_GB2312 16pt（sz=32）", /w:eastAsia="仿宋_GB2312"[^>]*\/><w:sz w:val="32"/.test(xml));
-      chk("供稿署名：楷体_GB2312 16pt", /w:ascii="楷体_GB2312" w:eastAsia="楷体_GB2312"/.test(xml));
+      var m = st.pgMar, sz = st.pgSz, ind = st.indent || STYLE.indent;
+      chk("页面 " + sz.w + "×" + sz.h + "（twip）", xml.indexOf('<w:pgSz w:w="' + sz.w + '" w:h="' + sz.h + '"/>') >= 0);
+      chk("页边距 上" + m.top + "/下" + m.bottom + "/左" + m.left + "/右" + m.right,
+        xml.indexOf('<w:pgMar w:top="' + m.top + '" w:right="' + m.right + '" w:bottom="' + m.bottom +
+          '" w:left="' + m.left + '" w:header="' + ((m.header | 0) || 851) + '" w:footer="' + ((m.footer | 0) || 992) +
+          '" w:gutter="' + ((m.gutter | 0) || 0) + '"/>') >= 0);
+      chk("首行缩进 " + ind.firstLineChars + " 字符/" + ind.firstLine + "tw & 左缩进 leftChars=" + ind.leftChars,
+        xml.indexOf('w:leftChars="' + ind.leftChars + '" w:left="' + ind.left + '" w:firstLineChars="' + ind.firstLineChars + '" w:firstLine="' + ind.firstLine + '"') >= 0);
+      chk("标题字体：" + st.title.eastAsia + " " + (st.title.sz / 2) + "pt（sz=" + st.title.sz + "）",
+        xml.indexOf('w:eastAsia="' + st.title.eastAsia) >= 0 && xml.indexOf('<w:sz w:val="' + st.title.sz + '"/>') >= 0);
+      chk("正文字体：" + st.body.eastAsia + " " + (st.body.sz / 2) + "pt（sz=" + st.body.sz + "）",
+        xml.indexOf('w:eastAsia="' + st.body.eastAsia) >= 0 && xml.indexOf('<w:sz w:val="' + st.body.sz + '"/>') >= 0);
+      chk("供稿署名：" + st.sign.eastAsia,
+        xml.indexOf('w:ascii="' + st.sign.ascii + '" w:eastAsia="' + st.sign.eastAsia + '"') >= 0);
       if (expectSign) chk("署名内容存在", xml.indexOf(xmlEsc(expectSign)) >= 0);
       return { ok: ok, items: items };
+    });
+  }
+
+  /* ---------- 模板解构：上传范文 .docx → 提取版式参数 ---------- */
+  function _qa(root, localName) {
+    // 命名空间无关的元素查找（w: 前缀在不同解析器下表现不一）；比较统一转小写，
+    // 否则 rFonts/sectPr/pgSz 等驼峰标签会全部匹配失败
+    var target = String(localName).toLowerCase();
+    var out = [];
+    var all = root.getElementsByTagName("*");
+    for (var i = 0; i < all.length; i++) {
+      var nm = (all[i].localName || all[i].nodeName.replace(/^.*:/, "")).toLowerCase();
+      if (nm === target) out.push(all[i]);
+    }
+    return out;
+  }
+  function _attr(el, name) {
+    var v = el.getAttribute("w:" + name);
+    if (v == null) v = el.getAttribute(name);
+    return v;
+  }
+  function _int(v, fallback, min, max) {
+    var n = parseInt(v, 10);
+    if (isNaN(n)) return fallback;
+    if (min != null && n < min) return fallback;
+    if (max != null && n > max) return fallback;
+    return n;
+  }
+
+  function extractTemplate(file) {
+    return zipRead(file, "word/document.xml").then(function (u8) {
+      var xml = new TextDecoder().decode(u8);
+      var doc = new DOMParser().parseFromString(xml, "application/xml");
+      if (doc.getElementsByTagName("parsererror").length) throw new Error("docx 内容解析失败");
+
+      /* 页面：取 body 级 sectPr（最后一个） */
+      var sects = _qa(doc, "sectPr");
+      var st = JSON.parse(JSON.stringify(STYLE)); // 从内置版式出发，逐项覆盖
+      if (sects.length) {
+        var sect = sects[sects.length - 1];
+        var pgSz = _qa(sect, "pgSz")[0];
+        if (pgSz) {
+          st.pgSz.w = _int(_attr(pgSz, "w"), st.pgSz.w, 3000, 30000);
+          st.pgSz.h = _int(_attr(pgSz, "h"), st.pgSz.h, 3000, 40000);
+        }
+        var pgMar = _qa(sect, "pgMar")[0];
+        if (pgMar) {
+          ["top", "bottom", "left", "right", "header", "footer", "gutter"].forEach(function (k) {
+            st.pgMar[k] = _int(_attr(pgMar, k), st.pgMar[k], 0, 8000);
+          });
+        }
+      }
+
+      /* 字体：统计所有带文字的 run 的（eastAsia 字体, 字号），按文字总量取主 */
+      var combos = {}; // key -> {eastAsia, ascii, hAnsi, cs, sz, chars}
+      _qa(doc, "r").forEach(function (r) {
+        var text = "";
+        _qa(r, "t").forEach(function (t) { text += t.textContent || ""; });
+        text = String(text).trim();
+        if (!text) return;
+        var fonts = _qa(r, "rFonts")[0];
+        var szEl = _qa(r, "sz")[0];
+        if (!fonts && !szEl) return;
+        var eastAsia = fonts ? (fonts.getAttribute("w:eastAsia") || fonts.getAttribute("w:ascii") || "") : "";
+        if (!eastAsia) return;
+        var sz = szEl ? _int(szEl.getAttribute("w:val"), 0, 10, 200) : 0;
+        if (!sz) return;
+        var key = eastAsia + "|" + sz;
+        if (!combos[key]) combos[key] = {
+          eastAsia: eastAsia,
+          ascii: fonts.getAttribute("w:ascii") || eastAsia,
+          hAnsi: fonts.getAttribute("w:hAnsi") || eastAsia,
+          cs: fonts.getAttribute("w:cs") || eastAsia,
+          sz: sz, chars: 0
+        };
+        combos[key].chars += text.length;
+      });
+      var list = Object.keys(combos).map(function (k) { return combos[k]; });
+      if (list.length) {
+        /* 标题：字号最大的组合；正文：文字量最多（且非标题组合） */
+        list.sort(function (a, b) { return b.sz - a.sz; });
+        st.title = list[0];
+        var byChars = list.slice().sort(function (a, b) { return b.chars - a.chars; });
+        st.body = (byChars[0] && byChars[0] !== st.title) ? byChars[0] : (byChars[1] || st.body);
+        /* 供稿：优先楷体系；没有则沿用正文 */
+        var kai = list.filter(function (c) { return /楷体|kaiti/i.test(c.eastAsia); })
+          .sort(function (a, b) { return Math.abs(a.sz - st.body.sz) - Math.abs(b.sz - st.body.sz); })[0];
+        if (kai) st.sign = kai;
+      }
+
+      /* 缩进：取首个带 firstLineChars/leftChars 的 ind */
+      var inds = _qa(doc, "ind");
+      for (var i = 0; i < inds.length; i++) {
+        var flc = _int(_attr(inds[i], "firstLineChars"), 0, 0, 10000);
+        var lc = _int(_attr(inds[i], "leftChars"), 0, 0, 10000);
+        if (flc || lc) {
+          st.indent = {
+            leftChars: lc || st.indent.leftChars,
+            left: _int(_attr(inds[i], "left"), st.indent.left, 0, 10000),
+            firstLineChars: flc || st.indent.firstLineChars,
+            firstLine: _int(_attr(inds[i], "firstLine"), st.indent.firstLine, 0, 10000)
+          };
+          break;
+        }
+      }
+      return st;
     });
   }
 
@@ -194,6 +332,7 @@
     STYLE: STYLE,
     buildDocx: buildDocx,
     verifyDocx: verifyDocx,
+    extractTemplate: extractTemplate,
     fileName: function (pubDate, zhTitle, enTitle) {
       return H.ymd(new Date(pubDate || Date.now())) + "-" + H.safeFile(zhTitle || enTitle || "学报条目") + ".docx";
     }

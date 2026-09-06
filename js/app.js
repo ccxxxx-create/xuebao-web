@@ -51,7 +51,7 @@
   var lastRoot = "dashboard";
   var keyDownFrom = { rankings: "dashboard", sources: "dashboard", terms: "me", prefs: "me", settings: "me" };
   /* 主题的浏览器地址栏色：与各主题主色呼应 */
-  var THEME_META = { "": "#0b3a6e", night: "#0e1622", paper: "#6d5230", gray: "#4a5868" };
+  var THEME_META = { "": "#0b3a6e", night: "#0e1622", paper: "#6d5230", gray: "#4a5868", artdeco: "#1f3a33", archive: "#2f4a3c", hud: "#0b120e", glass: "#dbe8f5", broadsheet: "#1a1a1a", nightcamo: "#20402a", artpop: "#ff4d6d", candle: "#1c1712", ink: "#f5efe2", astro: "#0f1a2e", letter: "#f2ead8" };
 
   function mod(key) { return window.WB.modules[key]; }
 
@@ -134,7 +134,8 @@
     }
   };
 
-  /* —— 阅读宠物「小翼」：后台任务驱动状态机（工作/等待/完成/出错/待机），点击展开任务面板 —— */
+  /* —— 阅读宠物：后台任务驱动状态机（工作/等待/完成/出错/待机），点击展开任务面板 —— */
+  var PET_META = { xiaoyi: "小翼", xinshi: "信使", jiaoguan: "教官", dida: "滴答", haowang: "好望", moling: "墨翎", xiazi: "匣子", chuchu: "戳戳", sinan: "斗勺" };
   var PET = {
     el: null,
     state: "idle",          // idle / waiting / working / done / error
@@ -189,14 +190,15 @@
     },
     apply: function () {
       if (!this.el) return;
-      var sp = Store.settings.pet || "";
-      if (!sp) { this.el.hidden = true; return; }
+      var role = Store.settings.pet || "";
+      if (!role) { this.el.hidden = true; return; }
       this.el.hidden = false;
+      var name = PET_META[role] || role;
       var m = this._MAP[this.state] || this._MAP.idle;
-      var img = "assets/pet/xiaoyi/pet_xiaoyi_front_" + m[0] + "@64@2x.png";
+      var img = "assets/pet/" + role + "/pet_" + role + "_front_" + m[0] + "@64@2x.png";
       this.el.innerHTML =
-        '<img class="pet-img ' + m[1] + '" src="' + img + '" alt="小翼">' +
-        '<span class="pet-name">小翼</span>' +
+        '<img class="pet-img ' + m[1] + '" src="' + img + '" alt="' + name + '">' +
+        '<span class="pet-name">' + name + "</span>" +
         '<span class="pet-badge" hidden></span>';
       if (window.MIRROR) {
         var run = 0, que = 0, fail = 0;
@@ -212,11 +214,22 @@
 
   /* 主题 sprite 图标：ORDER 键 → symbol 名（dashboard→overview；prefs→interests 等） */
   var ICON_KEY = { dashboard: "overview", library: "library", favorites: "favorites", rankings: "ranking", journal: "journal", sources: "sources", terms: "terms", prefs: "interests", settings: "settings" };
-  /* 当前主题 sprite 前缀：深空夜航 → ic，纸面/羊皮 → pc；其余主题（蓝天/极简灰）沿用线性图标 */
+  /* 当前主题 sprite 前缀：深空夜航 → ic，纸面/羊皮 → pc，艺术装饰 → ad，解密档案 → ar，终端 → hu，玻璃晨光 → gl；其余主题沿用线性图标 */
   function spritePrefix() {
     var t = (Store.settings.theme || "").trim();
     if (t === "night") return "ic";
     if (t === "paper") return "pc";
+    if (t === "artdeco") return "ad";
+    if (t === "archive") return "ar";
+    if (t === "hud") return "hu";
+    if (t === "glass") return "gl";
+    if (t === "broadsheet") return "bs";
+    if (t === "nightcamo") return "nc";
+    if (t === "artpop") return "ap";
+    if (t === "candle") return "cd";
+    if (t === "ink") return "ik";
+    if (t === "astro") return "as";
+    if (t === "letter") return "lt";
     return "";
   }
 
@@ -517,7 +530,10 @@
       if (opts && opts.boxClass) box.classList.add(opts.boxClass);
       mask.hidden = false;
       if (!opts || !opts.noClose) {
-        mask.addEventListener("click", function (e) { if (e.target === mask) App.closeModal(); });
+        // 用赋值而非 addEventListener：#modalMask 是常驻节点，叠加挂监听会随弹窗次数无限累积
+        mask.onclick = function (e) { if (e.target === mask) App.closeModal(); };
+      } else {
+        mask.onclick = null;
       }
       box.querySelectorAll("[data-close]").forEach(function (b) { b.addEventListener("click", App.closeModal); });
       document.body.style.overflow = "hidden";
@@ -704,7 +720,9 @@
       // 阅读宠物「小翼」：随后台任务驱动状态机（侧栏窝；点击展开任务面板）
       if (window.MIRROR && MIRROR.onTasks) PET.init();
       var initial = location.hash;
-      if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0])) initial = "#/dashboard";
+      // 深链接（如 #/reader/<url>、#/brief/<id>）要按路由规则先取首段 key 再校验，
+      // 直接整段喂给 mod() 会判为未知路由而被错误重置回总览
+      if (!initial || !mod(initial.replace(/^#\/?/, "").split("?")[0].split("/")[0])) initial = "#/dashboard";
       App.route(initial);
       // 清理历史重复公告（同 kind+正文 只留最新一条），避免老用户看两条一样的
       if (Store.inboxDedup() > 0) App.refreshMail();
@@ -717,7 +735,7 @@
       setTimeout(function () {
         App.maybeAutoClean(true).then(function (n) {
           if (n > 0) { App.toast("已自动清理 " + n + " 篇过期资料", "ok"); App.refresh(); }
-        });
+        }).catch(function () {});
       }, 3000);
       // 自动检查更新与公告（打开约 2 秒即查一次，之后每 10 分钟复查；弹窗/公告按版本与 id 去重）
       setTimeout(function () { App.checkUpdate(); }, 2000);
