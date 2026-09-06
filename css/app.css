@@ -338,7 +338,9 @@ html[data-theme="night"] .brief-item-cm{background:#172a3a;color:#8fc2ec}
 /* 主题图标（use 引用 sprite symbol）：fill 由 currentColor 控制，覆盖上方线性描边样式 */
 .nav .ico svg.ico-use{width:18px;height:18px;stroke:none;fill:currentColor}
 /* 主题图标容器：不再用彩色底块，主色交给 currentColor（由按钮主题色驱动） */
-.nav .ico.theme{background:transparent;box-shadow:none}
+/* v1.24.2：color:inherit —— 修「图标颜色跟背景重叠」：.ico 的 color:#fff（默认主题彩色底块专用）
+   会透进 sprite 图标的 fill:currentColor，把所有主题的侧栏图标强制画成白色（玻璃晨光近白侧栏直接隐身） */
+.nav .ico.theme{background:transparent;box-shadow:none;color:inherit}
 
 /* 分段控件（排行榜 tab 等“分类”切换按钮） */
 .seg{display:inline-flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:3px;box-shadow:var(--shadow)}
@@ -678,7 +680,7 @@ html[data-theme="glass"] .nav button.active{background:var(--card);color:var(--p
 html[data-theme="glass"] .side-foot{color:var(--text3);border-top:1px solid rgba(255,255,255,.65)}
 html[data-theme="glass"] .mail-entry{background:rgba(255,255,255,.6);color:var(--text2)}
 html[data-theme="glass"] .mail-entry:hover{background:var(--card);color:var(--text)}
-html[data-theme="glass"] .brand-mark{background:linear-gradient(135deg,#8fc1ec,#4a86c8);box-shadow:0 4px 14px rgba(90,140,200,.3)}
+html[data-theme="glass"] .brand-mark{background:linear-gradient(135deg,#8fc1ec,#4a86c8);color:#123a63;box-shadow:0 4px 14px rgba(90,140,200,.3)}
 html[data-theme="glass"] a{color:#4a86c8}
 html[data-theme="glass"] .seg button:hover{background:rgba(255,255,255,.8);color:var(--text)}
 html[data-theme="glass"] .art:hover{border-color:#bcd2ea}
