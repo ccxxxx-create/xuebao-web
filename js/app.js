@@ -954,6 +954,14 @@
       App.route(initial);
       // 清理历史重复公告（同 kind+正文 只留最新一条），避免老用户看两条一样的
       if (Store.inboxDedup() > 0) App.refreshMail();
+      // 翻译中断清扫（v1.26.1）：非正常退出会把文章卡在“翻译中”，永久拒收服务端译文且无提示；
+      // 启动时统一回收为 failed（已译段落保留，可续译或被镜像译文补投）
+      Store.getAllArticles().then(function (arts) {
+        var stuck = (arts || []).filter(function (a) { return a.zhState === "running"; });
+        if (!stuck.length) return;
+        stuck.forEach(function (a) { a.zhState = "failed"; });
+        return Store.bulkPutArticles(stuck);
+      }).catch(function () {});
       // 每日固定时间自动刷新（取代旧版“打开即拉取”，仅在设定的时间点静默拉取一次）
       App.refreshIfDue();
       setInterval(function () { App.refreshIfDue(); }, 60000);
