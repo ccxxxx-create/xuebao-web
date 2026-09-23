@@ -180,11 +180,25 @@
         var loc = byUrl[it.url];
         if (loc) {
           // 已存在：本机缺正文 或 本机正文含页面皮肤垃圾（导航/嵌入说明/read more）而镜像有干净正文 → 回填/刷新
+          var dirty = false;
           if (it.body && (!loc.body || BODY_JUNK_RE.test(loc.body))) {
             loc.body = it.body;
             if (!loc.summary && it.summary) loc.summary = it.summary;
-            backfill.push(loc);
+            dirty = true;
           }
+          // 服务端预翻译投送（v1.26.0）：镜像有成品译文、本地没有、本地未在翻译中、
+          // 且译文段数与本地正文分段一致（防镜像/本地 body 版本错位）→ 采纳服务端译文
+          if (it.zhState === "ok" && loc.zhState !== "ok" && loc.zhState !== "running"
+              && Array.isArray(it.zhParas) && it.zhParas.length && loc.body
+              && it.zhParas.length === splitParas(loc.body).length) {
+            loc.zhFull = it.zhFull || "";
+            loc.zhParas = it.zhParas;
+            loc.zhState = "ok";
+            loc.zhDone = it.zhDone || it.zhParas.length;
+            loc.zhChunks = it.zhChunks || it.zhParas.length;
+            dirty = true;
+          }
+          if (dirty) backfill.push(loc);
           return;
         }
         var k = normTitle(it.title);
@@ -209,10 +223,11 @@
           fav: 0,
           like: 0,
           image: it.image || it.ogImage || it.thumbnail || "",
-          zhFull: "",
-          zhState: "none",
-          zhDone: 0,
-          zhChunks: 0,
+          zhFull: it.zhFull || "",
+          zhParas: (it.zhState === "ok" && Array.isArray(it.zhParas)) ? it.zhParas : [],
+          zhState: (it.zhState === "ok" || it.zhState === "failed") ? it.zhState : "none",
+          zhDone: it.zhDone || 0,
+          zhChunks: it.zhChunks || 0,
           selected: 0,
           journalMade: 0
         };
