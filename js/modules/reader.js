@@ -5,7 +5,7 @@
   /* 防重复渲染用的翻译进度索引（若在其它页面后台翻译，切回时不清 0） */
 
   function esc(s) { return H.esc(s); }
-  function paras(s) { return String(s || "").split(/\n{2,}/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  var paras = H.paras;   // v1.26.3 合并单点：与 mirror.splitParas/云端 split_paras 同规则（段对齐门禁依赖）
   /* 「提取本篇术语」：以文章为单位，让模型抽出整篇核心军语/科技术语，写入候选（待确认） */
   function parseExtract(text) {
     var out = [];
@@ -485,7 +485,7 @@
         '<button class="btn sm primary" id="rdSum" title="摘要（中/英）">' + icon("sum") + "</button>" +
         // 手机端不做「提取术语」（反复提取再确认太重）：手机定位为看新闻的阅读端，术语库内置即用
         (H.isMobile() ? "" : '<button class="btn sm" id="rdTerms" title="提取本篇核心军语/科技术语进候选（以整篇文章为单位）">' + icon("terms") + "</button>") +
-        '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + " title=\"" + H.esc(fullLabel || "翻译全文") + '">' + icon("full") + "</button>" +
+        '<button class="btn sm accent" id="rdFull"' + (a.body ? "" : " disabled") + " title=\"" + H.esc(fullLabel || "翻译全文") + '">' + icon("full") + "<span class=\"mb-txt\">译</span></button>" +
         "</div>";
 
       function backIcon() { return '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>'; }
@@ -513,7 +513,7 @@
         }
         if (state.tab === "zh") {
           if (a.zhState === "ok") return '<div class="prose" style="max-height:none">' + img + esc(a.zhFull || "") + "</div>";
-          return '<div class="note">尚未翻译全文，点上方「' + fullLabel + '」生成中文全文。</div>';
+          return '<div class="note">尚未翻译全文，点' + (H.isMobile() ? "下方工具条的「译」按钮" : "上方「" + fullLabel + "」") + '生成中文全文。</div>';
         }
         // 中英对照：按原文段落逐段精确对齐（zhParas[i] 与枚举出的英文段一一对应，杜绝错位）
         if (a.zhState === "ok") {
@@ -532,7 +532,7 @@
           return legacyWarn + '<table class="pair-tbl"><thead><tr><th>English 原文</th><th>中文（AI 翻译 · 逐段对齐）</th></tr></thead><tbody>' + rows + "</tbody></table>";
         }
         var auto = Store.settings.compareAutoFull && LLM.configured();
-        return '<div class="note">对照需要中文译文（尚未翻译）。' + (auto ? "" : " 点上方「" + fullLabel + "」翻译全文。") + "</div>" +
+        return '<div class="note">对照需要中文译文（尚未翻译）。' + (auto ? "" : " 点" + (H.isMobile() ? "下方工具条的「译」按钮" : "上方「" + fullLabel + "」") + "翻译全文。") + "</div>" +
           '<table class="pair-tbl"><thead><tr><th>English</th><th>中文</th></tr></thead><tbody>' +
           paras(a.body).map(function (p) { return "<tr><td>" + esc(p) + "</td><td></td></tr>"; }).join("") + "</tbody></table>";
       }
@@ -627,7 +627,14 @@
   /* 收藏后的自动处理：标题(如缺) → 中/英摘要(按设置) → 全文(按设置) */
   window.UI.afterFav = function (art) {
     var s = Store.settings;
-    if (!LLM.configured()) { App.refresh(); return; }
+    if (!LLM.configured()) {
+      // v1.26.3：不再静默——旧文章（无服务端译文）收藏后用户开了自动翻译却没配模型时，给出知情提示
+      if ((s.favAutoTr || s.favAutoFull) && art.zhState !== "ok") {
+        App.toast("已收藏。这篇暂无自动译文：可在设置配置模型，或等系统每日备好译文");
+      }
+      App.refresh();
+      return;
+    }
     var chain = Promise.resolve();
     if (!art.titleZh && s.favAutoTr) chain = chain.then(function () { return MIRROR.translateTitlesOnly([art]); });
     if (s.favAutoTr) chain = chain.then(function () {
