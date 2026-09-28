@@ -23,7 +23,7 @@
           var cls = c && c.status === "ok" ? "" : " state-error";
           return '<span class="badge ghost' + cls + '">' + H.esc(LLM.CHANNEL_ZH[k] || k) + " " + H.esc(String(cnt)) + "</span>";
         }).join("") + "</div>"
-      : '<div class="muted" style="margin-top:4px">（尚无明细，拉取一次镜像后显示各源条数）</div>';
+      : '<div class="muted" style="margin-top:4px">（尚无明细，等每日定时刷新后显示各源条数）</div>';
     return '<p class="muted">上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) + "（" + H.ago(s.lastPullAt) + "）" : "从未") +
       "<br>镜像数据时间：" + (s.lastMirrorUpdatedAt ? H.fmtDateTime(s.lastMirrorUpdatedAt) : "—") + "</p>" + rows;
   }
@@ -266,6 +266,7 @@
     var sel = cleanSectionHtml(s);
     return subHead("资料清理") +
       '<label style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="bfAutoClean"' + (s.autoClean ? " checked" : "") + "> 自动清理过期资料（收藏/已选/已出刊永不自动删）</label>" +
+      '<div class="muted" style="margin-bottom:6px">建议开启：默认保留 ' + (s.retentionDays || 90) + ' 天，长期使用可避免本机存储无限增长、保持翻页流畅。</div>' +
       '<div class="filters" style="margin-top:8px;margin-bottom:0"><span class="muted">保留期</span><select id="clDays">' + sel + "</select></div>" +
       '<div class="art-actions" style="margin-top:8px"><button class="btn primary" id="clSave">保存保留期</button><button class="btn" id="clRun">立即清理过期文章</button></div>' +
       '<div id="clMsg" class="muted" style="margin-top:6px">自动清理在打开页面与每次拉取后执行。</div>';
@@ -347,7 +348,7 @@
       qa("术语库怎么用", "术语库内置上百条军语：一个概念可录多个英文写法（如 drone / UAV），翻译时命中任一写法都按同一条规范译名处理。电脑端阅读文章时还可一键「提取术语」，确认后并入词库；手机端为纯浏览与搜索。") +
       qa("排行榜怎么排序", "「今日榜」看时效；「兴趣榜」按 兴趣相关 / 新鲜度 / 来源权威 / 热度 加权，并保留一小部分探索位给新内容。权重在「模型与智能服务 → 排序与喜好学习」用高/中/低调节。") +
       qa("翻译与摘要怎么开", "新文章的中文全文译文由系统每日自动备好，打开文章切到「中英对照」即可阅读，无需任何配置。自己的模型只在旧文章补译、标题/摘要、出刊等进阶场景才需要：在「模型与智能服务」里配置，密钥只保存在本机。收藏时自动翻译/摘要等开关默认关闭，按需打开。") +
-      qa("学报怎么出", "在「资料库」给文章点「直接出刊」，按所选模板生成 Word 文档；「供稿」默认是占位文字，出刊后在 Word 里改成真实署名即可。也可以上传自己的范文 .docx 解构成模板。") +
+      qa("学报怎么出", "在「资料库」或收藏夹给文章点「出草稿」，模型编译进学报页的草稿箱；在学报页人工修改正文、或写建议让模型返工，满意后点「正式存入」生成 Word 文档并记录存档。模板可在学报页上传自己的范文来解构。") +
       qa("资料怎么更新", "每天在设定时段（默认 09:00 / 12:00 / 18:00）自动刷新官方信源；总览页的「立即更新」按钮有 10 分钟冷却，防止请求过密。") +
       qa("数据存在哪、怎么迁移", "所有数据与设置只保存在本机浏览器，不会上传。换设备前先「导出备份 JSON」，在新设备的「数据与刷新 → 本机占用」里导入即可。") +
       qa("宠物有什么玩法", "宠物是后台任务的「看得见的陪伴」：干活时带上配件、出错会皱眉、全部完成会欢呼；平时会眨眼、东张西望。没任务时点一点它，偶尔投喂个小零食；手机端可以按住拖动，靠边会自动收起。") +
@@ -360,7 +361,7 @@
     async render(el) {
       var s = Store.settings;
       var usage = await Store.usage();
-      var arts = await Store.getAllArticles();
+      var artCount = await Store.countArticles();   // v1.26.3：计数用 count()，不再全量读文章表
       // 四大组摘要（标题行右侧显示当前值，折叠时也能一眼看清）
       var themeSum = (THEMES.filter(function (t) { return (t[0] || "") === (s.theme || ""); })[0] || ["", "蓝天"])[1].split(" · ")[0];
       var petName = s.pet ? (PETS.filter(function (p) { return p[0] === s.pet; })[0] || ["", ""])[1].split(" · ")[0] : "关";
@@ -385,7 +386,7 @@
 
       collapseCards(el, []);
       bindModel(el, s);
-      bindOther(el, s, usage, arts);
+      bindOther(el, s, usage, artCount);
 
       function bindModel(root, s) {
         var presetWrap = root.querySelector("#pvPreset");
@@ -469,10 +470,10 @@
           if (el) el.addEventListener("input", function () { el.classList.remove("err"); });
         });
       }
-      function bindOther(root, s, usage, arts) {
+      function bindOther(root, s, usage, artCount) {
         root.querySelector("#stUsage").textContent = usage ? H.sizeFmt(usage.usage) : "—";
         root.querySelector("#stQuota").textContent = usage ? H.sizeFmt(usage.quota) : "—";
-        root.querySelector("#stArt").textContent = String(arts.length);
+        root.querySelector("#stArt").textContent = String(artCount);
         // 字号（滑条，实时预览，松手保存）
         var range = root.querySelector("#dsRange"), valEl = root.querySelector("#dsVal");
         range.addEventListener("input", function () {
@@ -732,6 +733,10 @@
       }
       function exportData() {
         return Promise.all([Store.getAllArticles(), Store.getAllJournals(), Store.getAllTerms()]).then(function (res) {
+          if (s.apiKey && !confirm("备份文件会明文包含模型 API Key（用于换设备恢复）。请妥善保管，不要发给他人。\n\n继续导出？")) {
+            App.toast("已取消导出");
+            return;
+          }
           var data = {
             type: "xuebao-backup", version: 1, exportedAt: H.nowIso(),
             settings: Object.assign({}, s, { apiKey: s.apiKey || "" }),
@@ -764,9 +769,32 @@
             updates.push(a);
           });
           var putTerms = (data.terms || []).map(function (t) { return Store.putTerm(t); });
-          return Promise.all(putTerms).then(function () { return Store.bulkPutArticles(updates); });
+          // 学报记录恢复（v1.26.3 修复：文案承诺迁移但此前实现丢弃 journals——出刊记录含重下载 docx 依赖的 seg/style）。
+          // journals 主键自增：剥掉备份里的旧 id 由本机重新分配，防与已有记录撞号
+          var putJournals = (Array.isArray(data.journals) ? data.journals : []).map(function (j) {
+            if (!j) return Promise.resolve();
+            var copy = Object.assign({}, j); delete copy.id;
+            return Store.addJournal(copy).catch(function () { return null; });
+          });
+          // 设置合并（v1.26.3 修复：备份含 settings 但此前被丢弃）：偏好/连接类仅补全本机缺项——永不覆盖本机已存密钥与配置
+          if (data.settings && typeof data.settings === "object") {
+            var st = Store.settings, bs = data.settings;
+            ["favAutoTr", "favAutoSum", "favAutoFull", "briefAi", "autoBacktest", "autoClean",
+             "interestKeywords", "rankW", "retentionDays", "journalTemplateId"].forEach(function (k) {
+              if (st[k] === undefined && bs[k] !== undefined) st[k] = bs[k];
+            });
+            if (!st.apiKey && bs.apiKey) st.apiKey = bs.apiKey;
+            if (!st.baseUrl && bs.baseUrl) st.baseUrl = bs.baseUrl;
+            if (!st.model && bs.model) st.model = bs.model;
+            Store.saveSettings();
+          }
+          return Promise.all(putTerms).then(function () {
+            return Promise.all(putJournals).then(function () {
+              return Store.bulkPutArticles(updates);
+            });
+          });
         }).then(function () {
-          App.toast("导入完成（合并，共 " + data.articles.length + " 条）", "ok");
+          App.toast("导入完成（合并，文章 " + data.articles.length + " 条、学报记录 " + ((data.journals || []).length) + " 篇）", "ok");
           App.refresh();
         });
       }
