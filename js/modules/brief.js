@@ -197,7 +197,10 @@
       return Store.getAllTerms().then(function (terms) {
         return LLM.briefCommentary(items, LLM.glossaryLines(terms))
           .then(function (out) { return { made: true, show: show, weekN: week.length, mon: mon, today: today, ai: parseCommentary(out) }; })
-          .catch(function () { return { made: true, show: show, weekN: week.length, mon: mon, today: today, ai: null }; });
+          .catch(function () {
+            // v1.26.3：AI 增强失败不再静默——在简报尾注声明本期按纯本地汇总投递
+            return { made: true, show: show, weekN: week.length, mon: mon, today: today, ai: null, aiFail: true };
+          });
       });
     }).then(function (r) {
       if (!r.made) return { made: false, reason: r.reason };
@@ -225,7 +228,8 @@
       var briefId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       var title = "SENTRA 述势 · 周末简报（覆盖本周 " + rangeTxt + "）";
       var sub = "覆盖本周 " + rangeTxt + " · 本周入库 " + r.weekN + " 篇，按「兴趣相关/新鲜度/来源权威/热度」精选 " + r.show.length + " 条（权重可在 设置 → 排序与喜好学习 调节）";
-      var foot = "本期精选均为「本周一至今」入库文章，点各条「打开这篇原文」可在新标签打开原文网页阅读。设置 → 自动化与行为 可关闭本简报或 AI 点评。";
+      var foot = "本期精选均为「本周一至今」入库文章，点各条「打开这篇原文」可在新标签打开原文网页阅读。" +
+        (r.aiFail ? "（本期 AI 点评生成失败，已按纯本地汇总投递）" : "设置 → 自动化与行为 可关闭本简报或 AI 点评。");
       // 保存结构化全文（按周替换：同周重新生成/自动补发都不会叠加旧期），
       // 并清掉指向被替换简报的收件箱条目，供独立「周末简报」阅读页使用
       Store.replaceBriefByWeek({
