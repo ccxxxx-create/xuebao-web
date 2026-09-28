@@ -68,7 +68,7 @@
       }
       function todayHtml(all) {
         var cands = all.filter(function (a) { return H.ageDays(a) <= 14; });
-        if (!cands.length) return emptyNote("近 14 天暂无文章，请先等待定时刷新拉取镜像。");
+        if (!cands.length) return emptyNote("近 14 天暂无文章，请先等待每日定时刷新汇集官方信源。");
         cands.sort(function (a, b) { return H.ageDays(a) - H.ageDays(b); });
         return listWrap(cands.slice(0, 20), function (a, i) {
           return itemHtml(a, i + 1, H.ageDays(a) <= 3 ? ["近期热点"] : ["权威源新讯"]);
