@@ -26,8 +26,13 @@
     fmtDay: function (iso) {
       if (!iso) return "";
       var d = new Date(iso);
-      if (isNaN(d.getTime())) return iso;
+      if (isNaN(d.getTime())) return "";   // v1.26.3：非法日期返回空（此前原样透传，pubDate 含恶意串可直达 7 处渲染点）
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    },
+    /* 正文分段单点实现（v1.26.3 合并）：reader.paras / mirror.splitParas / 云端 split_paras 三处必须
+       保持同一规则（连续空行分段）——中英对照按段索引配对，规则漂移=译文错位。各处保留本地别名引用此实现。 */
+    paras: function (s) {
+      return String(s || "").split(/\n{2,}/).map(function (x) { return x.trim(); }).filter(Boolean);
     },
     fmtDateTime: function (iso) {
       if (!iso) return "";
