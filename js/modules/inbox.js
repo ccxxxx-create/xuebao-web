@@ -1,7 +1,7 @@
 /* modules/inbox.js —— 收件箱（本机通知中心）：更新公告 / 简报 / 系统消息 */
 (function () {
   "use strict";
-  var KIND = { update: "更新公告", brief: "周末简报", system: "系统消息" };
+  var KIND = { update: "更新公告", brief: "周末简报", system: "系统消息", bt: "回测报告" };
 
   /* 正文渲染：以 “◇https://…” 开头的行渲染成“打开这篇原文”链接；
      列表预览(full=false)时正文最多 4 行 + 截断提示，链接行仅在展开(modal)时显示 */
