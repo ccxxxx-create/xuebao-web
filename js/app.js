@@ -122,11 +122,11 @@
         var stateCls = st === "ok" ? " state-ok" : (st === "failed" ? " state-error" : "");
         return '<div class="tp-item" data-st="' + st + '">' +
           '<div class="tp-head"><span class="badge ghost">' + (KIND[t.kind] || t.kind) + "</span>" +
-          '<b class="tp-title" title="' + (t.label || "") + '">' + (t.label || "") + "</b>" +
+          '<b class="tp-title" title="' + H.esc(t.label || "") + '">' + H.esc(t.label || "") + "</b>" +
           '<span class="tp-st' + stateCls + '">' + stateLabel + "</span></div>" +
           (bar || "") +
           (running ? '<button class="btn sm" data-cancel="' + t.id + '" title="取消该任务">取消</button>' : "") +
-          (st === "failed" && t.err ? '<div class="tp-err">' + t.err + "</div>" : "") +
+          (st === "failed" && t.err ? '<div class="tp-err">' + H.esc(t.err) + "</div>" : "") +
           '</div>';
       }).join("");
     },
@@ -798,7 +798,7 @@
       pulling = true;
       opts = opts || {};
       var q = function (msg, type) { if (!opts.quiet) App.toast(msg, type); };
-      q("正在拉取官方信源镜像…");
+      q("正在汇集官方信源…");
       return MIRROR.pull().then(function (json) {
         // 通道可达但镜像无新增：视为“已是最新”，非失败
         if (json && json.__fresh__ === false) {
@@ -834,7 +834,7 @@
         pulling = false;
         var r0 = (typeof r === "number") ? r : (r ? (r.added || 0) : 0);
         var noFresh = (typeof r !== "number") && !!(r && r.noFresh);
-        q(noFresh ? "已是最新：镜像暂无新增条目" : (r0 > 0 ? "更新完成，新增 " + r0 + " 条" : "已是最新（无新增条目）"), "ok");
+        q(noFresh ? "已是最新：官方信源暂无新增" : (r0 > 0 ? "更新完成，新增 " + r0 + " 条" : "已是最新（无新增条目）"), "ok");
         App.refresh();
         App.maybeAutoClean(true).catch(function () {});
         if (window.BRIEF) BRIEF.tryAuto().catch(function () {});
