@@ -186,7 +186,7 @@
             if (!loc.summary && it.summary) loc.summary = it.summary;
             dirty = true;
           }
-          // 服务端预翻译投送（v1.26.0）：镜像有成品译文、本地没有、本地未在翻译中、
+          // 服务端预翻译投送（v1.26.0 起）：镜像有成品译文、本地没有、本地未在翻译中、
           // 且译文段数与本地正文分段一致（防镜像/本地 body 版本错位）→ 采纳服务端译文
           if (it.zhState === "ok" && loc.zhState !== "ok" && loc.zhState !== "running"
               && Array.isArray(it.zhParas) && it.zhParas.length && loc.body
@@ -196,6 +196,16 @@
             loc.zhState = "ok";
             loc.zhDone = it.zhDone || it.zhParas.length;
             loc.zhChunks = it.zhChunks || it.zhParas.length;
+            dirty = true;
+          }
+          // 服务端标题/摘要译文投送（v1.26.2）：本地缺且未锁定时采纳（简报/列表/收藏的中文化来源）
+          if (it.titleZh && !loc.titleZh && !loc.titleZhLocked) {
+            loc.titleZh = it.titleZh;
+            loc.titleTrans = "ok";
+            dirty = true;
+          }
+          if (it.summaryZh && !loc.summaryZh) {
+            loc.summaryZh = it.summaryZh;
             dirty = true;
           }
           if (dirty) backfill.push(loc);
@@ -215,10 +225,10 @@
           summary: it.summary || "",
           body: it.body || "",
           fetchedAt: H.nowIso(),
-          titleZh: "",
+          titleZh: it.titleZh || "",
           titleZhLocked: 0,
-          titleTrans: "pending",
-          summaryZh: "",
+          titleTrans: it.titleZh ? "ok" : "pending",
+          summaryZh: it.summaryZh || "",
           summaryEn: "",
           fav: 0,
           like: 0,
