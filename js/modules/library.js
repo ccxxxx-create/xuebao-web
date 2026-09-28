@@ -35,8 +35,7 @@
         state.doneAuto = true;
         UI.ensureAutoTitles(all).then(function (n) { if (n > 0) App.refresh(); });
       }
-      el.innerHTML =
-        '<div class="view-head"><div><h1 class="view-title">资料库</h1>' +
+      el.innerHTML = '<div class="view-head"><div><h1 class="view-title">资料库</h1>' +
         '<p class="view-sub">共 ' + all.length + " 篇 · 显示 " + arts.length + " 篇 · 收藏 " + favN + " 篇" + (m ? "" : " · 学报选文 " + selN + " 篇") + " · 点击标题进入阅读页</p></div>" +
         '<div class="head-actions"><a class="btn sm" href="#/settings" title="在设置里切换 资料库标题 的显示方式">标题显示设置</a></div></div>' +
         '<div class="filters">' +
@@ -47,7 +46,7 @@
         '<input type="date" id="fFrom" title="发布日期 起" value="' + H.esc(state.from) + '"><span class="muted">至</span>' +
         '<input type="date" id="fTo" title="发布日期 止" value="' + H.esc(state.to) + '">' +
         "</div>" +
-        '<div id="lbList">' + listHtml(arts, kws) + "</div>";
+        '<div id="lbList">' + listHtml(arts, kws, !all.length) + "</div>";
 
       bind(el, all);
 
@@ -80,8 +79,13 @@
           return String(y.pubDate).localeCompare(String(x.pubDate));
         });
       }
-      function listHtml(list, kws) {
-        if (!list.length) return '<div class="empty"><b>没有匹配的文章</b>试试放宽筛选，或等每日定时刷新后重看。</div>';
+      function listHtml(list, kws, emptyAll) {
+        if (!list.length) {
+          // v1.26.3：区分「全空（冷启动）」与「筛选无结果」，两句话术分开
+          return emptyAll
+            ? '<div class="empty"><b>资料库还是空的</b>点「立即更新」汇集一次官方信源，文章就到位了。</div>'
+            : '<div class="empty"><b>没有匹配的文章</b>试试放宽筛选，或等每日定时刷新后重看。</div>';
+        }
         var per = 20, pages = Math.max(1, Math.ceil(list.length / per));
         if (state.page > pages) state.page = pages;
         if (state.page < 1) state.page = 1;
