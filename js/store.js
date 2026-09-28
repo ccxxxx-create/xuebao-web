@@ -56,8 +56,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.26.2",
-    versionCode: 77,
+    appVersion: "1.26.3",
+    versionCode: 78,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
@@ -340,6 +340,19 @@
           return new Promise(function (resolve, reject) {
             var r = s.getAll();
             r.onsuccess = function () { resolve(r.result || []); };
+            r.onerror = function () { reject(r.error); };
+          });
+        });
+      });
+    },
+    /* 文章计数（v1.26.3）：IDB count() 只读索引不反序列化正文——设置页显示总数用它，
+       替代此前为取一个数字而做的全量 getAllArticles（数千条时数 MB 级读） */
+    countArticles: function () {
+      return this.db().then(function (db) {
+        return tx(db, "articles", "readonly", function (s) {
+          return new Promise(function (resolve, reject) {
+            var r = s.count();
+            r.onsuccess = function () { resolve(r.result || 0); };
             r.onerror = function () { reject(r.error); };
           });
         });
