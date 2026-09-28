@@ -25,7 +25,7 @@
         }).join("") + "</div>"
       : '<div class="muted" style="margin-top:4px">（尚无明细，等每日定时刷新后显示各源条数）</div>';
     return '<p class="muted">上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) + "（" + H.ago(s.lastPullAt) + "）" : "从未") +
-      "<br>镜像数据时间：" + (s.lastMirrorUpdatedAt ? H.fmtDateTime(s.lastMirrorUpdatedAt) : "—") + "</p>" + rows;
+      "<br>信源数据时间：" + (s.lastMirrorUpdatedAt ? H.fmtDateTime(s.lastMirrorUpdatedAt) : "—") + "</p>" + rows;
   }
 
   function modelSectionHtml(s) {
@@ -776,12 +776,18 @@
             var copy = Object.assign({}, j); delete copy.id;
             return Store.addJournal(copy).catch(function () { return null; });
           });
-          // 设置合并（v1.26.3 修复：备份含 settings 但此前被丢弃）：偏好/连接类仅补全本机缺项——永不覆盖本机已存密钥与配置
+          // 偏好恢复（v1.26.3 审查修正）：本机值等于默认值时才采纳备份值——loadSettings 已把全部键
+          // 补齐为 DEFAULT（含默认 false/""），不能用 undefined 判断；键名以 store.js DEFAULTS 为准
+          var prefKeys = ["favAutoTr", "favAutoFull", "briefAi", "btAuto", "autoClean",
+            "interestKeywords", "rankWeights", "retentionDays", "journalTemplateId"];
+          var DEF = { favAutoTr: false, favAutoFull: false, briefAi: false, btAuto: false,
+            autoClean: false, interestKeywords: "", rankWeights: { rel: 90, fresh: 50, source: 50, heat: 20 },
+            retentionDays: 90, journalTemplateId: "builtin" };
           if (data.settings && typeof data.settings === "object") {
             var st = Store.settings, bs = data.settings;
-            ["favAutoTr", "favAutoSum", "favAutoFull", "briefAi", "autoBacktest", "autoClean",
-             "interestKeywords", "rankW", "retentionDays", "journalTemplateId"].forEach(function (k) {
-              if (st[k] === undefined && bs[k] !== undefined) st[k] = bs[k];
+            prefKeys.forEach(function (k) {
+              var cur = JSON.stringify(st[k]), def = JSON.stringify(DEF[k]), back = bs[k];
+              if (back !== undefined && cur === def && JSON.stringify(back) !== def) st[k] = back;
             });
             if (!st.apiKey && bs.apiKey) st.apiKey = bs.apiKey;
             if (!st.baseUrl && bs.baseUrl) st.baseUrl = bs.baseUrl;
