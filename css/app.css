@@ -1202,6 +1202,7 @@ html[data-theme="gray"] .tf-bar{background:#dfe3e7}
   .reader-mode .rd-mobilebar .btn{flex:1;min-width:0;height:44px;padding:0 4px;justify-content:center;gap:2px}
   .reader-mode .rd-mobilebar .btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
   .reader-mode .rd-mobilebar .btn.sm{font-size:11.5px}
+  .reader-mode .rd-mobilebar .btn .mb-txt{font-size:11.5px;font-weight:600;line-height:1}
   .reader-mode .prose{padding-bottom:88px} /* 底部留白避免最后一段被操作栏遮挡 */
   .reader-mode .pair-tbl{padding-bottom:88px}
   html[data-theme="night"] .reader-mode .rd-mobilebar{background:#182534;border-color:var(--line)}
