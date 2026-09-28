@@ -153,7 +153,7 @@
         var t = r.json.updatedAt ? new Date(r.json.updatedAt).getTime() : 0;
         if (!best || t > best._t) { best = r.json; best._t = t; best._src = r.src; }
       });
-      if (!best) throw new Error("镜像拉取失败（各通道均不可用）");
+      if (!best) throw new Error("信源拉取失败（请检查网络后重试）");
       best.__fresh__ = !(lastKnown && best._t && best._t <= lastKnown);
       return best; // { updatedAt, meta, items, __fresh__ } → merge 读 items 入库
     });
@@ -175,8 +175,31 @@
         if (k) haveT[k] = 1;
       });
       var added = [], backfill = [];
-      (json.items || []).forEach(function (it) {
-        if (!it || !it.url) return;
+      /* 入库字段校验（v1.26.3，供应链防线）：镜像 JSON 来自外网抓取，仓库/CDN 任一环被污染
+         时这里拦住 payload 载体——url 强制 https、pubDate 必须可解析、文本字段剥尖括号。 */
+      function sanitizeItem(it) {
+        var u = String(it.url || "");
+        if (!/^https:\/\//i.test(u)) return null;                 // javascript:/data:/相对路径 全部拒收
+        var pub = it.pubDate ? String(it.pubDate) : "";
+        if (pub && (isNaN(new Date(pub).getTime()) || /[<>"']/.test(pub))) pub = "";
+        function txt(v, max) {
+          return String(v == null ? "" : v).replace(/[<>]/g, "").slice(0, max);
+        }
+        return {
+          url: u, title: txt(it.title, 300), author: txt(it.author, 120),
+          pubDate: pub, summary: txt(it.summary, 600), body: txt(it.body, 200000),
+          channel: txt(it.channel, 40), channelName: txt(it.channelName, 60),
+          titleZh: txt(it.titleZh, 300), summaryZh: txt(it.summaryZh, 1200),
+          zhFull: txt(it.zhFull, 200000),
+          zhParas: (it.zhState === "ok" && Array.isArray(it.zhParas)) ? it.zhParas.map(function (p) { return txt(p, 20000); }) : [],
+          zhState: (it.zhState === "ok" || it.zhState === "failed") ? it.zhState : "none",
+          zhDone: (it.zhDone | 0) || 0, zhChunks: (it.zhChunks | 0) || 0
+        };
+      }
+      (json.items || []).forEach(function (raw) {
+        if (!raw || !raw.url) return;
+        var it = sanitizeItem(raw);
+        if (!it) return;                                          // 非 https 条目整条拒收
         var loc = byUrl[it.url];
         if (loc) {
           // 已存在：本机缺正文 或 本机正文含页面皮肤垃圾（导航/嵌入说明/read more）而镜像有干净正文 → 回填/刷新
@@ -470,9 +493,9 @@
     });
   }
 
-  /* 原文段落切分：与阅读页 paras() 规则一致（连续空行分段），确保段落索引一一对应 */
+  /* 原文段落切分：v1.26.3 起引用 H.paras 单点实现（与阅读页/云端 split_paras 同规则），确保段落索引一一对应 */
   function splitParas(body) {
-    return String(body || "").split(/\n{2,}/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return H.paras(body);
   }
 
   /* 后台全文翻译：提交到调度器即返回任务对象（不阻塞、多任务并行、文内保序）。
