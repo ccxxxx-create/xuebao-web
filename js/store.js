@@ -36,7 +36,7 @@
     fontZoom: "M",             // 旧版字号档位（迁移到 fontSizePx）
     fontSizePx: null,          // 字号基准 px（默认 16，迁移函数兜底）
     theme: "",                 // 界面主题：""=蓝天 / night=深空夜航 / paper=纸面学报 / gray=极简灰
-    pet: "xiaoyi",             // 阅读宠物（试点）：""=关闭 / xiaoyi=小翼；由后台任务驱动状态机
+    pet: "",                   // 阅读宠物：默认关闭（2026-09-28 用户拍板，需要时设置里手动打开）/ xiaoyi=小翼；由后台任务驱动状态机
     autoTune: false,           // 自动微调排序权重（可关；每日最多一次；尊重手动）
     lastAutoTuneAt: 0,         // 上次自动微调时间戳
     lastManualRankAt: 0,       // 上次手动调权时间戳（供自动微调短时回避）
@@ -56,8 +56,8 @@
     // 状态
     lastPullAt: 0,
     lastMirrorUpdatedAt: null,
-    appVersion: "1.26.3",
-    versionCode: 78,
+    appVersion: "1.26.4",
+    versionCode: 79,
     libDualTitle: true,          // 资料库标题：中英双语展示；关=仅英文
     updateRepo: "ccxxxx-create/xuebao-web",   // 更新通知仓库：update.json（部署网址为 gh-pages 时本仓库 Pages）
     lastUpdateCheck: 0,
