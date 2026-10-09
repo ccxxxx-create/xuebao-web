@@ -231,19 +231,10 @@
       '<div class="bg-body"' + (open ? "" : " hidden") + ">" + inner + "</div></div>";
   }
 
-  /* 资料刷新（唯一自动取数通道，默认开）；时间点用时段多选，免手填 */
-  var TIME_OPTS = ["06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
+  /* 资料刷新（v1.27：官方信源由系统统一自动汇集，不再暴露时段选择与手动拉取） */
   function refreshSectionHtml(s) {
-    var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
     return subHead("资料刷新") +
-      '<label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="rfOn"' + (s.autoRefresh ? " checked" : "") + "> 每日定时自动刷新官方信源</label>" +
-      '<div class="field"><label>刷新时段（多选，至少一个；到点各静默拉取一次）</label>' +
-      '<div class="time-chips" id="rfChips">' +
-      TIME_OPTS.map(function (t) {
-        return '<button type="button" class="time-chip' + (rt.indexOf(t) >= 0 ? " on" : "") + '" data-t="' + t + '">' + t + "</button>";
-      }).join("") + "</div></div>" +
-      '<p class="muted">到设定时间各静默拉取一次；失败不打扰，留待下一时段自动重试。</p>' +
-      '<div class="art-actions"><button class="btn primary" id="rfSave">保存刷新设置</button></div>';
+      '<p class="muted">官方信源由系统每日自动汇集与更新（含译文），无需手动操作；数据到达后自动入库。</p>';
   }
 
   /* 自动化（除资料刷新外默认全部关闭）；开关即点即存，不再设总保存按钮 */
@@ -311,10 +302,6 @@
     return subHead("信源与更新") +
       '<p class="muted">9 个官方信源每日定时汇集；可在此停用/启用单个信源（仅作用于本设备，历史数据保留）。</p>' +
       srcTableHtml(s) +
-      '<div class="art-actions" style="margin-top:10px">' +
-      '<button class="btn primary" id="srcPull">↻ 立即更新</button>' +
-      (App.manualPullLeftMin && App.manualPullLeftMin() > 0 ? '<span class="muted">冷却中：' + App.manualPullLeftMin() + " 分钟</span>" : "") +
-      "</div>" +
       subHead("信源状态") + mirrorStatusHtml(s) +
       '<div class="field"><label>信源汇集仓库（系统统一维护，请勿修改）</label>' +
       '<div class="mono">' + H.esc(s.mirrorRepo || "未配置") + "</div></div>" +
@@ -349,7 +336,7 @@
       qa("排行榜怎么排序", "「今日榜」看时效；「兴趣榜」按 兴趣相关 / 新鲜度 / 来源权威 / 热度 加权，并保留一小部分探索位给新内容。权重在「模型与智能服务 → 排序与喜好学习」用高/中/低调节。") +
       qa("翻译与摘要怎么开", "新文章的中文全文译文由系统每日自动备好，打开文章切到「中英对照」即可阅读，无需任何配置。自己的模型只在旧文章补译、标题/摘要、出刊等进阶场景才需要：在「模型与智能服务」里配置，密钥只保存在本机。收藏时自动翻译/摘要等开关默认关闭，按需打开。") +
       qa("学报怎么出", "在「资料库」或收藏夹给文章点「出草稿」，模型编译进学报页的草稿箱；在学报页人工修改正文、或写建议让模型返工，满意后点「正式存入」生成 Word 文档并记录存档。模板可在学报页上传自己的范文来解构。") +
-      qa("资料怎么更新", "每天在设定时段（默认 09:00 / 12:00 / 18:00）自动刷新官方信源；总览页的「立即更新」按钮有 10 分钟冷却，防止请求过密。") +
+      qa("资料怎么更新", "官方信源每天由系统自动汇集与翻译（含全文中文），数据到达后自动入库，无需手动操作。") +
       qa("数据存在哪、怎么迁移", "所有数据与设置只保存在本机浏览器，不会上传。换设备前先「导出备份 JSON」，在新设备的「数据与刷新 → 本机占用」里导入即可。") +
       qa("宠物有什么玩法", "宠物是后台任务的「看得见的陪伴」：干活时带上配件、出错会皱眉、全部完成会欢呼；平时会眨眼、东张西望。没任务时点一点它，偶尔投喂个小零食；手机端可以按住拖动，靠边会自动收起。") +
       qa("版本更新与公告", "打开页面会自动检查新版本（约 10 分钟一次，也可在「信源与更新」区手动检查）。有新版会弹窗提示；每次更新的说明都会作为公告投递到收件箱。") +
@@ -367,8 +354,7 @@
       var themeSum = (THEMES.filter(function (t) { return (t[0] || "") === (s.theme || ""); })[0] || ["", "蓝天"])[1].split(" · ")[0];
       var petName = s.pet ? (PETS.filter(function (p) { return p[0] === s.pet; })[0] || ["", ""])[1].split(" · ")[0] : "关";
       var modelOk = !!(LLM.endpoint(s).baseUrl && LLM.endpoint(s).model && s.apiKey);
-      var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
-      var dataSum = s.autoRefresh ? "每天 " + rt.join(" / ") : "手动更新";
+      var dataSum = "每天自动更新";
       el.innerHTML =
         '<div class="view-head"><div><h1 class="view-title">设置</h1>' +
         '<p class="view-sub">按分组收纳，点标题展开；用不上「帮助」里的说明，随时可以来查。</p></div></div>' +
@@ -613,8 +599,7 @@
           App.toast(on ? "已启用该信源（下次拉取恢复收录）" : "已停用该信源（历史数据保留，不再收录）", "ok");
           App.refresh();
         });
-        var srcPull = root.querySelector("#srcPull");
-        if (srcPull) srcPull.addEventListener("click", function () { App.manualPull(); });
+        // v1.27：手动「立即更新」入口已移除（系统统一自动汇集）
         // 清理
         root.querySelector("#clSave").addEventListener("click", function () {
           s.retentionDays = parseInt(root.querySelector("#clDays").value, 10) || 90;
@@ -637,24 +622,7 @@
             h.classList.toggle("collapsed", !show);
           });
         });
-        // 资料刷新（定时自动取数；时段 chips 多选）
-        var rfOn = root.querySelector("#rfOn");
-        root.querySelector("#rfChips").addEventListener("click", function (e) {
-          var chip = e.target.closest(".time-chip");
-          if (!chip) return;
-          chip.classList.toggle("on");
-        });
-        root.querySelector("#rfSave").addEventListener("click", function () {
-          var times = Array.prototype.map.call(root.querySelectorAll("#rfChips .time-chip.on"), function (c) {
-            return c.dataset.t;
-          }).sort();
-          if (!times.length) { App.toast("请至少选择一个刷新时段", "err"); return; }
-          s.autoRefresh = rfOn.checked;
-          s.refreshTimes = times;
-          Store.saveSettings();
-          App.toast("刷新设置已保存：每天 " + times.join("、") + " 自动更新", "ok");
-          App.refresh();
-        });
+        // 资料刷新（v1.27：系统统一自动汇集，无用户可调项；旧绑定点已移除）
         // —— 兴趣相关（关键词/喜好学习）已移至左侧「兴趣中心」页 ——
         // 自动化开关：全部即点即存（v1.24 取消统一保存按钮）
         function bindToggle(id, key, onMsg, offMsg) {
