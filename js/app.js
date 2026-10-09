@@ -846,25 +846,9 @@
         return false;
       });
     },
-    /* 手动“立即更新”：带冷却（默认 10 分钟），防止频繁拉取被源站限流 */
+    /* 手动“立即更新”：v1.27 起入口已全部移除（系统统一自动汇集），保留函数兜底直接走一次静默拉取 */
     manualPull: function () {
-      var s = Store.settings;
-      var cd = (parseInt(s.manualPullCdMin, 10) || 10) * 60000;
-      var last = s.lastPullAt || 0;
-      if (last && Date.now() - last < cd) {
-        var left = Math.ceil((cd - (Date.now() - last)) / 60000);
-        App.toast("拉取太频繁：源站有限流风险，请 " + left + " 分钟后再试（每日定时刷新不受影响）", "err");
-        return;
-      }
-      App.pullNow({ quiet: false });
-    },
-    manualPullLeftMin: function () {
-      var s = Store.settings;
-      var cd = (parseInt(s.manualPullCdMin, 10) || 10) * 60000;
-      var last = s.lastPullAt || 0;
-      if (!last) return 0;
-      var left = Math.ceil((cd - (Date.now() - last)) / 60000);
-      return left > 0 ? left : 0;
+      App.pullNow({ quiet: true });
     },
     /* 自动离线回测：打开页面时检查（每日最多一次，结果投递收件箱；纯本地零模型成本） */
     maybeAutoBacktest: function () {
@@ -883,11 +867,12 @@
         return !!(r && r.ok);
       }).catch(function () { return false; });
     },
-    /* 每日固定时间自动刷新（唯一拉取通道）：到位且当日该时段未拉则静默拉一次 */
+    /* 每日固定时间自动刷新（唯一拉取通道）：到位且当日该时段未拉则静默拉一次
+       v1.27：时段由系统固定（跟随云端抓取+翻译节奏：07:00 接早班、12:00 午间补拉、21:30 接晚班），不再读用户设置 */
     refreshIfDue: function () {
       var s = Store.settings;
       if (!s.autoRefresh || pulling || navigator.onLine === false) return;
-      var times = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
+      var times = ["07:00", "12:00", "21:30"];
       var day = H.ymd();
       var slots = s.refreshSlots || {};
       var done = slots[day] || [];
