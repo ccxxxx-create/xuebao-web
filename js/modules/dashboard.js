@@ -17,8 +17,7 @@
       var favN = arts.filter(function (a) { return a.fav; }).length;
       var selected = arts.filter(function (a) { return a.selected; }).length;
       var s = Store.settings;
-      var rt = (s.refreshTimes && s.refreshTimes.length) ? s.refreshTimes : ["09:00", "12:00", "18:00"];
-      var rtStr = rt.join("、");
+      var rtStr = "每天自动更新";
 
       if (isMobile()) {
         el.innerHTML = mobileHtml(arts, journals);
@@ -29,10 +28,8 @@
           '<p class="view-sub">外军防务资讯智能工作台 · 每日自动更新 · 支持中英对照阅读与一键出刊</p>' +
           "</div>" +
           '<div class="head-actions" style="flex-direction:column;align-items:flex-end">' +
-          '<button class="btn sm primary" id="dfPull">↻ 立即更新</button>' +
-          '<div class="muted" style="text-align:right">定时刷新：每日 ' + H.esc(rtStr) + '<br>' +
+          '<div class="muted" style="text-align:right">官方信源每日自动汇集更新<br>' +
           '上次拉取：' + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") +
-          (App.manualPullLeftMin && App.manualPullLeftMin() > 0 ? '<br>手动更新冷却中：' + App.manualPullLeftMin() + " 分钟" : "") +
           "</div></div></div>" +
 
           '<div class="grid g2" style="margin-bottom:14px">' +
@@ -54,10 +51,7 @@
           if (title) { UI.openArticle(title.dataset.url, "dashboard"); return; }
           var rk = e.target.closest("[data-goto]");
           if (rk) { App.route("#/" + rk.dataset.goto); return; }
-          var pull = e.target.closest("#dfPull");
-          if (pull) { App.manualPull(); return; }
-          var pull2 = e.target.closest("[data-pull]");
-          if (pull2) { App.manualPull(); return; }
+          // v1.27：手动更新入口移除（系统统一自动汇集）
         });
       }
 
@@ -67,7 +61,7 @@
 
       /* —— 桌面端：最近入库列表（保持原样） —— */
       function recentHtml(list, rtStr) {
-        if (!list.length) return '<div class="empty"><b>资料库为空</b>待每日定时刷新（' + H.esc(rtStr) + "）自动汇集官方信源。</div>";
+        if (!list.length) return '<div class="empty"><b>资料库为空</b>官方信源每天自动汇集更新，稍后再来看看。</div>';
         var top = list.slice().sort(function (a, b) { return String(b.pubDate).localeCompare(String(a.pubDate)); }).slice(0, 6);
         return '<div>' + top.map(function (a) {
           return '<div class="art" style="margin-bottom:8px"><div class="art-head">' +
@@ -92,7 +86,6 @@
       /* —— 手机端：总览增强版 —— */
       function mobileHtml(arts, journals) {
         var top = todayTop(arts, 5);
-        var pullLeft = (App.manualPullLeftMin && App.manualPullLeftMin() > 0) ? (" · 冷却 " + App.manualPullLeftMin() + " 分钟") : "";
         return (
           // 今日榜 TOP 区块
           '<div class="card m-card-today">' +
@@ -110,11 +103,10 @@
           mStat(favN, "收藏", "#/favorites") +
           "</div>" +
 
-          // 刷新状态一行小字 + 立即更新按钮
+          // 刷新状态一行小字（v1.27：手动更新入口移除，系统统一自动汇集）
           '<div class="m-refresh">' +
-          '<div class="m-refresh-info"><span>定时刷新：每日 ' + H.esc(rtStr) + "</span>" +
-          "<span>上次拉取：" + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") + H.esc(pullLeft) + "</span></div>" +
-          '<button class="btn sm primary" data-pull="1">↻ 立即更新</button>' +
+          '<div class="m-refresh-info"><span>官方信源每日自动汇集更新</span>' +
+          "<span>上次拉取：" + (s.lastPullAt ? H.fmtDateTime(s.lastPullAt) : "从未") + "</span></div>" +
           "</div>" +
 
           // 最近入库
